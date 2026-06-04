@@ -1,18 +1,124 @@
 # Skill: Bootstrap
 
-Seed CodePress Domain Memory from an existing codebase.
+Set up CodePress for a project — configure working style, then seed Domain Memory.
+
+Run this once when adding CodePress to an existing project, or to a new project before the first Galley.
 
 ---
 
-## When to use
+## Phase 1: Configure — populate codepress.md
 
-- First-time setup of CodePress in an existing project
-- After a long period of development without CodePress
-- When Domain Memory feels stale or significantly incomplete
+Ask the following questions before touching the codebase.
+Populate `codepress.md` from the answers.
 
 ---
 
-## Steps
+### Q1 — Project identity
+
+> "What is this project? Give it a name and a one-line description."
+
+Populate:
+```
+## Project
+name: {answer}
+description: {answer}
+```
+
+---
+
+### Q2 — Release theme
+
+> "Do you want to give each release a themed codename?
+> Examples: 80s movies, Miyazaki films, jazz albums, space missions, Bowie albums.
+> Or skip if you prefer plain version numbers."
+
+If yes, ask for the theme name and a pool of 8–10 names.
+Populate:
+```
+## Release Theme
+Each release is named after {theme}.
+Pool: {names}
+```
+
+If skipped, remove the Release Theme section from `codepress.md`.
+
+---
+
+### Q3 — Working pace
+
+> "How do you want to work on this project?
+>
+> **fast** — move quickly, iterate, minimal checkpoints. Good for prototypes and early exploration.
+> **balanced** — human approves Galley shape before delivery starts. Review at key boundaries.
+> **careful** — frequent checkpoints, human reviews each stage. Good for production-critical or regulated work.
+>
+> Which fits best — fast, balanced, or careful?"
+
+Populate:
+```
+pace: {answer}
+```
+
+Then infer sensible defaults based on pace:
+
+| Pace | Default autonomy | Suggested approval gates |
+|---|---|---|
+| fast | continuous | none required |
+| balanced | continuous | shaping → approved |
+| careful | confirm | shaping → approved, review → done |
+
+Ask: *"Are these defaults right, or do you want to adjust them?"*
+
+Populate approval gates and default-autonomy accordingly.
+
+---
+
+### Q4 — Team and roles
+
+> "Is this a solo project, or are others involved?
+> If there's a team, what roles exist? (e.g. human shaper + AI builder, full team with reviewers, etc.)"
+
+Populate:
+```
+team-size: {solo | small-team | team}
+Roles:
+- {list}
+```
+
+---
+
+### Q5 — Quality bar
+
+> "Two quick questions about standards:
+>
+> 1. Testing: what does 'done' require? (e.g. unit tests for logic, E2E for journeys, none for now)
+> 2. PR policy: should code go through a PR before merging, or commit directly?"
+
+Populate the Testing expectations and PR policy sections.
+
+---
+
+### Q6 — Any conventions?
+
+> "Anything specific about how this project works that AI agents should know?
+> For example: naming conventions, folder patterns, things to always or never do."
+
+Populate the Conventions section, or leave blank if nothing to add.
+
+---
+
+### Confirm before continuing
+
+Show the populated `codepress.md` and ask:
+*"Does this look right? I'll use this to guide how I work on this project."*
+
+Apply any corrections, then proceed to Phase 2.
+
+---
+
+## Phase 2: Seed Domain Memory
+
+Scan the codebase and populate `05-domain/`.
 
 ### 1. Scan the codebase
 
@@ -57,15 +163,17 @@ Focus on: obvious gaps, known pain points, the next logical step.
 
 ### 7. Report
 
-Summarise what was seeded and what still needs human review or correction.
+Summarise what was configured and what was seeded.
+Flag anything uncertain — do not invent facts about the codebase.
 
 ---
 
 ## Output
 
-- `05-domain/concepts.md` populated
-- `05-domain/glossary.md` populated
-- `05-domain/current-state.md` populated
+- `codepress.md` fully populated
+- `05-domain/concepts.md` seeded
+- `05-domain/glossary.md` seeded
+- `05-domain/current-state.md` seeded
 - `05-domain/index.md` module map updated
 - 1–2 draft Initiatives in `01-initiatives/`
 
@@ -73,6 +181,6 @@ Summarise what was seeded and what still needs human review or correction.
 
 ## Notes
 
-This is a first pass. Domain Memory will be imperfect.
-Flag anything uncertain — do not invent facts about the codebase.
-Prefer a useful stub over waiting for perfection.
+Phase 1 must complete before Phase 2.
+`codepress.md` sets the working style that all agents will follow — get it right first.
+Domain Memory is a first pass. It will be imperfect. Prefer a useful stub over waiting for perfection.
