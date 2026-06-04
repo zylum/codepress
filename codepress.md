@@ -7,6 +7,7 @@
 ## Project
 name: 
 description: 
+garner-project:     # path relative to garner silos/ e.g. marv/projects/loom
 
 ---
 
@@ -74,7 +75,8 @@ Roles:
 ```
 ## Project
 name: Loom
-description: An async video messaging tool for distributed teams.
+description: MCP and access layer connecting AI systems to Garner.
+garner-project: marv/projects/loom
 
 ## Release Theme
 Each release is named after an iconic 80s movie.
