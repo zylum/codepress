@@ -18,21 +18,21 @@ Read through all Slugs. Collect observations:
 - What was harder or easier than expected?
 - What would you do differently next time?
 
-Record in `product/galleys/{id}/review.md`.
+Record in `.codepress/product/galleys/{id}/review.md`.
 
 ### 2. Identify Pattern candidates
 
-Review new Signals against existing Patterns in `knowledge/patterns/`.
+Review new Signals against existing Patterns in `.codepress/knowledge/patterns/`.
 A Signal becomes a Pattern when it appears in 2+ Galleys or is immediately generalizable.
 
 ### 3. Update Knowledge
 
-Update `knowledge/` to reflect any new concepts, decisions, or state changes introduced by this Galley.
+Update `.codepress/knowledge/` to reflect any new concepts, decisions, or state changes introduced by this Galley.
 
 ### 4. Close
 
 - Update Galley frontmatter: `status: done`
-- Update `views/galley-board.md`
+- Update `.codepress/views/galley-board.md`
 - Commit: `galley:{name} done`
 
 ---

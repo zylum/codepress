@@ -28,7 +28,7 @@ Understand the full shape: Problem, Approach, Acceptance Criteria, Constraints.
 
 ### 4. Create run-sheet and Slugs
 
-Create `run-sheet.md` and individual Slug files in `product/galleys/{id}/slugs/`.
+Create `run-sheet.md` and individual Slug files in `.codepress/product/galleys/{id}/slugs/`.
 
 For each Slug, set:
 - Purpose (one sentence)
@@ -43,7 +43,7 @@ Create a blank `review.md` ready for signal capture during delivery.
 ### 6. Update status
 
 - Update Galley frontmatter: `status: delivering`
-- Update `views/galley-board.md` — move card to Delivering
+- Update `.codepress/views/galley-board.md` — move card to Delivering
 
 ---
 

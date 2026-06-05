@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VERSION="0.1.0"
 SOURCE_REPO="https://github.com/zylum/codepress"
-CONFIG_FILE="system/codepress.md"
+CONFIG_FILE=".codepress/system/codepress.md"
 
 get_codepress_version() {
   if [[ -f "$CONFIG_FILE" ]]; then
@@ -28,7 +28,7 @@ CodePress v$VERSION — compound product development operating system.
 
 Usage:
   codepress init                  Bootstrap CodePress in this directory
-  codepress upgrade               Update system/ files from source
+  codepress upgrade               Update .codepress/system/ files from source
   codepress migrate               Migrate from old numbered structure
   codepress status                Show project health at a glance
 
@@ -38,7 +38,7 @@ Usage:
 
   codepress -h|--help             Show this help
 
-See system/playbooks/ and system/skills/ for workflow docs.
+See .codepress/system/playbooks/ and .codepress/system/skills/ for workflow docs.
 EOF
 }
 
@@ -48,39 +48,39 @@ cmd_init() {
   echo "CodePress init v$VERSION"
   echo ""
 
-  if [[ -d "system" ]]; then
+  if [[ -d ".codepress/system" ]]; then
     local v
     v=$(get_codepress_version)
-    echo "→ CodePress v$v already bootstrapped here (system/ exists)."
-    echo "  Run 'codepress upgrade' to update system/ files."
+    echo "→ CodePress v$v already bootstrapped here (.codepress/system/ exists)."
+    echo "  Run 'codepress upgrade' to update .codepress/system/ files."
     echo "  Run 'codepress migrate' if upgrading from an older structure."
     exit 0
   fi
 
   echo "→ Bootstrapping CodePress structure..."
 
-  mkdir -p system/{playbooks,skills,templates,hooks}
-  mkdir -p product/{initiatives,galleys,releases}
-  mkdir -p knowledge/{decisions,signals,patterns}
-  mkdir -p views docs src
+  mkdir -p .codepress/system/{playbooks,skills,templates,hooks}
+  mkdir -p .codepress/product/{initiatives,galleys,releases}
+  mkdir -p .codepress/knowledge/{decisions,signals,patterns}
+  mkdir -p .codepress/views docs src
 
   cat > AGENTS.md << 'EOF'
 # CodePress
 
-See `system/AGENTS.md` for the full operating manual.
+See `.codepress/system/AGENTS.md` for the full operating manual.
 EOF
 
-  # Copy system/ — from bundled files or source repo
-  if [[ -d "$SCRIPT_DIR/system" ]]; then
+  # Copy .codepress/system/ — from bundled files or source repo
+  if [[ -d "$SCRIPT_DIR/.codepress/system" ]]; then
     echo "→ Copying system files (bundled)..."
-    cp -r "$SCRIPT_DIR/system/." system/
+    cp -r "$SCRIPT_DIR/.codepress/system/." .codepress/system/
   else
     local src tmp
     src=$(get_codepress_source)
     tmp=$(mktemp -d)
     echo "→ Fetching system files from $src..."
-    if git clone --depth 1 --quiet "$src" "$tmp/repo" 2>/dev/null && [[ -d "$tmp/repo/system" ]]; then
-      cp -r "$tmp/repo/system/." system/
+    if git clone --depth 1 --quiet "$src" "$tmp/repo" 2>/dev/null && [[ -d "$tmp/repo/.codepress/system" ]]; then
+      cp -r "$tmp/repo/.codepress/system/." .codepress/system/
     else
       echo "✗ Could not fetch from $src"
       echo "  Clone the repo manually: git clone $src"
@@ -92,7 +92,7 @@ EOF
 
   echo ""
   echo "✓ CodePress v$VERSION bootstrapped."
-  echo "  Next: populate system/codepress.md with your project config"
+  echo "  Next: populate .codepress/system/codepress.md with your project config"
   echo "  Then: run 'codepress status' to verify"
 }
 
@@ -104,8 +104,8 @@ cmd_upgrade() {
   echo "CodePress upgrade v$current → latest"
   echo ""
 
-  if [[ ! -d "system" ]]; then
-    echo "✗ Not a CodePress project (system/ not found). Run 'codepress init' first."
+  if [[ ! -d ".codepress/system" ]]; then
+    echo "✗ Not a CodePress project (.codepress/system/ not found). Run 'codepress init' first."
     exit 1
   fi
 
@@ -122,10 +122,10 @@ cmd_upgrade() {
   fi
 
   local latest
-  if [[ -f "$tmp/repo/system/codepress.md" ]]; then
-    latest=$(grep -m1 "^codepress-version:" "$tmp/repo/system/codepress.md" 2>/dev/null | sed 's/codepress-version: *//' || echo "0.0.0")
+  if [[ -f "$tmp/repo/.codepress/system/codepress.md" ]]; then
+    latest=$(grep -m1 "^codepress-version:" "$tmp/repo/.codepress/system/codepress.md" 2>/dev/null | sed 's/codepress-version: *//' || echo "0.0.0")
   else
-    echo "✗ No system/ found in source repo."
+    echo "✗ No .codepress/system/ found in source repo."
     exit 1
   fi
 
@@ -137,7 +137,7 @@ cmd_upgrade() {
     return
   fi
 
-  # Check for local modifications in system/
+  # Check for local modifications in .codepress/system/
   local local_mods=0
   while IFS= read -r f; do
     if [[ -f "$f" ]]; then
@@ -150,7 +150,7 @@ cmd_upgrade() {
         local_mods=$((local_mods + 1))
       fi
     fi
-  done < <(cd "$tmp/repo" && find system -type f | sed 's|^\./||')
+  done < <(cd "$tmp/repo" && find .codepress/system -type f | sed 's|^\./||')
 
   echo ""
   echo "→ Files to add/update:"
@@ -167,7 +167,7 @@ cmd_upgrade() {
       echo "    +  $f"
       count=$((count + 1))
     fi
-  done < <(cd "$tmp/repo" && find system -type f | sed 's|^\./||')
+  done < <(cd "$tmp/repo" && find .codepress/system -type f | sed 's|^\./||')
 
   if [[ "$count" -eq 0 && "$local_mods" -eq 0 ]]; then
     echo "  (nothing to change)"
@@ -194,7 +194,7 @@ cmd_upgrade() {
     mkdir -p "$(dirname "$target")"
     cp "$source" "$target"
     copied=$((copied + 1))
-  done < <(cd "$tmp/repo" && find system -type f | sed 's|^\./||')
+  done < <(cd "$tmp/repo" && find .codepress/system -type f | sed 's|^\./||')
 
   echo ""
   echo "✓ Upgraded from v$current to v$latest ($copied files updated)."
@@ -222,36 +222,36 @@ cmd_migrate() {
 
   echo ""
   echo "  This rewrites the old numbered structure into:"
-  echo "    01-initiatives/   → product/initiatives/"
-  echo "    02-product/       → product/galleys/"
-  echo "    03-delivery/      → views/"
-  echo "    04-patterns/      → knowledge/patterns/ + knowledge/signals/"
-  echo "    05-domain/        → knowledge/"
-  echo "    codepress.md      → system/codepress.md"
-  echo "    AGENTS.md         → system/AGENTS.md"
-  echo "    playbooks/        → system/playbooks/"
-  echo "    skills/           → system/skills/"
+  echo "    01-initiatives/   → .codepress/product/initiatives/"
+  echo "    02-product/       → .codepress/product/galleys/"
+  echo "    03-delivery/      → .codepress/views/"
+  echo "    04-patterns/      → .codepress/knowledge/patterns/ + .codepress/knowledge/signals/"
+  echo "    05-domain/        → .codepress/knowledge/"
+  echo "    codepress.md      → .codepress/system/codepress.md"
+  echo "    AGENTS.md         → .codepress/system/AGENTS.md"
+  echo "    playbooks/        → .codepress/system/playbooks/"
+  echo "    skills/           → .codepress/system/skills/"
   echo ""
   read -p "  Continue? [y/N] " confirm
   [[ "$confirm" != "y" && "$confirm" != "Y" ]] && echo "  Aborted." && exit 0
 
-  mkdir -p system/{playbooks,skills,templates,hooks} product/{initiatives,galleys,releases} knowledge/{decisions,signals,patterns} views docs
+  mkdir -p .codepress/system/{playbooks,skills,templates,hooks} .codepress/product/{initiatives,galleys,releases} .codepress/knowledge/{decisions,signals,patterns} .codepress/views docs
 
-  [[ -d "01-initiatives" ]] && mv 01-initiatives/* product/initiatives/ 2>/dev/null && rm -rf 01-initiatives && echo "  ✓ 01-initiatives → product/initiatives/"
-  [[ -d "02-product" ]] && mv 02-product/* product/galleys/ 2>/dev/null && rm -rf 02-product && echo "  ✓ 02-product → product/galleys/"
-  [[ -f "03-delivery/board.md" ]] && mv 03-delivery/board.md views/galley-board.md 2>/dev/null && rm -rf 03-delivery && echo "  ✓ 03-delivery → views/"
-  [[ -d "04-patterns" ]] && mv 04-patterns/* knowledge/ 2>/dev/null; [[ -d "04-patterns" ]] && rm -rf 04-patterns && echo "  ✓ 04-patterns → knowledge/"
-  [[ -d "05-domain" ]] && mv 05-domain/* knowledge/ 2>/dev/null && rm -rf 05-domain && echo "  ✓ 05-domain → knowledge/"
-  [[ -f "codepress.md" ]] && mv codepress.md system/codepress.md 2>/dev/null && echo "  ✓ codepress.md → system/codepress.md"
-  [[ -f "AGENTS.md" ]] && mv AGENTS.md system/AGENTS.md 2>/dev/null && echo "  ✓ AGENTS.md → system/AGENTS.md"
-  [[ -d "playbooks" && ! -d "system/playbooks" ]] && mv playbooks system/playbooks 2>/dev/null && echo "  ✓ playbooks → system/playbooks/"
-  [[ -d "skills" && ! -d "system/skills" ]] && mv skills system/skills 2>/dev/null && echo "  ✓ skills → system/skills/"
-  [[ -d "hooks" && ! -d "system/hooks" ]] && mv hooks system/hooks 2>/dev/null && echo "  ✓ hooks → system/hooks/"
+  [[ -d "01-initiatives" ]] && mv 01-initiatives/* .codepress/product/initiatives/ 2>/dev/null && rm -rf 01-initiatives && echo "  ✓ 01-initiatives → .codepress/product/initiatives/"
+  [[ -d "02-product" ]] && mv 02-product/* .codepress/product/galleys/ 2>/dev/null && rm -rf 02-product && echo "  ✓ 02-product → .codepress/product/galleys/"
+  [[ -f "03-delivery/board.md" ]] && mv 03-delivery/board.md .codepress/views/galley-board.md 2>/dev/null && rm -rf 03-delivery && echo "  ✓ 03-delivery → .codepress/views/"
+  [[ -d "04-patterns" ]] && mv 04-patterns/* .codepress/knowledge/ 2>/dev/null; [[ -d "04-patterns" ]] && rm -rf 04-patterns && echo "  ✓ 04-patterns → .codepress/knowledge/"
+  [[ -d "05-domain" ]] && mv 05-domain/* .codepress/knowledge/ 2>/dev/null && rm -rf 05-domain && echo "  ✓ 05-domain → .codepress/knowledge/"
+  [[ -f "codepress.md" ]] && mv codepress.md .codepress/system/codepress.md 2>/dev/null && echo "  ✓ codepress.md → .codepress/system/codepress.md"
+  [[ -f "AGENTS.md" ]] && mv AGENTS.md .codepress/system/AGENTS.md 2>/dev/null && echo "  ✓ AGENTS.md → .codepress/system/AGENTS.md"
+  [[ -d "playbooks" && ! -d ".codepress/system/playbooks" ]] && mv playbooks .codepress/system/playbooks 2>/dev/null && echo "  ✓ playbooks → .codepress/system/playbooks/"
+  [[ -d "skills" && ! -d ".codepress/system/skills" ]] && mv skills .codepress/system/skills 2>/dev/null && echo "  ✓ skills → .codepress/system/skills/"
+  [[ -d "hooks" && ! -d ".codepress/system/hooks" ]] && mv hooks .codepress/system/hooks 2>/dev/null && echo "  ✓ hooks → .codepress/system/hooks/"
 
   cat > AGENTS.md << 'EOF'
 # CodePress
 
-See `system/AGENTS.md` for the full operating manual.
+See `.codepress/system/AGENTS.md` for the full operating manual.
 EOF
 
   echo ""
@@ -270,10 +270,10 @@ cmd_status() {
   echo ""
 
   # Galleys
-  if [[ -d "product/galleys" ]]; then
+  if [[ -d ".codepress/product/galleys" ]]; then
     local galley_count=0
     echo "  Galleys:"
-    for galley in product/galleys/*/; do
+    for galley in .codepress/product/galleys/*/; do
       name=$(basename "$galley")
       [[ "$name" == _* ]] && continue
       galley_count=$((galley_count + 1))
@@ -285,26 +285,26 @@ cmd_status() {
     done
     [[ "$galley_count" -eq 0 ]] && echo "    (none)"
   else
-    echo "  Galleys:  (product/galleys/ not found)"
+    echo "  Galleys:  (.codepress/product/galleys/ not found)"
   fi
 
   echo ""
 
   # Knowledge
   local patterns=0 signals=0 decisions=0
-  [[ -d "knowledge/patterns" ]] && patterns=$(ls knowledge/patterns/*.md 2>/dev/null | grep -v _template.md | wc -l | tr -d ' ')
-  [[ -d "knowledge/signals" ]] && signals=$(ls knowledge/signals/*.md 2>/dev/null | wc -l | tr -d ' ')
-  [[ -d "knowledge/decisions" ]] && decisions=$(ls knowledge/decisions/*.md 2>/dev/null | wc -l | tr -d ' ')
+  [[ -d ".codepress/knowledge/patterns" ]] && patterns=$(ls .codepress/knowledge/patterns/*.md 2>/dev/null | grep -v _template.md | wc -l | tr -d ' ')
+  [[ -d ".codepress/knowledge/signals" ]] && signals=$(ls .codepress/knowledge/signals/*.md 2>/dev/null | wc -l | tr -d ' ')
+  [[ -d ".codepress/knowledge/decisions" ]] && decisions=$(ls .codepress/knowledge/decisions/*.md 2>/dev/null | wc -l | tr -d ' ')
   echo "  Knowledge:  $patterns patterns  |  $signals signals  |  $decisions decisions"
 
   # Initiatives
   local initiatives=0
-  [[ -d "product/initiatives" ]] && initiatives=$(ls product/initiatives/*.md 2>/dev/null | wc -l | tr -d ' ')
+  [[ -d ".codepress/product/initiatives" ]] && initiatives=$(ls .codepress/product/initiatives/*.md 2>/dev/null | wc -l | tr -d ' ')
   echo "  Initiatives:  $initiatives"
 
   # Releases
   local releases=0
-  [[ -d "product/releases" ]] && releases=$(ls product/releases/*.md 2>/dev/null | wc -l | tr -d ' ')
+  [[ -d ".codepress/product/releases" ]] && releases=$(ls .codepress/product/releases/*.md 2>/dev/null | wc -l | tr -d ' ')
   echo "  Releases:  $releases"
 }
 
@@ -317,7 +317,7 @@ cmd_galley_new() {
     exit 1
   fi
 
-  local dir="product/galleys/$name"
+  local dir=".codepress/product/galleys/$name"
   if [[ -d "$dir" ]]; then
     echo "✗ Galley '$name' already exists at $dir/"
     exit 1
@@ -325,8 +325,8 @@ cmd_galley_new() {
 
   mkdir -p "$dir/slugs"
 
-  if [[ -f "system/templates/galley.md" ]]; then
-    cp "system/templates/galley.md" "$dir/galley.md"
+  if [[ -f ".codepress/system/templates/galley.md" ]]; then
+    cp ".codepress/system/templates/galley.md" "$dir/galley.md"
     # Fill in the id
     if [[ "$OSTYPE" == "darwin"* ]]; then
       sed -i '' "s/^id: /id: $name/" "$dir/galley.md" 2>/dev/null
@@ -361,13 +361,13 @@ EOF
 }
 
 cmd_galley_list() {
-  if [[ ! -d "product/galleys" ]]; then
-    echo "  No galleys found (product/galleys/ does not exist)."
+  if [[ ! -d ".codepress/product/galleys" ]]; then
+    echo "  No galleys found (.codepress/product/galleys/ does not exist)."
     return
   fi
 
   local found=false
-  for galley in product/galleys/*/; do
+  for galley in .codepress/product/galleys/*/; do
     name=$(basename "$galley")
     [[ "$name" == _* ]] && continue
     found=true
@@ -397,7 +397,7 @@ cmd_galley_move() {
     exit 1
   fi
 
-  local file="product/galleys/$name/galley.md"
+  local file=".codepress/product/galleys/$name/galley.md"
   if [[ ! -f "$file" ]]; then
     echo "✗ Galley '$name' not found at $file"
     exit 1

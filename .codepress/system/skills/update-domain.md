@@ -25,10 +25,10 @@ Update Knowledge to reflect new concepts, decisions, or state changes.
 
 | What changed | Where to update |
 |---|---|
-| New concept | `knowledge/concepts.md` |
-| New term | `knowledge/glossary.md` |
-| Decision | `knowledge/decisions/{date}-{name}.md` |
-| State change | `knowledge/current-state.md` |
+| New concept | `.codepress/knowledge/concepts.md` |
+| New term | `.codepress/knowledge/glossary.md` |
+| Decision | `.codepress/knowledge/decisions/{date}-{name}.md` |
+| State change | `.codepress/knowledge/current-state.md` |
 
 ### 3. Write for the next reader
 

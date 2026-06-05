@@ -7,7 +7,7 @@ Placeholder for pattern distribution or notification.
 
 ## When to run
 
-After `system/skills/capture-pattern.md` creates or updates a Pattern in `knowledge/patterns/`.
+After `.codepress/system/skills/capture-pattern.md` creates or updates a Pattern in `.codepress/knowledge/patterns/`.
 
 ---
 

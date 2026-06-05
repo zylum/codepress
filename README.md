@@ -14,9 +14,9 @@ The software is the output. The growing capability of the system is the asset.
 
 | Pillar | Directory | What |
 |---|---|---|
-| **System** | `system/` | How we work — playbooks, skills, templates, hooks |
-| **Product** | `product/` | What we build — initiatives, galleys, slugs, releases |
-| **Knowledge** | `knowledge/` | What we know — concepts, glossary, decisions, patterns |
+| **System** | `.codepress/system/` | How we work — playbooks, skills, templates, hooks |
+| **Product** | `.codepress/product/` | What we build — initiatives, galleys, slugs, releases |
+| **Knowledge** | `.codepress/knowledge/` | What we know — concepts, glossary, decisions, patterns |
 
 A **Compound Loop** (Signal → Pattern → Knowledge) continuously improves all three.
 
@@ -45,41 +45,43 @@ codepress upgrade
 ## Structure
 
 ```
-codepress/
-├── system/             Operating System
-│   ├── codepress.md    Project config
-│   ├── AGENTS.md       Agent operating manual
-│   ├── playbooks/      How CodePress operates
-│   ├── skills/         AI-executable behaviours
-│   ├── templates/      Artefact templates
-│   └── hooks/          Automation hooks
-├── product/            Product System
-│   ├── initiatives/    Ideas and problems
-│   ├── galleys/        Shaped solutions
-│   └── releases/       Release notes
-├── knowledge/          Knowledge System
-│   ├── concepts.md     Core entities
-│   ├── glossary.md     Terminology
-│   ├── current-state.md What exists
-│   ├── decisions/      Architecture decisions
-│   ├── signals/        Raw observations
-│   └── patterns/       Reusable lessons
-├── views/              Helper views
-├── src/                Source code
-├── docs/               Jekyll docs site
-└── codepress           CLI tool
+your-project/
+├── .codepress/          All CodePress artefacts
+│   ├── system/          Operating System
+│   │   ├── codepress.md Project config
+│   │   ├── AGENTS.md    Agent operating manual
+│   │   ├── playbooks/   How CodePress operates
+│   │   ├── skills/      AI-executable behaviours
+│   │   ├── templates/   Artefact templates
+│   │   └── hooks/       Automation hooks
+│   ├── product/         Product System
+│   │   ├── initiatives/ Ideas and problems
+│   │   ├── galleys/     Shaped solutions
+│   │   └── releases/    Release notes
+│   ├── knowledge/       Knowledge System
+│   │   ├── concepts.md  Core entities
+│   │   ├── glossary.md  Terminology
+│   │   ├── current-state.md What exists
+│   │   ├── decisions/   Architecture decisions
+│   │   ├── signals/     Raw observations
+│   │   └── patterns/    Reusable lessons
+│   └── views/           Helper views
+├── src/                 Source code
+├── docs/                Project documentation
+├── AGENTS.md            Root pointer → .codepress/system/AGENTS.md
+└── codepress            CLI tool (in PATH or at root)
 ```
 
 ---
 
 ## Core workflow
 
-1. Capture an **Initiative** in `product/initiatives/`
-2. **Shape** it → `system/skills/create-galley.md` → Galley in `product/galleys/`
-3. **Split** into Slugs → `system/skills/split-galley.md`
-4. **Build** → `system/playbooks/build.md`
-5. **Review** → `system/skills/capture-pattern.md` → Signals → Patterns
-6. **Compound** → Update `knowledge/`
+1. Capture an **Initiative** in `.codepress/product/initiatives/`
+2. **Shape** it → `.codepress/system/skills/create-galley.md` → Galley in `.codepress/product/galleys/`
+3. **Split** into Slugs → `.codepress/system/skills/split-galley.md`
+4. **Build** → `.codepress/system/playbooks/build.md`
+5. **Review** → `.codepress/system/skills/capture-pattern.md` → Signals → Patterns
+6. **Compound** → Update `.codepress/knowledge/`
 
 ---
 

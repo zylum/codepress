@@ -17,12 +17,12 @@ Identify which done Galleys belong in this release.
 
 ### 2. Create release note
 
-Use `system/templates/release.md` to document what shipped.
-Save to `product/releases/{release-name}.md`.
+Use `.codepress/system/templates/release.md` to document what shipped.
+Save to `.codepress/product/releases/{release-name}.md`.
 
 ### 3. Run hooks
 
-Run `on-release` hooks in `system/hooks/on-release.md` for any post-release automation.
+Run `on-release` hooks in `.codepress/system/hooks/on-release.md` for any post-release automation.
 
 ### 4. Tag
 
@@ -31,5 +31,5 @@ Tag the release in version control using the release name or version number.
 ---
 
 ## Output
-- Release note in `product/releases/`
+- Release note in `.codepress/product/releases/`
 - Tagged release in git

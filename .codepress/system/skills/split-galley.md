@@ -12,7 +12,7 @@ An approved `galley.md` — status must be `approved`.
 ## Steps
 
 1. Read the full Galley (Problem, Approach, AC, Constraints)
-2. Read `knowledge/concepts.md` for module boundaries
+2. Read `.codepress/knowledge/concepts.md` for module boundaries
 3. Identify atomic units of work:
    - Each Slug should be independently deliverable
    - Each Slug should have verifiable acceptance criteria
@@ -20,15 +20,15 @@ An approved `galley.md` — status must be `approved`.
 4. Identify parallel opportunities:
    - Which Slugs touch different domain areas and can run concurrently?
    - Which must be sequential (data dependency, interface dependency)?
-5. Create `product/galleys/{galley-id}/run-sheet.md` with ordered Slug list
-6. Create each Slug at `product/galleys/{galley-id}/slugs/{id}-{name}.md`
+5. Create `.codepress/product/galleys/{galley-id}/run-sheet.md` with ordered Slug list
+6. Create each Slug at `.codepress/product/galleys/{galley-id}/slugs/{id}-{name}.md`
 7. For each Slug, set:
    - Purpose (one sentence)
    - Acceptance checklist (3–7 items)
    - Autonomy level (`continuous` / `confirm` / `stop`)
    - Dependencies (if any)
-8. Create `product/galleys/{galley-id}/review.md` from the template (blank, ready)
-9. Update `views/galley-board.md` — move card from Shaping to Delivering
+8. Create `.codepress/product/galleys/{galley-id}/review.md` from the template (blank, ready)
+9. Update `.codepress/views/galley-board.md` — move card from Shaping to Delivering
 10. Update Galley frontmatter: `status: delivering`
 
 ---

@@ -33,7 +33,7 @@ The loop that improves the entire system over time. Raw observations (Signals) b
 
 ## Do I need to use the CLI?
 
-No. The CLI is a helper, not a requirement. The playbooks, skills, and templates in `system/` contain everything you need. The CLI automates common tasks like bootstrapping and migration.
+No. The CLI is a helper, not a requirement. The playbooks, skills, and templates in `.codepress/system/` contain everything you need. The CLI automates common tasks like bootstrapping and migration.
 
 ## Can I customise the structure?
 
@@ -43,7 +43,7 @@ Yes. The three pillars are the foundation, but you can add, remove, or reorganis
 
 1. Clone the CodePress template
 2. Run `codepress init` to bootstrap
-3. Populate `system/codepress.md` with your project config
-4. Read `system/AGENTS.md` for the full operating manual
-5. Capture your first Initiative in `product/initiatives/`
-6. Run `system/skills/create-galley.md` to shape it
+3. Populate `.codepress/system/codepress.md` with your project config
+4. Read `.codepress/system/AGENTS.md` for the full operating manual
+5. Capture your first Initiative in `.codepress/product/initiatives/`
+6. Run `.codepress/system/skills/create-galley.md` to shape it

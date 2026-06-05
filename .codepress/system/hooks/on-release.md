@@ -7,7 +7,7 @@ Placeholder for post-release automation.
 
 ## When to run
 
-At the end of `system/playbooks/release.md`, after the release note is created.
+At the end of `.codepress/system/playbooks/release.md`, after the release note is created.
 
 ---
 
@@ -21,4 +21,4 @@ At the end of `system/playbooks/release.md`, after the release note is created.
 
 ## Configuration
 
-Configure release automation settings in `system/codepress.md` under a `[release]` section if needed.
+Configure release automation settings in `.codepress/system/codepress.md` under a `[release]` section if needed.

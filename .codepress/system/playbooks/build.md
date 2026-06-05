@@ -15,8 +15,8 @@ When a Galley is `approved` and Slugs are defined.
 
 - `galley.md` — Problem, Approach, Acceptance Criteria, Constraints
 - `run-sheet.md` — execution order and stopping conditions
-- `knowledge/concepts.md` — domain context
-- Relevant `knowledge/patterns/`
+- `.codepress/knowledge/concepts.md` — domain context
+- Relevant `.codepress/knowledge/patterns/`
 
 Never start implementation without reading the Galley and Knowledge.
 
@@ -44,17 +44,17 @@ If the run-sheet identifies parallel Slugs:
 
 ### 4. Galley-close step (mandatory)
 
-Before marking the Galley done, run `system/skills/capture-pattern.md`:
+Before marking the Galley done, run `.codepress/system/skills/capture-pattern.md`:
 
 1. Complete `review.md`:
    - List all Signals captured
    - Identify which warrant a Pattern
    - List Knowledge updates needed
-2. Promote Signals to `knowledge/signals/`
-3. Create or update Pattern files in `knowledge/patterns/`
-4. Update `knowledge/` as needed
+2. Promote Signals to `.codepress/knowledge/signals/`
+3. Create or update Pattern files in `.codepress/knowledge/patterns/`
+4. Update `.codepress/knowledge/` as needed
 5. Update Galley frontmatter: `status: done`
-6. Update `views/galley-board.md` — move card to Done
+6. Update `.codepress/views/galley-board.md` — move card to Done
 7. Commit: `galley:{name} done`
 
 ---

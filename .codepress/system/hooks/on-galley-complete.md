@@ -7,7 +7,7 @@ Syncs the completion event back to Garner.
 
 ## When to run
 
-At the end of `system/skills/capture-pattern.md`, after:
+At the end of `.codepress/system/skills/capture-pattern.md`, after:
 - Knowledge has been updated
 - Patterns have been promoted
 - Galley status set to `done`
@@ -18,7 +18,7 @@ At the end of `system/skills/capture-pattern.md`, after:
 
 ### 1. Resolve the Garner project path
 
-Read `system/codepress.md` in this project root.
+Read `.codepress/.codepress/system/codepress.md` in this project root.
 Find the `garner-project:` field.
 
 If not set: skip this hook and log a warning — Garner sync not configured.
@@ -43,7 +43,7 @@ File path: `silos/marv/grains/work/YYYY-MM-DD-galley-{galley-id}.md`
 > Immutable: do not edit
 
 ---
-- Project: {project name from system/codepress.md}
+- Project: {project name from .codepress/system/codepress.md}
 - Galley: {galley-id}
 - Delivered: {1-sentence summary}
 - Signals captured: {count}

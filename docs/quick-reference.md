@@ -8,29 +8,31 @@ title: Quick Reference
 ## Structure
 
 ```
-codepress/
-├── system/              Operating System
-│   ├── codepress.md     Project configuration
-│   ├── AGENTS.md        Agent operating manual
-│   ├── playbooks/       How CodePress operates
-│   ├── skills/          AI-executable behaviours
-│   ├── templates/       Artefact templates
-│   └── hooks/           Automation hooks
-├── product/             Product System
-│   ├── initiatives/     Ideas and problems worth solving
-│   ├── galleys/         Shaped solutions with nested slugs
-│   └── releases/        Release notes
-├── knowledge/           Knowledge System
-│   ├── concepts.md      Core entities and their purpose
-│   ├── glossary.md      Terminology
-│   ├── current-state.md What exists today
-│   ├── decisions/       Architectural decisions
-│   ├── signals/         Raw observations from delivery
-│   └── patterns/        Reusable lessons
-├── views/               Helper views
-├── src/                 Source code (optional)
-├── docs/                Jekyll docs site
-└── codepress            CLI tool
+your-project/
+├── .codepress/           All CodePress artefacts
+│   ├── system/           Operating System
+│   │   ├── codepress.md  Project configuration
+│   │   ├── AGENTS.md     Agent operating manual
+│   │   ├── playbooks/    How CodePress operates
+│   │   ├── skills/       AI-executable behaviours
+│   │   ├── templates/    Artefact templates
+│   │   └── hooks/        Automation hooks
+│   ├── product/          Product System
+│   │   ├── initiatives/  Ideas and problems
+│   │   ├── galleys/      Shaped solutions
+│   │   └── releases/     Release notes
+│   ├── knowledge/        Knowledge System
+│   │   ├── concepts.md   Core entities
+│   │   ├── glossary.md   Terminology
+│   │   ├── current-state.md What exists
+│   │   ├── decisions/    Architecture decisions
+│   │   ├── signals/      Raw observations
+│   │   └── patterns/     Reusable lessons
+│   └── views/            Helper views
+├── src/                  Source code
+├── docs/                 Project documentation
+├── AGENTS.md             Root pointer
+└── codepress             CLI tool
 ```
 
 ## CLI commands
@@ -44,11 +46,11 @@ codepress status         # Show delivery board
 ## Core workflow
 
 ```
-1. Initiative → system/skills/create-galley.md → Galley
-2. Galley     → system/skills/split-galley.md   → Slugs
-3. Slugs      → system/playbooks/build.md       → Deliver
-4. Done       → system/skills/capture-pattern.md → Signals → Patterns
-5. Patterns   → system/playbooks/compound.md    → Knowledge update
+1. Initiative → .codepress/system/skills/create-galley.md → Galley
+2. Galley     → .codepress/system/skills/split-galley.md   → Slugs
+3. Slugs      → .codepress/system/playbooks/build.md       → Deliver
+4. Done       → .codepress/system/skills/capture-pattern.md → Signals → Patterns
+5. Patterns   → .codepress/system/playbooks/compound.md    → Knowledge update
 ```
 
 ## Galley lifecycle

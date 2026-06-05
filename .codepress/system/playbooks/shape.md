@@ -13,14 +13,14 @@ When an Initiative has been reviewed and is worth building.
 
 ### 1. Read before shaping
 
-- `system/codepress.md` — project context and release theme
-- `knowledge/concepts.md` and `knowledge/current-state.md`
-- Relevant `knowledge/patterns/` for this area
+- `.codepress/system/codepress.md` — project context and release theme
+- `.codepress/knowledge/concepts.md` and `.codepress/knowledge/current-state.md`
+- Relevant `.codepress/knowledge/patterns/` for this area
 - The Initiative file
 
 ### 2. Answer the six questions
 
-Work through the Galley template (`system/templates/galley.md`):
+Work through the Galley template (`.codepress/system/templates/galley.md`):
 
 - **Problem** — specific and observable. What breaks or what is missing?
 - **Users** — concrete. Who? Doing what?
@@ -33,9 +33,9 @@ Work through the Galley template (`system/templates/galley.md`):
 
 Before finalising:
 
-- Does the approach conflict with any decision in `knowledge/decisions/`?
+- Does the approach conflict with any decision in `.codepress/knowledge/decisions/`?
 - Does the Galley assume capabilities that do not exist yet?
-- Are there new domain concepts being introduced that should be added to `knowledge/concepts.md`?
+- Are there new domain concepts being introduced that should be added to `.codepress/knowledge/concepts.md`?
 
 ### 4. Review and approve
 
@@ -43,12 +43,12 @@ Human reviews the Galley. Status moves: `shaping` → `approved`.
 
 ### 5. Split
 
-Run `system/skills/split-galley.md` to decompose into Slugs.
+Run `.codepress/system/skills/split-galley.md` to decompose into Slugs.
 
 ---
 
 ## Output
-A complete `galley.md` in `product/galleys/{name}/` with status `approved`.
+A complete `galley.md` in `.codepress/product/galleys/{name}/` with status `approved`.
 
 ---
 

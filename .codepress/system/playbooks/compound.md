@@ -19,15 +19,15 @@ Signal → Pattern → Knowledge
 
 ## When to run
 
-**Lightweight version:** at every Galley-close (see `system/playbooks/build.md`).
+**Lightweight version:** at every Galley-close (see `.codepress/system/playbooks/build.md`).
 **Full version:** periodically — after a release, or when Patterns feel inconsistent across Galleys.
 
 ---
 
 ## Signals
 
-Signals are captured in `product/galleys/{galley}/review.md` during delivery.
-After Galley-close, raw Signals are promoted to `knowledge/signals/`.
+Signals are captured in `.codepress/product/galleys/{galley}/review.md` during delivery.
+After Galley-close, raw Signals are promoted to `.codepress/knowledge/signals/`.
 
 A good Signal is:
 - **Specific** — what happened, not a vague feeling
@@ -45,7 +45,7 @@ A Signal becomes a Pattern when:
 - It has appeared in 2+ Galleys independently, **or**
 - It is immediately generalizable and would save significant future effort
 
-Use `system/skills/capture-pattern.md` to run this step.
+Use `.codepress/system/skills/capture-pattern.md` to run this step.
 
 A Pattern answers:
 - What problem does this solve?
@@ -57,14 +57,14 @@ A Pattern answers:
 
 ## Updating Knowledge
 
-`knowledge/` changes when:
+`.codepress/knowledge/` changes when:
 
 | What happened | Where to update |
 |---|---|
-| New concept introduced | `knowledge/concepts.md` |
-| New term needs defining | `knowledge/glossary.md` |
-| Architectural decision made | `knowledge/decisions/` |
-| Capabilities meaningfully changed | `knowledge/current-state.md` |
+| New concept introduced | `.codepress/knowledge/concepts.md` |
+| New term needs defining | `.codepress/knowledge/glossary.md` |
+| Architectural decision made | `.codepress/knowledge/decisions/` |
+| Capabilities meaningfully changed | `.codepress/knowledge/current-state.md` |
 
 Knowledge does not need to be perfect. It needs to be useful.
 A 5-line stub beats an empty file. Update incrementally.
