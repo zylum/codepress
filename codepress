@@ -75,14 +75,16 @@ EOF
     echo "→ Copying system files (bundled)..."
     cp -r "$SCRIPT_DIR/system/." system/
   else
-    local src
+    local src tmp
     src=$(get_codepress_source)
+    tmp=$(mktemp -d)
     echo "→ Fetching system files from $src..."
     if git clone --depth 1 --quiet "$src" "$tmp/repo" 2>/dev/null && [[ -d "$tmp/repo/system" ]]; then
       cp -r "$tmp/repo/system/." system/
     else
       echo "✗ Could not fetch from $src"
       echo "  Clone the repo manually: git clone $src"
+      rm -rf "$tmp"
       exit 1
     fi
     rm -rf "$tmp"
