@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERSION="0.1.0"
+
+usage() {
+  cat <<EOF
+CodePress v$VERSION — compound product development operating system.
+
+Usage:
+  codepress init       Bootstrap a new CodePress project
+  codepress migrate    Migrate from old numbered structure to 3-pillar model
+  codepress status     Show delivery board
+  codepress -h|--help  Show this help
+
+See system/playbooks/ and system/skills/ for workflow documentation.
+EOF
+}
+
+cmd_init() {
+  echo "CodePress init v$VERSION"
+  echo ""
+
+  # Check if already a CodePress project
+  if [[ -d "system" ]]; then
+    echo "→ This looks like an existing CodePress project (system/ exists)."
+    echo "  Run 'codepress migrate' if you need to migrate from an older structure."
+    exit 0
+  fi
+
+  echo "→ Bootstrapping CodePress structure..."
+
+  # Create directory scaffold
+  mkdir -p system/{playbooks,skills,templates,hooks}
+  mkdir -p product/{initiatives,galleys,releases}
+  mkdir -p knowledge/{decisions,signals,patterns}
+  mkdir -p views docs src
+
+  # Write root AGENTS.md pointer
+  cat > AGENTS.md << 'EOF'
+# CodePress
+
+See `system/AGENTS.md` for the full operating manual.
+EOF
+
+  # Copy system files from template repo
+  # (when run from a cloned codepress repo)
+  if [[ -d "$SCRIPT_DIR/system" ]]; then
+    echo "→ Copying system files..."
+    cp -r "$SCRIPT_DIR/system/." system/
+  fi
+
+  echo ""
+  echo "✓ CodePress bootstrapped."
+  echo "  Next: populate system/codepress.md with your project config"
+  echo "  Then:  read system/AGENTS.md to get started"
+}
+
+cmd_migrate() {
+  echo "CodePress migrate — reshaping to 3-pillar model"
+  echo ""
+
+  local has_old=false
+
+  # Detect old structure
+  for d in 01-initiatives 02-product 03-delivery 04-patterns 05-domain; do
+    if [[ -d "$d" ]]; then
+      echo "  Found: $d/"
+      has_old=true
+    fi
+  done
+
+  if [[ "$has_old" == false ]]; then
+    echo "  No old structure detected. Already using 3-pillar model?"
+    echo "  (Checking for: 01-initiatives/, 02-product/, 03-delivery/, 04-patterns/, 05-domain/)"
+    exit 0
+  fi
+
+  echo ""
+  echo "  This will move:"
+  echo "    01-initiatives/   → product/initiatives/"
+  echo "    02-product/       → product/galleys/"
+  echo "    03-delivery/      → views/"
+  echo "    04-patterns/      → knowledge/patterns/ + knowledge/signals/"
+  echo "    05-domain/        → knowledge/"
+  echo "    codepress.md      → system/codepress.md"
+  echo "    AGENTS.md         → system/AGENTS.md"
+  echo "    playbooks/        → system/playbooks/"
+  echo "    skills/           → system/skills/"
+  echo ""
+  read -p "  Continue? [y/N] " confirm
+  if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+    echo "  Aborted."
+    exit 0
+  fi
+
+  # Create target dirs
+  mkdir -p system/{playbooks,skills,templates,hooks} product/{initiatives,galleys,releases} knowledge/{decisions,signals,patterns} views docs
+
+  # Move files
+  [[ -d "01-initiatives" ]] && mv 01-initiatives/* product/initiatives/ 2>/dev/null && rm -rf 01-initiatives && echo "  ✓ 01-initiatives → product/initiatives/"
+  [[ -d "02-product" ]] && mv 02-product/* product/galleys/ 2>/dev/null && rm -rf 02-product && echo "  ✓ 02-product → product/galleys/"
+  [[ -f "03-delivery/board.md" ]] && mv 03-delivery/board.md views/galley-board.md 2>/dev/null && rm -rf 03-delivery && echo "  ✓ 03-delivery → views/"
+  [[ -d "04-patterns" ]] && mv 04-patterns/* knowledge/ 2>/dev/null; [[ -d "04-patterns" ]] && rm -rf 04-patterns && echo "  ✓ 04-patterns → knowledge/"
+  [[ -d "05-domain" ]] && mv 05-domain/* knowledge/ 2>/dev/null && rm -rf 05-domain && echo "  ✓ 05-domain → knowledge/"
+  [[ -f "codepress.md" ]] && mv codepress.md system/codepress.md 2>/dev/null && echo "  ✓ codepress.md → system/codepress.md"
+  [[ -f "AGENTS.md" ]] && mv AGENTS.md system/AGENTS.md 2>/dev/null && echo "  ✓ AGENTS.md → system/AGENTS.md"
+  [[ -d "playbooks" && ! -d "system/playbooks" ]] && mv playbooks system/playbooks 2>/dev/null && echo "  ✓ playbooks → system/playbooks/"
+  [[ -d "skills" && ! -d "system/skills" ]] && mv skills system/skills 2>/dev/null && echo "  ✓ skills → system/skills/"
+  [[ -d "hooks" && ! -d "system/hooks" ]] && mv hooks system/hooks 2>/dev/null && echo "  ✓ hooks → system/hooks/"
+
+  # Create root AGENTS.md pointer
+  cat > AGENTS.md << 'EOF'
+# CodePress
+
+See `system/AGENTS.md` for the full operating manual.
+EOF
+
+  echo ""
+  echo "✓ Migration complete. Review the new structure and update any internal references."
+}
+
+cmd_status() {
+  echo "CodePress status"
+  echo ""
+
+  if [[ -d "product/galleys" ]]; then
+    echo "Galleys:"
+    for galley in product/galleys/*/; do
+      name=$(basename "$galley")
+      [[ "$name" == _* ]] && continue
+      status="unknown"
+      if [[ -f "$galley/galley.md" ]]; then
+        status=$(grep -m1 "^status:" "$galley/galley.md" 2>/dev/null | sed 's/status: *//' || echo "unknown")
+      fi
+      echo "  $name [$status]"
+    done
+  else
+    echo "  No galleys found."
+  fi
+
+  echo ""
+
+  if [[ -d "knowledge/patterns" ]]; then
+    count=$(ls -1 knowledge/patterns/*.md 2>/dev/null | grep -v _template.md | wc -l | tr -d ' ')
+    echo "Patterns: $count"
+  fi
+
+  if [[ -d "knowledge/signals" ]]; then
+    count=$(ls -1 knowledge/signals/*.md 2>/dev/null | wc -l | tr -d ' ')
+    echo "Signals: $count"
+  fi
+}
+
+case "${1:-}" in
+  init) cmd_init ;;
+  migrate) cmd_migrate ;;
+  status) cmd_status ;;
+  -h|--help|"") usage ;;
+  *) echo "Unknown: $1"; usage; exit 1 ;;
+esac

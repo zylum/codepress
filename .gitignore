@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+Thumbs.db
+*.png
+
+# CodePress local
+cli/docs
+
+# Generated
+dist/
+node_modules/

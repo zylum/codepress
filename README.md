@@ -2,40 +2,34 @@
 
 A compound product development operating system for the AI era.
 
----
-
-## The idea
-
-Most AI development approaches focus on:
-
-```
-Idea → Code
-```
-
-CodePress focuses on:
-
 ```
 Idea → Shape → Build → Learn → Compound
 ```
 
-The goal is not simply to ship software faster.
-The goal is to ensure every initiative leaves behind reusable knowledge, patterns,
-and capabilities that make future work easier.
+The software is the output. The growing capability of the system is the asset.
 
 ---
 
-## Core flow
+## Three pillars
 
-```
-Initiative → Galley → Slugs → Signals → Patterns → Domain Memory
+| Pillar | Directory | What |
+|---|---|---|
+| **System** | `system/` | How we work — playbooks, skills, templates, hooks |
+| **Product** | `product/` | What we build — initiatives, galleys, slugs, releases |
+| **Knowledge** | `knowledge/` | What we know — concepts, glossary, decisions, patterns |
+
+A **Compound Loop** (Signal → Pattern → Knowledge) continuously improves all three.
+
+---
+
+## Quick start
+
+```bash
+codepress init         # Bootstrap a new project
+codepress status       # Show delivery board
 ```
 
-- **Initiative** — an idea or problem worth solving
-- **Galley** — a shaped solution (the thinking artefact)
-- **Slugs** — atomic delivery units (the execution artefacts)
-- **Signals** — raw observations made during delivery
-- **Patterns** — reusable lessons extracted from Signals
-- **Domain Memory** — shared understanding of the product
+Then read `system/AGENTS.md` for the full operating manual.
 
 ---
 
@@ -43,30 +37,43 @@ Initiative → Galley → Slugs → Signals → Patterns → Domain Memory
 
 ```
 codepress/
-
-01-initiatives/     Ideas, problems, opportunities
-02-product/         Galleys (shape artefacts) and Slugs
-03-delivery/        Workflow board (status view)
-04-patterns/        Signals and Patterns
-05-domain/          Domain Memory
-
-playbooks/          How CodePress operates
-skills/             AI-executable behaviours
+├── system/             Operating System
+│   ├── codepress.md    Project config
+│   ├── AGENTS.md       Agent operating manual
+│   ├── playbooks/      How CodePress operates
+│   ├── skills/         AI-executable behaviours
+│   ├── templates/      Artefact templates
+│   └── hooks/          Automation hooks
+├── product/            Product System
+│   ├── initiatives/    Ideas and problems
+│   ├── galleys/        Shaped solutions
+│   └── releases/       Release notes
+├── knowledge/          Knowledge System
+│   ├── concepts.md     Core entities
+│   ├── glossary.md     Terminology
+│   ├── current-state.md What exists
+│   ├── decisions/      Architecture decisions
+│   ├── signals/        Raw observations
+│   └── patterns/       Reusable lessons
+├── views/              Helper views
+├── src/                Source code
+├── docs/               Jekyll docs site
+└── codepress           CLI tool
 ```
 
 ---
 
-## Getting started
+## Core workflow
 
-1. Configure `codepress.md` with your project name and release theme
-2. Run `skills/bootstrap.md` to seed Domain Memory from your existing codebase
-3. Capture your first Initiative in `01-initiatives/`
-4. Run `skills/create-galley.md` to shape it
-5. Run `skills/split-galley.md` to decompose it into Slugs
-6. Build. Capture Signals. Close with `skills/capture-pattern.md`.
-
-See `AGENTS.md` for the full operating manual.
+1. Capture an **Initiative** in `product/initiatives/`
+2. **Shape** it → `system/skills/create-galley.md` → Galley in `product/galleys/`
+3. **Split** into Slugs → `system/skills/split-galley.md`
+4. **Build** → `system/playbooks/build.md`
+5. **Review** → `system/skills/capture-pattern.md` → Signals → Patterns
+6. **Compound** → Update `knowledge/`
 
 ---
 
-> The software is the output. The growing capability of the system is the asset.
+## License
+
+MIT
