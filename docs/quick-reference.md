@@ -3,28 +3,30 @@ layout: default
 title: Quick Reference
 ---
 
+<link rel="stylesheet" href="/codepress/assets/css/custom.css">
+
 # Quick Reference
 
 ## Structure
 
-```
+```text
 your-project/
-├── .codepress/           All CodePress artefacts
-│   ├── system/           Operating System
-│   │   ├── codepress.md  Project configuration
+├── .codepress/
+│   ├── system/           How we work
+│   │   ├── config.md     Project configuration
 │   │   ├── AGENTS.md     Agent operating manual
-│   │   ├── playbooks/    How CodePress operates
+│   │   ├── playbooks/    Workflow guides
 │   │   ├── skills/       AI-executable behaviours
 │   │   ├── templates/    Artefact templates
 │   │   └── hooks/        Automation hooks
-│   ├── product/          Product System
-│   │   ├── initiatives/  Ideas and problems
+│   ├── product/          What we build
+│   │   ├── initiatives/  Ideas and opportunities
 │   │   ├── galleys/      Shaped solutions
 │   │   └── releases/     Release notes
-│   ├── knowledge/        Knowledge System
+│   ├── knowledge/        What we know
 │   │   ├── concepts.md   Core entities
 │   │   ├── glossary.md   Terminology
-│   │   ├── current-state.md What exists
+│   │   ├── current-state.md Current capabilities
 │   │   ├── decisions/    Architecture decisions
 │   │   ├── signals/      Raw observations
 │   │   └── patterns/     Reusable lessons
@@ -41,16 +43,8 @@ your-project/
 codepress init           # Bootstrap a new project
 codepress migrate        # Migrate from old structure
 codepress status         # Show delivery board
-```
-
-## Core workflow
-
-```
-1. Initiative → .codepress/system/skills/create-galley.md → Galley
-2. Galley     → .codepress/system/skills/split-galley.md   → Slugs
-3. Slugs      → .codepress/system/playbooks/build.md       → Deliver
-4. Done       → .codepress/system/skills/capture-pattern.md → Signals → Patterns
-5. Patterns   → .codepress/system/playbooks/compound.md    → Knowledge update
+codepress galley new     # Create a new galley
+codepress galley list    # List all galleys
 ```
 
 ## Galley lifecycle
@@ -62,3 +56,11 @@ codepress status         # Show delivery board
 | delivering | Slugs in progress |
 | review | All slugs done, learning capture |
 | done | Complete |
+
+## Core workflow
+
+1. **Initiative** → create-galley skill → **Galley**
+2. **Galley** → split-galley skill → **Slugs**
+3. **Slugs** → build playbook → **Deliver**
+4. **Done** → capture-pattern skill → **Signals → Patterns**
+5. **Patterns** → compound playbook → **Knowledge update**

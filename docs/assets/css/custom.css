@@ -1,0 +1,83 @@
+---
+---
+
+.codepress-hero {
+  text-align: center;
+  padding: 3rem 0 2rem;
+}
+.codepress-hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+.codepress-hero .sub {
+  font-size: 1.2rem;
+  color: #586069;
+  max-width: 36em;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+}
+.codepress-hero .tagline {
+  font-size: 0.95rem;
+  color: #6a737d;
+  margin-bottom: 1.5rem;
+}
+.codepress-hero .ctas {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.codepress-hero .ctas a {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.codepress-hero .ctas .primary {
+  background: #24292e;
+  color: #fff;
+}
+.codepress-hero .ctas .secondary {
+  background: #f3f4f6;
+  color: #24292e;
+  border: 1px solid #d1d5db;
+}
+.pillar-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.pillar-card {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 1.25rem;
+  background: #fafbfc;
+}
+.pillar-card h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+.pillar-card .q {
+  font-size: 0.85rem;
+  color: #586069;
+  margin-bottom: 0.75rem;
+}
+.pillar-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9rem;
+}
+.pillar-card ul li { margin-bottom: 0.25rem; }
+.flow-arrow { text-align: center; font-size: 1.2rem; color: #586069; margin: 0.25rem 0; }
+.compound-note {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+.compound-note strong { display: block; margin-bottom: 0.25rem; }

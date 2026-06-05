@@ -3,6 +3,8 @@ layout: default
 title: Structure
 ---
 
+<link rel="stylesheet" href="/codepress/assets/css/custom.css">
+
 # Structure
 
 ## Three pillars
@@ -15,7 +17,7 @@ The operating system — how work happens.
 
 | Path | Purpose |
 |---|---|
-| `.codepress/system/codepress.md` | Project name, release theme, working conventions |
+| `.codepress/system/config.md` | Project name, release theme, working conventions |
 | `.codepress/system/AGENTS.md` | Agent operating manual — reading order, rules, autonomy levels |
 | `.codepress/system/playbooks/` | Workflow guides: shape, split, build, review, release, compound |
 | `.codepress/system/skills/` | AI-executable behaviours: bootstrap, create-galley, split-galley, etc. |
@@ -55,17 +57,59 @@ Helper views for at-a-glance status.
 
 | Path | Purpose |
 |---|---|
-| `.codepress/views/initiative-board.md` | Overview of all initiatives |
-| `.codepress/views/galley-board.md` | Galley delivery board (kanban) |
-| `.codepress/views/release-board.md` | Release overview |
-| `.codepress/views/roadmap.md` | Strategic timeline |
-| `.codepress/views/dashboard.md` | At-a-glance metrics |
+| `.codepress/views/board.md` | Delivery board (kanban) |
 | `.codepress/views/knowledge-map.md` | Map of all knowledge artefacts |
 
-## The Compound Loop
+## The compound loop
 
 ```
 Signal → Pattern → Knowledge
 ```
 
 Signals are captured during delivery, promoted to Patterns when validated, and update Knowledge when the system changes. This loop ensures every cycle leaves the organisation smarter.
+
+## Directory layout
+
+```text
+.codepress/
+├── system/
+│   ├── config.md
+│   ├── AGENTS.md
+│   ├── playbooks/
+│   │   ├── shape.md
+│   │   ├── split.md
+│   │   ├── build.md
+│   │   ├── review.md
+│   │   ├── release.md
+│   │   └── compound.md
+│   ├── skills/
+│   │   ├── bootstrap.md
+│   │   ├── create-galley.md
+│   │   ├── split-galley.md
+│   │   ├── capture-pattern.md
+│   │   ├── status.md
+│   │   ├── generate-release.md
+│   │   └── update-domain.md
+│   ├── templates/
+│   │   ├── initiative.md
+│   │   ├── galley.md
+│   │   ├── slug.md
+│   │   ├── release.md
+│   │   ├── pattern.md
+│   │   └── decision.md
+│   └── hooks/
+├── product/
+│   ├── initiatives/
+│   ├── galleys/
+│   └── releases/
+├── knowledge/
+│   ├── concepts.md
+│   ├── glossary.md
+│   ├── current-state.md
+│   ├── decisions/
+│   ├── signals/
+│   └── patterns/
+└── views/
+    ├── board.md
+    └── knowledge-map.md
+```
