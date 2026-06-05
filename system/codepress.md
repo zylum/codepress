@@ -4,6 +4,12 @@
 
 ---
 
+## CodePress version
+codepress-version: 0.1.0
+codepress-source: https://github.com/zylum/codepress
+
+---
+
 ## Project
 name: 
 description: 
