@@ -22,14 +22,23 @@ A **Compound Loop** (Signal → Pattern → Knowledge) continuously improves all
 
 ---
 
-## Quick start
+## Install
 
+**One-liner (any directory):**
 ```bash
-codepress init         # Bootstrap a new project
-codepress status       # Show delivery board
+curl -fsSL https://raw.githubusercontent.com/zylum/codepress/main/codepress | bash -s init
 ```
 
-Then read `system/AGENTS.md` for the full operating manual.
+**Install to PATH (one-time, use forever):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/zylum/codepress/main/codepress -o /usr/local/bin/codepress && chmod +x /usr/local/bin/codepress
+cd your-project && codepress init
+```
+
+**Update when a new version ships:**
+```bash
+codepress upgrade
+```
 
 ---
 
