@@ -14,6 +14,14 @@ get_codepress_version() {
   fi
 }
 
+get_codepress_source() {
+  if [[ -f "$CONFIG_FILE" ]]; then
+    grep -m1 "^codepress-source:" "$CONFIG_FILE" 2>/dev/null | sed 's/codepress-source: *//' || echo "$SOURCE_REPO"
+  else
+    echo "$SOURCE_REPO"
+  fi
+}
+
 usage() {
   cat <<EOF
 CodePress v$VERSION — compound product development operating system.
@@ -62,10 +70,22 @@ cmd_init() {
 See `system/AGENTS.md` for the full operating manual.
 EOF
 
-  # Copy system/ from bundled files
+  # Copy system/ — from bundled files or source repo
   if [[ -d "$SCRIPT_DIR/system" ]]; then
-    echo "→ Copying system files..."
+    echo "→ Copying system files (bundled)..."
     cp -r "$SCRIPT_DIR/system/." system/
+  else
+    local src
+    src=$(get_codepress_source)
+    echo "→ Fetching system files from $src..."
+    if git clone --depth 1 --quiet "$src" "$tmp/repo" 2>/dev/null && [[ -d "$tmp/repo/system" ]]; then
+      cp -r "$tmp/repo/system/." system/
+    else
+      echo "✗ Could not fetch from $src"
+      echo "  Clone the repo manually: git clone $src"
+      exit 1
+    fi
+    rm -rf "$tmp"
   fi
 
   echo ""
@@ -91,8 +111,10 @@ cmd_upgrade() {
   tmp=$(mktemp -d)
   trap 'rm -rf "$tmp"' EXIT
 
-  echo "→ Fetching CodePress source from $SOURCE_REPO..."
-  if ! git clone --depth 1 --quiet "$SOURCE_REPO" "$tmp/repo" 2>/dev/null; then
+  local src
+  src=$(get_codepress_source)
+  echo "→ Fetching CodePress source from $src..."
+  if ! git clone --depth 1 --quiet "$src" "$tmp/repo" 2>/dev/null; then
     echo "✗ Could not fetch source. Check your internet connection."
     exit 1
   fi
