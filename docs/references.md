@@ -5,6 +5,13 @@ title: References
 
 <link rel="stylesheet" href="/codepress/assets/css/custom.css">
 
+<div class="page-nav">
+  <a href="index.html">Home</a>
+  <a href="quick-start.html">Quick Start</a>
+  <a href="structure.html">View Structure</a>
+  <a href="https://github.com/zylum/codepress">GitHub</a>
+</div>
+
 # References & Inspiration
 
 ## Predecessor

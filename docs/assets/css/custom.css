@@ -81,3 +81,42 @@
   font-size: 0.95rem;
 }
 .compound-note strong { display: block; margin-bottom: 0.25rem; }
+
+/* ── page nav ──────────────────────────────────────────── */
+.page-nav {
+  text-align: center;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e1e4e8;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+.page-nav a {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  color: #24292e;
+  text-decoration: none;
+  font-weight: 500;
+}
+.page-nav a:hover { background: #f3f4f6; }
+.page-nav a.primary-nav {
+  background: #24292e;
+  color: #fff;
+}
+.page-nav a.primary-nav:hover { background: #000; }
+
+/* ── overview image ────────────────────────────────────── */
+.overview-img {
+  text-align: center;
+  margin: 2rem 0;
+}
+.overview-img img {
+  max-width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}

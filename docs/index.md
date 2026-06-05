@@ -5,6 +5,13 @@ title: CodePress
 
 <link rel="stylesheet" href="/codepress/assets/css/custom.css">
 
+<div class="page-nav">
+  <a class="primary-nav" href="index.html">Home</a>
+  <a href="quick-start.html">Quick Start</a>
+  <a href="structure.html">View Structure</a>
+  <a href="https://github.com/zylum/codepress">GitHub</a>
+</div>
+
 <div class="codepress-hero">
 
 # Shape Ideas. Build in Parallel. Compound Knowledge.
@@ -17,63 +24,7 @@ CodePress helps teams turn initiatives into shippable software while capturing e
 Shape once. Build many. Learn forever.
 </div>
 
-<div class="ctas">
-  <a class="primary" href="#quick-start">Quick Start</a>
-  <a class="secondary" href="structure.html">View Structure</a>
-  <a class="secondary" href="https://github.com/zylum/codepress">GitHub</a>
 </div>
-
-</div>
-
----
-
-## What problem does CodePress solve?
-
-Most teams work like this:
-
-```text
-Idea → Backlog → Sprint → Ship → Forget
-```
-
-Knowledge gets lost. The same mistakes are repeated. AI accelerates delivery but does not improve how the organisation learns.
-
-CodePress changes the loop:
-
-```text
-Idea → Shape → Build → Learn → Compound
-```
-
-Every delivery improves future delivery. The software is the output. The growing capability of the system is the asset.
-
----
-
-## How it works
-
-```text
-Initiative
-    ↓
-Galley
-    ↓
-Slugs
-    ↓
-Release
-    ↓
-Signals
-    ↓
-Patterns
-    ↓
-Knowledge
-```
-
-| Stage | What it is |
-|---|---|
-| **Initiative** | An opportunity worth exploring |
-| **Galley** | A shaped solution ready for implementation |
-| **Slugs** | Atomic delivery units built independently |
-| **Release** | Delivered value |
-| **Signals** | What we learned during delivery |
-| **Patterns** | Reusable lessons extracted from signals |
-| **Knowledge** | Shared understanding that improves future work |
 
 ---
 
@@ -116,23 +67,37 @@ A **compound loop** runs across all three, continuously improving them as each d
 
 ---
 
-## Repository structure
+## How it works
+
+The CodePress pipeline turns ideas into delivered value while capturing everything learned along the way.
 
 ```text
-codepress/
-├── system/        How we work — playbooks, skills, templates, hooks
-├── product/       What we build — initiatives, galleys, slugs, releases
-├── knowledge/     What we know — concepts, decisions, patterns, signals
-├── views/         Helper views for at-a-glance status
-├── src/           Source code
-└── docs/          Project documentation
+Initiative
+    ↓
+  Galley
+    ↓
+  Slugs
+    ↓
+ Release
+    ↓
+ Signals
+    ↓
+Patterns
+    ↓
+Knowledge
 ```
 
-Each directory maps to a pillar. See full details on the [Structure page](structure.html).
+| Stage | What it is |
+|---|---|
+| **Initiative** | An opportunity worth exploring — captured in `.codepress/product/initiatives/` |
+| **Galley** | A shaped solution ready for implementation — Problem, Users, Success, Constraints, Approach, Acceptance Criteria |
+| **Slugs** | Atomic delivery units built independently and in parallel. Each has a purpose, checklist, and autonomy level |
+| **Release** | Delivered value |
+| **Signals** | What we learned during delivery — raw observations recorded at galley-close |
+| **Patterns** | Reusable lessons extracted from signals and validated across multiple deliveries |
+| **Knowledge** | Shared understanding that improves future work — concepts, glossary, decisions, current-state |
 
----
-
-## Core workflow
+### Core workflow
 
 ```text
 Capture Initiative
@@ -152,7 +117,7 @@ Promote Patterns
 Update Knowledge
 ```
 
-Each step links to a playbook or skill in `.codepress/system/`.
+Each step links to a playbook or skill in `.codepress/system/`. See [Quick Reference](quick-reference.html) for commands and lifecycle.
 
 ---
 
@@ -173,16 +138,14 @@ Compound Engineering helps build software faster. CodePress helps decide what to
 
 ---
 
-## Quick start
+## Get started
 
-| Step | Action |
-|---|---|
-| 1 | Clone the CodePress template repository |
-| 2 | Run `codepress init` to bootstrap |
-| 3 | Populate `.codepress/system/config.md` with your project details |
-| 4 | Read `AGENTS.md` for the full operating manual |
-| 5 | Capture your first Initiative in `.codepress/product/initiatives/` |
-| 6 | Run the create-galley skill to shape it |
+<div class="ctas" style="margin: 1rem 0 1.5rem;">
+  <a class="primary" href="quick-start.html">Quick Start →</a>
+  <a class="secondary" href="structure.html">View Structure</a>
+  <a class="secondary" href="overview.html">View Diagram</a>
+  <a class="secondary" href="https://github.com/zylum/codepress">GitHub</a>
+</div>
 
 ---
 
@@ -190,20 +153,10 @@ Compound Engineering helps build software faster. CodePress helps decide what to
 
 | Page | Description |
 |---|---|
+| [Quick Start](quick-start.html) | Install and first steps |
 | [Quick Reference](quick-reference.html) | Commands, structure, and workflow at a glance |
 | [Structure](structure.html) | Full folder layout and artefact reference |
 | [Core Concepts](core-concepts.html) | Initiative, Galley, Slug, Signal, Pattern explained |
+| [Overview](overview.html) | Pipeline diagram and lifecycle visual |
 | [FAQ](faq.html) | Frequently asked questions |
 | [References](references.html) | Inspiration and related work |
-
----
-
-## References & inspiration
-
-| Resource | Description |
-|---|---|
-| [Linotype](https://github.com/zylum/linotype) | Predecessor to CodePress |
-| [Compound Engineering](https://every.to/guides/compound-engineering) | The compounding approach |
-| [BMAD Method](https://github.com/bmad-code-org/bmad-method) | Build-measure-learn for software |
-| [Shape Up](https://basecamp.com/shapeup) | Basecamp's product shaping methodology |
-| [Value Over Everything](https://www.linkedin.com/newsletters/value-over-everything-7015605132717359104/) | Product and value newsletter |

@@ -5,6 +5,13 @@ title: FAQ
 
 <link rel="stylesheet" href="/codepress/assets/css/custom.css">
 
+<div class="page-nav">
+  <a href="index.html">Home</a>
+  <a href="quick-start.html">Quick Start</a>
+  <a href="structure.html">View Structure</a>
+  <a href="https://github.com/zylum/codepress">GitHub</a>
+</div>
+
 # FAQ
 
 ## What is CodePress?
@@ -55,9 +62,4 @@ Yes. The three pillars (System, Product, Knowledge) are the foundation, but you 
 
 ## How do I get started?
 
-1. Clone the CodePress template repository
-2. Run `codepress init` to set up the structure
-3. Populate `.codepress/system/config.md` with your project details
-4. Read `AGENTS.md` for the full operating manual
-5. Capture your first Initiative in `.codepress/product/initiatives/`
-6. Run the create-galley skill to shape it into a Galley
+See the [Quick Start](quick-start.html) guide for installation and first steps.

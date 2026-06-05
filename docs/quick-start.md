@@ -1,20 +1,55 @@
 ---
 layout: default
-title: Quick Reference
+title: Quick Start
 ---
 
 <link rel="stylesheet" href="/codepress/assets/css/custom.css">
 
 <div class="page-nav">
   <a href="index.html">Home</a>
-  <a href="quick-start.html">Quick Start</a>
+  <a class="primary-nav" href="quick-start.html">Quick Start</a>
   <a href="structure.html">View Structure</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 
-# Quick Reference
+# Quick Start
 
-## Structure
+## Install
+
+**One-liner (any directory):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/zylum/codepress/main/codepress | bash -s init
+```
+
+**Install to PATH (one-time, use forever):**
+```bash
+curl -fsSL https://raw.githubusercontent.com/zylum/codepress/main/codepress -o /usr/local/bin/codepress && chmod +x /usr/local/bin/codepress
+cd your-project && codepress init
+```
+
+**Update when a new version ships:**
+```bash
+codepress upgrade
+```
+
+## Get started
+
+| Step | Action |
+|---|---|
+| 1 | Clone the CodePress template repository |
+| 2 | Run `codepress init` to bootstrap |
+| 3 | Populate `.codepress/system/config.md` with your project details |
+| 4 | Read `AGENTS.md` for the full operating manual |
+| 5 | Capture your first Initiative in `.codepress/product/initiatives/` |
+| 6 | Run the create-galley skill to shape it |
+
+## Requirements
+
+- **Git** — for version control and commit discipline
+- **An AI agent** (Claude Code, opencode, etc.) — CodePress is designed for AI-assisted delivery
+- **Optional:** A project repository to apply CodePress to
+
+## Project structure after init
 
 ```text
 your-project/
@@ -44,30 +79,8 @@ your-project/
 └── codepress             CLI tool
 ```
 
-## CLI commands
+## Next steps
 
-```bash
-codepress init           # Bootstrap a new project
-codepress migrate        # Migrate from old structure
-codepress status         # Show delivery board
-codepress galley new     # Create a new galley
-codepress galley list    # List all galleys
-```
-
-## Galley lifecycle
-
-| Status | Meaning |
-|---|---|
-| shaping | Being defined |
-| approved | Ready for execution |
-| delivering | Slugs in progress |
-| review | All slugs done, learning capture |
-| done | Complete |
-
-## Core workflow
-
-1. **Initiative** → create-galley skill → **Galley**
-2. **Galley** → split-galley skill → **Slugs**
-3. **Slugs** → build playbook → **Deliver**
-4. **Done** → capture-pattern skill → **Signals → Patterns**
-5. **Patterns** → compound playbook → **Knowledge update**
+- Read the [Core Concepts](core-concepts.html) to understand the artefacts
+- Browse the [Structure](structure.html) for the full directory layout
+- Check the [Quick Reference](quick-reference.html) for commands and lifecycle
