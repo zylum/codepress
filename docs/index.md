@@ -11,6 +11,8 @@ A compound product development operating system for the AI era.
 
 ---
 
+![CodePress overview](overview.jpeg)
+
 ## What it is
 
 CodePress is a structured approach to building products with AI.
@@ -58,3 +60,10 @@ Every cycle leaves the organisation smarter.
 | [Quick reference](quick-reference.html) | Commands and structure at a glance |
 | [Structure](structure.html) | Folder layout and artefacts |
 | [FAQ](faq.html) | Frequently asked questions |
+
+## References & Inspiration
+
+- [Linotype](https://github.com/zylum/linotype) — predecessor to CodePress
+- [Compound Engineering](https://every.to/guides/compound-engineering) — the compounding approach
+- [BMAD Method](https://github.com/bmad-code-org/bmad-method) — build-measure-learn for software
+- [Value Over Everything](https://www.linkedin.com/newsletters/value-over-everything-7015605132717359104/) — product and value newsletter |

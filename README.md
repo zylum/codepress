@@ -74,6 +74,15 @@ codepress/
 
 ---
 
+## References & Inspiration
+
+- [Linotype](https://github.com/zylum/linotype) — predecessor to CodePress, CLI-based operating model
+- [Compound Engineering](https://every.to/guides/compound-engineering) — the compounding approach to product building
+- [BMAD Method](https://github.com/bmad-code-org/bmad-method) — build-measure-learn loop for software delivery
+- [Value Over Everything](https://www.linkedin.com/newsletters/value-over-everything-7015605132717359104/) — LinkedIn newsletter on product and value
+
+---
+
 ## License
 
 MIT
