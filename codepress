@@ -274,7 +274,6 @@ cmd_status() {
   if [[ -d ".codepress/product/galleys" ]]; then
     local galley_count=0
     echo "  Galleys:"
-    shopt -s nullglob
     for galley in .codepress/product/galleys/*/; do
       name=$(basename "$galley")
       [[ "$name" == _* ]] && continue
@@ -285,7 +284,6 @@ cmd_status() {
       fi
       echo "    $name  [$status]"
     done
-    shopt -u nullglob
     [[ "$galley_count" -eq 0 ]] && echo "    (none)"
   else
     echo "  Galleys:  (.codepress/product/galleys/ not found)"
