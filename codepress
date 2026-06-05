@@ -293,19 +293,19 @@ cmd_status() {
 
   # Knowledge
   local patterns=0 signals=0 decisions=0
-  [[ -d ".codepress/knowledge/patterns" ]] && patterns=$(ls .codepress/knowledge/patterns/*.md 2>/dev/null | grep -v _template.md | wc -l | tr -d ' ')
-  [[ -d ".codepress/knowledge/signals" ]] && signals=$(ls .codepress/knowledge/signals/*.md 2>/dev/null | wc -l | tr -d ' ')
-  [[ -d ".codepress/knowledge/decisions" ]] && decisions=$(ls .codepress/knowledge/decisions/*.md 2>/dev/null | wc -l | tr -d ' ')
+  if [[ -d ".codepress/knowledge/patterns" ]]; then local _p; _p=(.codepress/knowledge/patterns/*.md); patterns=${#_p[@]}; fi
+  if [[ -d ".codepress/knowledge/signals" ]]; then local _s; _s=(.codepress/knowledge/signals/*.md); signals=${#_s[@]}; fi
+  if [[ -d ".codepress/knowledge/decisions" ]]; then local _d; _d=(.codepress/knowledge/decisions/*.md); decisions=${#_d[@]}; fi
   echo "  Knowledge:  $patterns patterns  |  $signals signals  |  $decisions decisions"
 
   # Initiatives
   local initiatives=0
-  [[ -d ".codepress/product/initiatives" ]] && initiatives=$(ls .codepress/product/initiatives/*.md 2>/dev/null | wc -l | tr -d ' ')
+  if [[ -d ".codepress/product/initiatives" ]]; then local _i; _i=(.codepress/product/initiatives/*.md); initiatives=${#_i[@]}; fi
   echo "  Initiatives:  $initiatives"
 
   # Releases
   local releases=0
-  [[ -d ".codepress/product/releases" ]] && releases=$(ls .codepress/product/releases/*.md 2>/dev/null | wc -l | tr -d ' ')
+  if [[ -d ".codepress/product/releases" ]]; then local _r; _r=(.codepress/product/releases/*.md); releases=${#_r[@]}; fi
   echo "  Releases:  $releases"
 }
 
