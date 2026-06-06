@@ -31,7 +31,8 @@ Usage:
   codepress init                  Bootstrap CodePress in this directory
   codepress upgrade               Update .codepress/system/ files from source
   codepress migrate               Migrate from old numbered structure
-  codepress status                Show project health at a glance
+  codepress status                Show project health and pending actions
+  codepress run [--all]           Execute next pending action (or all)
 
   codepress galley new <name>     Scaffold a new galley
   codepress galley list           List all galleys with status
@@ -259,6 +260,114 @@ EOF
   echo "✓ Migration complete. Run 'codepress status' to verify."
 }
 
+# ─── Status detector ──────────────────────────────────────────────────────────
+
+detect_pending_actions() {
+  local format="${1:-text}"
+  local action_count=0
+  local out
+
+  # 1. Initiatives with status "shaping" that have no matching Galley
+  if [[ -d ".codepress/product/initiatives" ]]; then
+    for f in .codepress/product/initiatives/*.md; do
+      [[ ! -f "$f" ]] && continue
+      local id init_status
+      id=$(grep -m1 "^id:" "$f" 2>/dev/null | sed 's/id: *//')
+      init_status=$(grep -m1 "^status:" "$f" 2>/dev/null | sed 's/status: *//' || echo "draft")
+      [[ -z "$id" ]] && id=$(basename "$f" .md)
+
+      if [[ "$init_status" == "shaping" ]]; then
+        local found=false
+        if [[ -d ".codepress/product/galleys" ]]; then
+          for g in .codepress/product/galleys/*/galley.md; do
+            [[ -f "$g" ]] || continue
+            local ref
+            ref=$(grep -m1 "^initiative:" "$g" 2>/dev/null | sed 's/initiative: *//' || echo "")
+            [[ "$ref" == "$id" ]] && found=true && break
+          done
+        fi
+        if [[ "$found" == false ]]; then
+          if [[ "$format" == "json" ]]; then
+            out="create-galley|$id|Initiative '$id' is shaping but no Galley exists"
+          else
+            echo "  create-galley  $id    Initiative '$id' is shaping — no Galley yet"
+          fi
+          action_count=$((action_count + 1))
+        fi
+      fi
+    done
+  fi
+
+  # 2. Galleys needing the next workflow step
+  if [[ -d ".codepress/product/galleys" ]]; then
+    for g in .codepress/product/galleys/*/galley.md; do
+      [[ -f "$g" ]] || continue
+      local gdir gname gstatus
+      gdir=$(dirname "$g")
+      gname=$(basename "$gdir")
+      [[ "$gname" == _* ]] && continue
+      gstatus=$(grep -m1 "^status:" "$g" 2>/dev/null | sed 's/status: *//' || echo "")
+
+      # Approved but no slugs → needs split
+      if [[ "$gstatus" == "approved" ]]; then
+        local slug_count=0
+        for s in "$gdir"/slugs/*.md; do
+          [[ -f "$s" ]] && slug_count=$((slug_count + 1))
+        done
+        if [[ "$slug_count" -eq 0 ]]; then
+          if [[ "$format" == "json" ]]; then
+            out="split-galley|$gname|Galley '$gname' is approved but has no slugs"
+          else
+            echo "  split-galley  $gname  Galley '$gname' is approved — no slugs yet"
+          fi
+          action_count=$((action_count + 1))
+        fi
+      fi
+
+      # Delivering with all slugs complete → needs review
+      if [[ "$gstatus" == "delivering" ]]; then
+        local total=0 complete=0
+        for s in "$gdir"/slugs/*.md; do
+          [[ ! -f "$s" ]] && continue
+          total=$((total + 1))
+          local sstatus
+          sstatus=$(grep -m1 "^status:" "$s" 2>/dev/null | sed 's/status: *//' || echo "open")
+          [[ "$sstatus" == "complete" ]] && complete=$((complete + 1))
+        done
+        if [[ "$total" -gt 0 && "$complete" -eq "$total" ]]; then
+          if [[ "$format" == "json" ]]; then
+            out="review|$gname|All slugs complete for '$gname', ready for review"
+          else
+            echo "  review          $gname  Galley '$gname' — all slugs complete, ready for review"
+          fi
+          action_count=$((action_count + 1))
+        fi
+      fi
+
+      # Review done → needs release + capture
+      if [[ "$gstatus" == "review" ]]; then
+        if [[ "$format" == "json" ]]; then
+          out="release+capture|$gname|Galley '$gname' review done, ready for release and capture"
+        else
+          echo "  release+capture  $gname  Galley '$gname' — review done, ready to release and capture"
+        fi
+        action_count=$((action_count + 1))
+      fi
+    done
+  fi
+
+  # 3. Output machine-readable format if requested
+  if [[ "$format" == "json" && -n "$out" ]]; then
+    echo "$out"
+  fi
+
+  if [[ "$action_count" -eq 0 && "$format" != "json" ]]; then
+    echo "  (no pending actions — all artefacts are in a consistent state)"
+  fi
+
+  return "$action_count"
+}
+
 # ─── Status ───────────────────────────────────────────────────────────────────
 
 cmd_status() {
@@ -270,6 +379,11 @@ cmd_status() {
   echo "  Version:  v$v"
   echo ""
 
+  # Initiatives
+  local initiatives=0
+  if [[ -d ".codepress/product/initiatives" ]]; then local _i; _i=(.codepress/product/initiatives/*.md); initiatives=${#_i[@]}; fi
+  echo "  Initiatives:  $initiatives"
+
   # Galleys
   if [[ -d ".codepress/product/galleys" ]]; then
     local galley_count=0
@@ -278,16 +392,19 @@ cmd_status() {
       name=$(basename "$galley")
       [[ "$name" == _* ]] && continue
       galley_count=$((galley_count + 1))
-      status="─"
+      gstatus="─"
       if [[ -f "$galley/galley.md" ]]; then
-        status=$(grep -m1 "^status:" "$galley/galley.md" 2>/dev/null | sed 's/status: *//' || echo "─")
+        gstatus=$(grep -m1 "^status:" "$galley/galley.md" 2>/dev/null | sed 's/status: *//' || echo "─")
       fi
-      echo "    $name  [$status]"
+      echo "    $name  [$gstatus]"
     done
     [[ "$galley_count" -eq 0 ]] && echo "    (none)"
-  else
-    echo "  Galleys:  (.codepress/product/galleys/ not found)"
   fi
+
+  # Releases
+  local releases=0
+  if [[ -d ".codepress/product/releases" ]]; then local _r; _r=(.codepress/product/releases/*.md); releases=${#_r[@]}; fi
+  echo "  Releases:  $releases"
 
   echo ""
 
@@ -298,15 +415,311 @@ cmd_status() {
   if [[ -d ".codepress/knowledge/decisions" ]]; then local _d; _d=(.codepress/knowledge/decisions/*.md); decisions=${#_d[@]}; fi
   echo "  Knowledge:  $patterns patterns  |  $signals signals  |  $decisions decisions"
 
-  # Initiatives
-  local initiatives=0
-  if [[ -d ".codepress/product/initiatives" ]]; then local _i; _i=(.codepress/product/initiatives/*.md); initiatives=${#_i[@]}; fi
-  echo "  Initiatives:  $initiatives"
+  echo ""
 
-  # Releases
-  local releases=0
-  if [[ -d ".codepress/product/releases" ]]; then local _r; _r=(.codepress/product/releases/*.md); releases=${#_r[@]}; fi
-  echo "  Releases:  $releases"
+  # Pending actions
+  echo "  Pending actions:"
+  detect_pending_actions text
+  echo ""
+  echo "  → Run 'codepress run' to execute the next pending action"
+  echo ""
+  regenerate_boards
+}
+
+# ─── Engine dispatch ──────────────────────────────────────────────────────────
+
+resolve_engine() {
+  local action="$1"
+  local stage=""
+
+  case "$action" in
+    create-galley)  stage="shaping" ;;
+    split-galley)   stage="split" ;;
+    build)          stage="build" ;;
+    review)         stage="review" ;;
+    release+capture) stage="release" ;; # primary stage for dispatch
+    capture)        stage="capture" ;;
+    compound)       stage="compound" ;;
+  esac
+
+  if [[ -z "$stage" ]]; then
+    echo "claude"
+    return
+  fi
+
+  if [[ -f ".codepress/system/codepress.md" ]]; then
+    local engine
+    engine=$(grep -A1 "^  $stage:" ".codepress/system/codepress.md" 2>/dev/null | grep -v "^--$" | tail -1 | sed 's/.*: *//')
+    if [[ -n "$engine" ]]; then
+      echo "$engine"
+      return
+    fi
+  fi
+
+  echo "claude"
+}
+
+dispatch_skill_for() {
+  local action="$1"
+  local target="$2"
+  local engine
+  engine=$(resolve_engine "$action")
+
+  case "$action" in
+    create-galley)
+      echo "  Engine: $engine  →  skills/create-galley.md  (initiative: $target)"
+      ;;
+    split-galley)
+      echo "  Engine: $engine  →  skills/split-galley.md  (galley: $target)"
+      ;;
+    review)
+      echo "  Engine: $engine  →  playbooks/review.md  (galley: $target)"
+      ;;
+    release+capture)
+      local release_engine capture_engine
+      release_engine=$(resolve_engine "release")
+      capture_engine=$(resolve_engine "capture")
+      echo "  Engine: $release_engine  →  skills/generate-release.md  (galley: $target)"
+      echo "  Engine: $capture_engine  →  skills/capture-pattern.md  (galley: $target)"
+      ;;
+  esac
+}
+
+# ─── Board regeneration ──────────────────────────────────────────────────────
+
+regenerate_boards() {
+  local views=".codepress/views"
+  local updated=false
+
+  # Galley board
+  if [[ -d ".codepress/product/galleys" && -d "$views" ]]; then
+    {
+      echo "---"
+      echo "kanban-plugin: board"
+      echo "---"
+      echo ""
+      for pair in "Shaping:shaping" "Approved:approved" "Delivering:delivering" "Review:review" "Done:done"; do
+        local heading="${pair%%:*}"
+        local slug="${pair##*:}"
+        echo "## $heading"
+        echo ""
+        for g in .codepress/product/galleys/*/galley.md; do
+          [[ -f "$g" ]] || continue
+          local gdir gname gstatus gtitle
+          gdir=$(dirname "$g")
+          gname=$(basename "$gdir")
+          [[ "$gname" == _* ]] && continue
+          gstatus=$(grep -m1 "^status:" "$g" 2>/dev/null | sed 's/status: *//' || echo "")
+          [[ "$gstatus" != "$slug" ]] && continue
+          gtitle=$(grep -m1 "^# Galley:" "$g" 2>/dev/null | sed 's/# Galley: *//' || echo "$gname")
+          local checkbox=" "
+          [[ "$heading" == "Done" ]] && checkbox="x"
+          rel=".codepress/product/galleys/$gname/galley"
+          echo "- [$checkbox] [[$rel|$gtitle]]"
+        done
+        echo ""
+      done
+      echo "%% kanban:settings"
+      echo '```'
+      echo '{"kanban-plugin":"board","list-collapse":[false,false,false,false,false]}'
+      echo '```'
+      echo "%%"
+    } > "$views/galley-board.md"
+    updated=true
+  fi
+
+  # Initiative board
+  if [[ -d ".codepress/product/initiatives" && -d "$views" ]]; then
+    {
+      echo "# Initiative Board"
+      echo ""
+      echo "Overview of all initiatives — ideas and problems worth solving."
+      echo ""
+      echo "---"
+      echo ""
+      echo "## Active"
+      echo "| Initiative | Status | Priority |"
+      echo "|---|---|---|"
+      for f in .codepress/product/initiatives/*.md; do
+        [[ -f "$f" ]] || continue
+        local iid istatus
+        iid=$(grep -m1 "^# Initiative:" "$f" 2>/dev/null | sed 's/# Initiative: *//' || basename "$f" .md)
+        istatus=$(grep -m1 "^status:" "$f" 2>/dev/null | sed 's/status: *//' || echo "draft")
+        [[ "$istatus" != "draft" && "$istatus" != "completed" ]] && echo "| $iid | $istatus | — |"
+      done
+      echo ""
+      echo "## Backlog"
+      echo "| Initiative | Status | Priority |"
+      echo "|---|---|---|"
+      for f in .codepress/product/initiatives/*.md; do
+        [[ -f "$f" ]] || continue
+        iid=$(grep -m1 "^# Initiative:" "$f" 2>/dev/null | sed 's/# Initiative: *//' || basename "$f" .md)
+        istatus=$(grep -m1 "^status:" "$f" 2>/dev/null | sed 's/status: *//' || echo "draft")
+        [[ "$istatus" == "draft" ]] && echo "| $iid | $istatus | — |"
+      done
+      echo ""
+      echo "## Completed"
+      echo "| Initiative | Galley | Status |"
+      echo "|---|---|---|"
+      for f in .codepress/product/initiatives/*.md; do
+        [[ -f "$f" ]] || continue
+        iid=$(grep -m1 "^# Initiative:" "$f" 2>/dev/null | sed 's/# Initiative: *//' || basename "$f" .md)
+        istatus=$(grep -m1 "^status:" "$f" 2>/dev/null | sed 's/status: *//' || echo "draft")
+        [[ "$istatus" == "completed" ]] && echo "| $iid | — | $istatus |"
+      done
+    } > "$views/initiative-board.md"
+    updated=true
+  fi
+
+  # Release board
+  if [[ -d ".codepress/product/releases" && -d "$views" ]]; then
+    {
+      echo "# Release Board"
+      echo ""
+      echo "---"
+      echo ""
+      echo "## Upcoming"
+      echo "| Release | Galleys | Target |"
+      echo "|---|---|---|"
+      echo ""
+      echo "## Current"
+      echo "| Release | Galleys | Status |"
+      echo "|---|---|---|"
+      echo ""
+      echo "## Shipped"
+      echo "| Release | Date | Galleys |"
+      echo "|---|---|---|"
+    } > "$views/release-board.md"
+    updated=true
+  fi
+
+  if [[ "$updated" == true ]]; then
+    echo "  ✓ Boards regenerated"
+  fi
+}
+
+execute_action() {
+  local action="$1"
+  local target="$2"
+  local script_dir=".codepress/system"
+  local skill_file=""
+
+  case "$action" in
+    create-galley)
+      skill_file="$script_dir/skills/create-galley.md"
+      echo "  Skill: $skill_file"
+      if [[ -f "$skill_file" ]]; then
+        cat "$skill_file"
+      else
+        echo "  ⚠ Skill file not found: $skill_file"
+        return 2
+      fi
+      echo "  → Hand off to $(resolve_engine "$action") with initiative '$target'"
+      ;;
+
+    split-galley)
+      skill_file="$script_dir/skills/split-galley.md"
+      echo "  Skill: $skill_file"
+      if [[ -f "$skill_file" ]]; then
+        cat "$skill_file"
+      else
+        echo "  ⚠ Skill file not found: $skill_file"
+        return 2
+      fi
+      echo "  → Hand off to $(resolve_engine "$action") with galley '$target'"
+      ;;
+
+    review)
+      skill_file="$script_dir/playbooks/review.md"
+      echo "  Playbook: $skill_file"
+      if [[ -f "$skill_file" ]]; then
+        cat "$skill_file"
+      else
+        echo "  ⚠ Playbook file not found: $skill_file"
+        return 2
+      fi
+      echo "  → Hand off to $(resolve_engine "$action") for galley '$target'"
+      ;;
+
+    release+capture)
+      local release_file="$script_dir/skills/generate-release.md"
+      local capture_file="$script_dir/skills/capture-pattern.md"
+      echo "  Skill: $release_file"
+      [[ -f "$release_file" ]] && cat "$release_file" || echo "  ⚠ File not found: $release_file"
+      echo ""
+      echo "  Skill: $capture_file"
+      [[ -f "$capture_file" ]] && cat "$capture_file" || echo "  ⚠ File not found: $capture_file"
+      echo "  → Hand off to $(resolve_engine "release") and $(resolve_engine "capture") for galley '$target'"
+      ;;
+  esac
+}
+
+# ─── Run ──────────────────────────────────────────────────────────────────────
+
+cmd_run() {
+  local all_flag=false
+  [[ "${1:-}" == "--all" ]] && all_flag=true
+
+  local tmpfile
+  tmpfile=$(mktemp)
+  detect_pending_actions json > "$tmpfile" 2>/dev/null || true
+  local pending=()
+  while IFS='|' read -r action target desc; do
+    [[ -z "$action" ]] && continue
+    pending+=("$action|$target|$desc")
+  done < "$tmpfile"
+
+  if [[ ${#pending[@]} -eq 0 ]]; then
+    echo "No pending actions — all artefacts are in a consistent state."
+    rm -f "$tmpfile"
+    return
+  fi
+
+  if [[ "$all_flag" == false ]]; then
+    IFS='|' read -r action target desc <<< "${pending[0]}"
+    echo "Next pending action:"
+    echo "  $action  $target"
+    echo "  $desc"
+    echo ""
+    echo "Engine dispatch:"
+    dispatch_skill_for "$action" "$target"
+    echo ""
+    read -p "Execute this action? [y/N] " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+      echo ""
+      execute_action "$action" "$target"
+      echo ""
+      regenerate_boards
+      echo ""
+      echo "✓ Action dispatched. Run 'codepress status' to see updated state."
+    else
+      echo "  Skipped."
+    fi
+  else
+    echo "Executing ${#pending[@]} pending action(s)..."
+    echo ""
+    for entry in "${pending[@]}"; do
+      IFS='|' read -r action target desc <<< "$entry"
+      echo "─── $action  $target ───"
+      echo "  $desc"
+      echo ""
+      dispatch_skill_for "$action" "$target"
+      echo ""
+      read -p "Execute? [y/N] " confirm
+      if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+        execute_action "$action" "$target"
+        regenerate_boards
+        echo ""
+        echo "✓ Done."
+      else
+        echo "  Skipped."
+      fi
+      echo ""
+    done
+    echo "All actions processed."
+  fi
+
+  rm -f "$tmpfile"
 }
 
 # ─── Galley commands ──────────────────────────────────────────────────────────
@@ -411,6 +824,7 @@ cmd_galley_move() {
   fi
 
   echo "✓ Galley '$name' moved to [$target]"
+  regenerate_boards
 }
 
 cmd_galley() {
@@ -430,6 +844,7 @@ case "${1:-}" in
   upgrade) cmd_upgrade ;;
   migrate) cmd_migrate ;;
   status) cmd_status ;;
+  run) shift; cmd_run "$@" ;;
   galley) shift; cmd_galley "$@" ;;
   -h|--help|"") usage ;;
   *) echo "Unknown: $1"; usage; exit 1 ;;

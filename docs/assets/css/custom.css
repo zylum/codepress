@@ -109,6 +109,37 @@
 }
 .page-nav a.primary-nav:hover { background: #000; }
 
+/* ── tab nav (top-level site tabs) ────────────────────── */
+.tab-nav {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 0;
+  border-bottom: 2px solid #e1e4e8;
+  padding: 0 1rem;
+}
+.tab-nav a {
+  display: inline-block;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #586069;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-nav a:hover {
+  color: #24292e;
+}
+.tab-nav a.active-tab {
+  color: #24292e;
+  border-bottom-color: #24292e;
+}
+.tab-nav a.active-tab:hover {
+  border-bottom-color: #000;
+}
+
 /* ── overview image ────────────────────────────────────── */
 .overview-img {
   text-align: center;

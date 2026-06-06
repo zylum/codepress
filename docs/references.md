@@ -5,10 +5,15 @@ title: References
 
 <link rel="stylesheet" href="/codepress/assets/css/custom.css">
 
+<div class="tab-nav">
+  <a href="overview.html">Overview</a>
+  <a href="faq.html">FAQs</a>
+  <a href="quick-reference.html">Reference</a>
+</div>
 <div class="page-nav">
   <a href="index.html">Home</a>
   <a href="quick-start.html">Quick Start</a>
-  <a href="structure.html">View Structure</a>
+  <a href="structure.html">Structure</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 

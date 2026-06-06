@@ -11,8 +11,8 @@ codepress-source: https://github.com/zylum/codepress
 ---
 
 ## Project
-name: 
-description: 
+name: CodePress
+description: Compound product development operating system for the AI era
 garner-project:     # path relative to garner silos/ e.g. marv/projects/loom
 
 ---
@@ -22,9 +22,11 @@ Each release is named after _____.
 Use the theme name as the release codename when creating a new release.
 
 Pool:
-- 
-- 
-- 
+- Programming languages
+- Compilers
+- Terminal commands
+- Editor shortcuts
+- File formats
 
 ---
 
@@ -73,6 +75,27 @@ Roles:
 ## Conventions
 <!-- Project-specific naming, commit, or workflow conventions -->
 - 
+
+---
+
+---
+
+## Engines
+
+Which AI agent handles each workflow stage. Model-agnostic — set to `claude`, `opencode`, `codex`, `gemini`, or any agent name your workflow supports.
+
+```yaml
+engines:
+  shaping: claude
+  split: claude
+  build: opencode
+  review: claude
+  release: claude
+  capture: claude
+  compound: claude
+```
+
+If this section is missing, all stages default to `claude`.
 
 ---
 

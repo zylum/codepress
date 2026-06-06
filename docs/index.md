@@ -5,10 +5,15 @@ title: CodePress
 
 <link rel="stylesheet" href="/codepress/assets/css/custom.css">
 
+<div class="tab-nav">
+  <a href="overview.html">Overview</a>
+  <a href="faq.html">FAQs</a>
+  <a href="quick-reference.html">Reference</a>
+</div>
 <div class="page-nav">
   <a class="primary-nav" href="index.html">Home</a>
   <a href="quick-start.html">Quick Start</a>
-  <a href="structure.html">View Structure</a>
+  <a href="structure.html">Structure</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 
@@ -72,50 +77,19 @@ A **compound loop** runs across all three, continuously improving them as each d
 The CodePress pipeline turns ideas into delivered value while capturing everything learned along the way.
 
 ```text
-Initiative
-    ↓
-  Galley
-    ↓
-  Slugs
-    ↓
- Release
-    ↓
- Signals
-    ↓
-Patterns
-    ↓
-Knowledge
+Initiative ──→ Galley ──→ Slugs ──→ Release ──→ Signals ──→ Patterns ──→ Knowledge
+  (shape)      (split)    (build)   (deliver)   (capture)   (promote)    (update)
 ```
 
-| Stage | What it is |
-|---|---|
-| **Initiative** | An opportunity worth exploring — captured in `.codepress/product/initiatives/` |
-| **Galley** | A shaped solution ready for implementation — Problem, Users, Success, Constraints, Approach, Acceptance Criteria |
-| **Slugs** | Atomic delivery units built independently and in parallel. Each has a purpose, checklist, and autonomy level |
-| **Release** | Delivered value |
-| **Signals** | What we learned during delivery — raw observations recorded at galley-close |
-| **Patterns** | Reusable lessons extracted from signals and validated across multiple deliveries |
-| **Knowledge** | Shared understanding that improves future work — concepts, glossary, decisions, current-state |
-
-### Core workflow
-
-```text
-Capture Initiative
-        ↓
-    Create Galley
-        ↓
-  Split into Slugs
-        ↓
-       Build
-        ↓
-      Release
-        ↓
- Capture Signals
-        ↓
-Promote Patterns
-        ↓
-Update Knowledge
-```
+| Stage | What it is | Action |
+|---|---|---|
+| **Initiative** | An opportunity worth exploring — captured in `.codepress/product/initiatives/` | Shape |
+| **Galley** | A shaped solution ready for implementation — Problem, Users, Success, Constraints, Approach, Acceptance Criteria | Create / Split |
+| **Slugs** | Atomic delivery units built independently and in parallel. Each has a purpose, checklist, and autonomy level | Build |
+| **Release** | Delivered value | Release |
+| **Signals** | What we learned during delivery — raw observations recorded at galley-close | Capture |
+| **Patterns** | Reusable lessons extracted from signals and validated across multiple deliveries | Promote |
+| **Knowledge** | Shared understanding that improves future work — concepts, glossary, decisions, current-state | Update |
 
 Each step links to a playbook or skill in `.codepress/system/`. See [Quick Reference](quick-reference.html) for commands and lifecycle.
 

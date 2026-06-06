@@ -1,0 +1,235 @@
+{
+  "main": {
+    "id": "0ec78a9897f33ed2",
+    "type": "split",
+    "children": [
+      {
+        "id": "a4f88aaec476cfcb",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f89cdf66b848ede3",
+            "type": "leaf",
+            "state": {
+              "type": "kanban",
+              "state": {
+                "file": ".codepress/views/galley-board.md",
+                "kanbanViewState": {
+                  "kanban-plugin": "board",
+                  "list-collapse": [
+                    false,
+                    false,
+                    false,
+                    false,
+                    false
+                  ]
+                }
+              },
+              "icon": "lucide-trello",
+              "title": "galley-board"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "fbc5992a07970e78",
+    "type": "split",
+    "children": [
+      {
+        "id": "c783a20c4440a30c",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "a87f20c8faa63e7c",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "b0a55e7d63db097c",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "e922aab260069e16",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "029c39910328c16c",
+    "type": "split",
+    "children": [
+      {
+        "id": "e239570aea727860",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4770159819ee2a8a",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": ".codepress/views/galley-board.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for galley-board"
+            }
+          },
+          {
+            "id": "fec8875d22f88dfe",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": ".codepress/views/galley-board.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from galley-board"
+            }
+          },
+          {
+            "id": "926317be931dbc6e",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "f2cf605ea816a0f6",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "02c9700e80297fc3",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": ".codepress/views/galley-board.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of galley-board"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "hidden-folder-obsidian:Hidden Folders": false,
+      "obsidian-kanban:Create new board": false
+    }
+  },
+  "active": "f89cdf66b848ede3",
+  "lastOpenFiles": [
+    ".codepress/product/galleys/execution-engine-v1/galley.md",
+    ".codepress/views/galley-board.md",
+    ".codepress/views/dashboard.md",
+    ".codepress/product/galleys/execution-engine-v1/slugs/engine-config.md",
+    ".codepress/product/galleys/execution-engine-v1/slugs/watch-mode.md",
+    ".codepress/product/galleys/execution-engine-v1/slugs/test-and-docs.md",
+    ".codepress/product/galleys/execution-engine-v1/slugs/status-detector.md",
+    ".codepress/product/galleys/execution-engine-v1/slugs/codepress-run.md",
+    ".codepress/product/galleys/execution-engine-v1/slugs/board-regeneration.md",
+    ".codepress/product/galleys/execution-engine-v1/slugs",
+    ".codepress/product/galleys/execution-engine-v1/run-sheet.md",
+    ".codepress/product/galleys/execution-engine-v1/review.md",
+    ".codepress/product/galleys/_archive/.gitkeep",
+    ".codepress/knowledge/decisions/.gitkeep",
+    ".codepress/knowledge/signals/.gitkeep",
+    ".codepress/knowledge/patterns/_template.md",
+    ".codepress/system/templates/slug.md",
+    ".codepress/system/templates/release.md",
+    ".codepress/system/templates/pattern.md",
+    ".codepress/system/templates/initiative.md",
+    ".codepress/system/templates/galley.md",
+    ".codepress/system/templates/decision.md",
+    ".codepress/system/skills/update-domain.md",
+    ".codepress/system/skills/status.md",
+    ".codepress/system/skills/split-galley.md",
+    ".codepress/system/skills/generate-release.md",
+    ".codepress/system/skills/create-galley.md",
+    ".codepress/system/skills/capture-pattern.md",
+    ".codepress/system/skills/bootstrap.md",
+    ".codepress/system/playbooks/split.md",
+    ".codepress/product/releases/.gitkeep",
+    ".codepress/product/initiatives/.gitkeep",
+    ".codepress/product/galleys/execution-engine-v1",
+    ".codepress/product/galleys/_archive",
+    ".codepress/knowledge/signals",
+    ".codepress/knowledge/patterns"
+  ]
+}
