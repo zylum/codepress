@@ -42,7 +42,13 @@ If the run-sheet identifies parallel Slugs:
 - Merge after all parallel Slugs complete
 - Resolve conflicts in a dedicated integration Slug
 
-### 4. Galley-close step (mandatory)
+### 4. Verify (mandatory before close)
+
+Before Galley-close, run `.codepress/system/playbooks/verify.md` to pass all verification gates.
+
+If any gate fails, capture a Signal, resolve the issue, and re-verify. Do not proceed until gates pass or a human explicitly waives them.
+
+### 5. Galley-close step (mandatory)
 
 Before marking the Galley done, run `.codepress/system/skills/capture-pattern.md`:
 
@@ -53,8 +59,8 @@ Before marking the Galley done, run `.codepress/system/skills/capture-pattern.md
 2. Promote Signals to `.codepress/knowledge/signals/`
 3. Create or update Pattern files in `.codepress/knowledge/patterns/`
 4. Update `.codepress/knowledge/` as needed
-5. Update Galley frontmatter: `status: done`
-6. Update `.codepress/views/galley-board.md` — move card to Done
+5. Update Galley frontmatter: `status: review`
+6. Update `.codepress/views/galley-board.md` — move card to Review
 7. Commit: `galley:{name} done`
 
 ---

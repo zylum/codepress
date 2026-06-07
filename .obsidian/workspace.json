@@ -193,8 +193,12 @@
       "obsidian-kanban:Create new board": false
     }
   },
-  "active": "f89cdf66b848ede3",
+  "active": "a87f20c8faa63e7c",
   "lastOpenFiles": [
+    ".codepress/system/playbooks/verify.md",
+    "docs/hermes.md",
+    "docs/modes-of-use.md",
+    ".codepress/system/playbooks/learn.md",
     ".codepress/product/galleys/execution-engine-v1/galley.md",
     ".codepress/views/galley-board.md",
     ".codepress/views/dashboard.md",
@@ -221,10 +225,6 @@
     ".codepress/system/skills/status.md",
     ".codepress/system/skills/split-galley.md",
     ".codepress/system/skills/generate-release.md",
-    ".codepress/system/skills/create-galley.md",
-    ".codepress/system/skills/capture-pattern.md",
-    ".codepress/system/skills/bootstrap.md",
-    ".codepress/system/playbooks/split.md",
     ".codepress/product/releases/.gitkeep",
     ".codepress/product/initiatives/.gitkeep",
     ".codepress/product/galleys/execution-engine-v1",

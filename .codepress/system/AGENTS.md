@@ -5,7 +5,19 @@ CodePress is a compound product development system built on three pillars:
 - **Product** — what we build
 - **Knowledge** — what we know
 
-A Compound Loop runs across all three, continuously improving them.
+A compound loop runs across all three, continuously improving them.
+
+---
+
+## Modes of use
+
+CodePress supports three levels of operation:
+
+| Level | Name | What's available |
+|---|---|---|
+| 1 | Scaffold | `.codepress/` structure + AGENTS.md + templates. Human and AI work directly with markdown files. No tooling required. |
+| 2 | Workshop | Scaffold + Obsidian Kanban boards. `codepress status` regenerates views. Visual pipeline management. |
+| 3 | Engine | Workshop + automation. `codepress run` dispatches skills. Watch mode or Hermes auto-triggers workflows. |
 
 ---
 
@@ -13,60 +25,78 @@ A Compound Loop runs across all three, continuously improving them.
 
 Before any work, read in this order:
 
-1. `.codepress/system/codepress.md` — project name, release theme, conventions
-2. `.codepress/knowledge/concepts.md` — core entities and what they do
-3. `.codepress/knowledge/current-state.md` — what exists today
-4. Relevant `.codepress/knowledge/patterns/` — reusable lessons for this area
-5. Active galley in `.codepress/product/galleys/` — what you are working on
+1. `system/codepress.md` — project name, pace, conventions
+2. `knowledge/concepts.md` — core entities and what they do
+3. `knowledge/current-state.md` — what exists today
+4. Relevant `knowledge/patterns/` — reusable lessons for this area
+5. Active galley in `product/galleys/` — what you are working on
 
 Never start implementation without reading Knowledge first.
 
 ---
 
-## The system
+## Artefacts
 
-```
-Initiative → Galley → Slugs → Signals → Patterns → Knowledge
-```
-
-Each layer feeds the next. Each cycle leaves the system smarter.
+| Artefact | Location | Purpose |
+|---|---|---|
+| Initiative | `product/initiatives/` | An idea or problem worth exploring |
+| Galley | `product/galleys/{name}/galley.md` | A shaped solution ready for delivery |
+| Run Sheet | `product/galleys/{name}/run-sheet.md` | Execution plan — slug order, parallel options |
+| Slug | `product/galleys/{name}/slugs/` | An atomic unit of delivery |
+| Review | `product/galleys/{name}/review.md` | Galley-close learning capture |
+| Signal | `knowledge/signals/` | A raw observation from delivery |
+| Pattern | `knowledge/patterns/` | A reusable lesson |
+| Release | `product/releases/` | Grouped shipped work |
 
 ---
 
-## Artefacts
+## Status model
 
-| Artefact | Where | Purpose |
-|---|---|---|
-| Initiative | `.codepress/product/initiatives/` | An idea or problem worth exploring |
-| Galley | `.codepress/product/galleys/{name}/galley.md` | A shaped solution ready for delivery |
-| Run Sheet | `.codepress/product/galleys/{name}/run-sheet.md` | Execution plan — slug order, parallel options |
-| Slug | `.codepress/product/galleys/{name}/slugs/` | An atomic unit of delivery |
-| Review | `.codepress/product/galleys/{name}/review.md` | Galley-close learning capture |
-| Signal | `.codepress/knowledge/signals/` | A raw observation from delivery |
-| Pattern | `.codepress/knowledge/patterns/` | A reusable lesson |
-| Release | `.codepress/product/releases/` | Grouped shipped work |
+### Initiative lifecycle
+
+`inbox → research → candidate → approved → shaping → galley-ready → archived`
+
+| Status | Meaning |
+|---|---|
+| `inbox` | Raw idea captured, no evaluation yet |
+| `research` | Being explored — gathering context, feasibility |
+| `candidate` | Looks promising, needs shaping |
+| `approved` | Greenlit — ready to shape into a Galley |
+| `shaping` | Galley being drafted |
+| `galley-ready` | Galley exists and is approved |
+| `archived` | Not moving forward — reason recorded |
+
+### Galley lifecycle
+
+`draft → ready → building → review → released → learned`
+
+| Status | Meaning |
+|---|---|
+| `draft` | Being written |
+| `ready` | Shaped and approved, ready for split |
+| `building` | Slugs in progress |
+| `review` | All slugs done, learning capture |
+| `released` | Shipped |
+| `learned` | Signals captured, patterns promoted, knowledge updated |
 
 ---
 
 ## Operating rules
 
 **Shape before build.**
-Read the Galley fully. Understand the Problem, Users, Success criteria and Constraints before touching code.
+Read the Galley fully before touching code.
 
 **Read Knowledge first.**
-Check `.codepress/knowledge/` before planning any work. Do not re-discover what already exists.
+Check `knowledge/` before planning. Do not re-discover what already exists.
 
 **Update Knowledge.**
-When you encounter a concept, decision or capability not in `.codepress/knowledge/`, add it.
-Prefer a 5-line stub over nothing. Do not wait for the Galley to close.
+When you encounter a concept, decision or capability not in `knowledge/`, add it. Prefer a 5-line stub over nothing.
 
 **Capture Signals.**
-When you observe something interesting during delivery — a discovery, unexpected behaviour, a better approach — record it in the Galley's `review.md` under Signals.
+When you observe something interesting during delivery — a discovery, unexpected behaviour, a better approach — record it in `review.md` under Signals.
 
 **Galley-close is mandatory.**
-Before marking a Galley done, complete `review.md`.
-Promote Signals to Patterns where warranted. Update Knowledge.
-A Galley is not done until learning has been captured.
+Before marking a Galley `learned`, complete `review.md`, promote Signals to Patterns, and update Knowledge.
 
 **Commit discipline.**
 One commit per Slug: `slug:<name> done — <summary>`
@@ -75,8 +105,6 @@ One commit per Galley close: `galley:<name> done`
 ---
 
 ## Autonomy levels
-
-Each Slug declares its autonomy level:
 
 | Level | Meaning |
 |---|---|
@@ -88,25 +116,21 @@ Each Slug declares its autonomy level:
 
 ## Playbooks
 
-How CodePress operates:
-
-- `.codepress/system/playbooks/shape.md` — shape an Initiative into a Galley
-- `.codepress/system/playbooks/split.md` — decompose a Galley into Slugs
-- `.codepress/system/playbooks/build.md` — execute a Galley through Slugs
-- `.codepress/system/playbooks/review.md` — Galley-close learning capture
-- `.codepress/system/playbooks/release.md` — cut a release
-- `.codepress/system/playbooks/compound.md` — Signals → Patterns → Knowledge
+- `playbooks/shape.md` — shape an Initiative into a Galley
+- `playbooks/split.md` — decompose a Galley into Slugs
+- `playbooks/build.md` — execute a Galley through Slugs
+- `playbooks/review.md` — Galley-close learning capture
+- `playbooks/learn.md` — Signals → Patterns → Knowledge
+- `playbooks/verify.md` — run verification gates before status transitions
+- `playbooks/release.md` — cut a release
 
 ---
 
 ## Skills
 
-Executable AI behaviours:
-
-- `.codepress/system/skills/bootstrap.md` — seed Knowledge from an existing codebase
-- `.codepress/system/skills/create-galley.md` — shape an Initiative into a Galley
-- `.codepress/system/skills/split-galley.md` — decompose a Galley into Slugs
-- `.codepress/system/skills/capture-pattern.md` — run the Galley-close learning step
-- `.codepress/system/skills/update-domain.md` — update Knowledge artefacts
-- `.codepress/system/skills/generate-release.md` — create a release note
-- `.codepress/system/skills/status.md` — regenerate the delivery board
+- `skills/bootstrap.md` — seed Knowledge from an existing codebase
+- `skills/create-galley.md` — shape an Initiative into a Galley
+- `skills/split-galley.md` — decompose a Galley into Slugs
+- `skills/capture-pattern.md` — Galley-close learning step
+- `skills/generate-release.md` — create a release note
+- `skills/status.md` — regenerate the delivery board

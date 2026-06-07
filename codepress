@@ -7,17 +7,32 @@ VERSION="0.1.0"
 SOURCE_REPO="https://github.com/zylum/codepress"
 CONFIG_FILE=".codepress/system/codepress.md"
 
+# Fallback: some projects use config.md instead of codepress.md
+resolve_config() {
+  if [[ -f ".codepress/system/codepress.md" ]]; then
+    echo ".codepress/system/codepress.md"
+  elif [[ -f ".codepress/system/config.md" ]]; then
+    echo ".codepress/system/config.md"
+  else
+    echo "$CONFIG_FILE"
+  fi
+}
+
 get_codepress_version() {
-  if [[ -f "$CONFIG_FILE" ]]; then
-    grep -m1 "^codepress-version:" "$CONFIG_FILE" 2>/dev/null | sed 's/codepress-version: *//' || echo "0.0.0"
+  local cfg
+  cfg=$(resolve_config)
+  if [[ -f "$cfg" ]]; then
+    grep -m1 "^codepress-version:" "$cfg" 2>/dev/null | sed 's/codepress-version: *//' || echo "0.0.0"
   else
     echo "0.0.0"
   fi
 }
 
 get_codepress_source() {
-  if [[ -f "$CONFIG_FILE" ]]; then
-    grep -m1 "^codepress-source:" "$CONFIG_FILE" 2>/dev/null | sed 's/codepress-source: *//' || echo "$SOURCE_REPO"
+  local cfg
+  cfg=$(resolve_config)
+  if [[ -f "$cfg" ]]; then
+    grep -m1 "^codepress-source:" "$cfg" 2>/dev/null | sed 's/codepress-source: *//' || echo "$SOURCE_REPO"
   else
     echo "$SOURCE_REPO"
   fi
@@ -33,6 +48,7 @@ Usage:
   codepress migrate               Migrate from old numbered structure
   codepress status                Show project health and pending actions
   codepress run [--all]           Execute next pending action (or all)
+  codepress watch [seconds]       Watch artefact dir and auto-execute (default 2s)
 
   codepress galley new <name>     Scaffold a new galley
   codepress galley list           List all galleys with status
@@ -98,6 +114,65 @@ EOF
   echo "  Then: run 'codepress status' to verify"
 }
 
+# ─── Utils ─────────────────────────────────────────────────────────────────────
+
+# Merge YAML frontmatter from system file into local file.
+# Adds any frontmatter keys present in system that are missing in local.
+# Preserves all local content including existing frontmatter values.
+merge_frontmatter() {
+  local local_file="$1"
+  local system_file="$2"
+  local lines=() line i key lk sys_key found tmp
+
+  [[ ! -f "$local_file" || ! -f "$system_file" ]] && return
+
+  while IFS= read -r line; do lines+=("$line"); done < "$local_file"
+
+  local fm_start=-1 fm_end=-1 count=0
+  for ((i = 0; i < ${#lines[@]}; i++)); do
+    [[ "${lines[$i]}" == "---" ]] && { count=$((count + 1)); [[ $count -eq 1 ]] && fm_start=$i; [[ $count -eq 2 ]] && { fm_end=$i; break; }; }
+  done
+  [[ $fm_end -eq -1 ]] && return
+
+  local local_keys=()
+  for ((i = fm_start + 1; i < fm_end; i++)); do
+    line="${lines[$i]}"
+    [[ -z "$line" || "$line" == \#* ]] && continue
+    local_keys+=("${line%%:*}")
+  done
+
+  local sys_keys=()
+  local in_fm=0
+  while IFS= read -r line; do
+    [[ "$line" == "---" ]] && { in_fm=$((in_fm + 1)); continue; }
+    [[ "$in_fm" -ge 2 ]] && break
+    [[ "$in_fm" -eq 1 && -n "$line" && "$line" != \#* ]] && sys_keys+=("$line")
+  done < "$system_file"
+
+  [[ ${#sys_keys[@]} -eq 0 ]] && return
+
+  local to_insert=()
+  for sys_line in "${sys_keys[@]}"; do
+    sys_key="${sys_line%%:*}"
+    found=0
+    for lk in "${local_keys[@]}"; do
+      [[ "$lk" == "$sys_key" ]] && { found=1; break; }
+    done
+    [[ $found -eq 0 ]] && to_insert+=("$sys_line")
+  done
+
+  [[ ${#to_insert[@]} -eq 0 ]] && return
+
+  tmp=$(mktemp)
+  {
+    for ((i = 0; i < fm_end; i++)); do echo "${lines[$i]}"; done
+    for insert in "${to_insert[@]}"; do echo "$insert"; done
+    for ((i = fm_end; i < ${#lines[@]}; i++)); do echo "${lines[$i]}"; done
+  } > "$tmp"
+  mv "$tmp" "$local_file"
+  echo "    M  $local_file (frontmatter merged)"
+}
+
 # ─── Upgrade ──────────────────────────────────────────────────────────────────
 
 cmd_upgrade() {
@@ -113,7 +188,7 @@ cmd_upgrade() {
 
   local tmp
   tmp=$(mktemp -d)
-  trap 'rm -rf "$tmp"' EXIT
+  trap "rm -rf '$tmp'" EXIT
 
   local src
   src=$(get_codepress_source)
@@ -139,43 +214,45 @@ cmd_upgrade() {
     return
   fi
 
-  # Check for local modifications in .codepress/system/
-  local local_mods=0
-  while IFS= read -r f; do
-    if [[ -f "$f" ]]; then
-      remote="$tmp/repo/$f"
-      if [[ -f "$remote" ]] && ! diff -q "$f" "$remote" &>/dev/null; then
-        if [[ "$local_mods" -eq 0 ]]; then
-          echo "  Locally modified files (will not be overwritten):"
-        fi
-        echo "    $f"
-        local_mods=$((local_mods + 1))
-      fi
-    fi
-  done < <(cd "$tmp/repo" && find .codepress/system -type f | sed 's|^\./||')
+  # Collect all system files from the source repo
+  local sys_files=()
+  while IFS= read -r f; do sys_files+=("$f"); done < <(cd "$tmp/repo" && find .codepress/system -type f | sed 's|^\./||')
 
-  echo ""
-  echo "→ Files to add/update:"
-  local count=0
-  while IFS= read -r f; do
+  # ── Phase 1: Analyse ──
+  local to_add=() to_update=() to_merge=()
+  local local_mods=0
+
+  for f in "${sys_files[@]}"; do
     local target="$f"
     local source="$tmp/repo/$f"
-    if [[ -f "$target" ]]; then
-      if ! diff -q "$target" "$source" &>/dev/null; then
-        echo "    U  $f"
-        count=$((count + 1))
+    if [[ ! -f "$target" ]]; then
+      to_add+=("$f")
+    elif ! diff -q "$target" "$source" &>/dev/null; then
+      if [[ "$f" == *templates/* ]]; then
+        to_merge+=("$f")
+      else
+        to_update+=("$f")
       fi
-    else
-      echo "    +  $f"
-      count=$((count + 1))
     fi
-  done < <(cd "$tmp/repo" && find .codepress/system -type f | sed 's|^\./||')
+  done
 
-  if [[ "$count" -eq 0 && "$local_mods" -eq 0 ]]; then
+  echo "→ Changes:"
+  if [[ ${#to_add[@]} -gt 0 ]]; then
+    for f in "${to_add[@]}"; do echo "    +  $f"; done
+  fi
+  if [[ ${#to_update[@]} -gt 0 ]]; then
+    for f in "${to_update[@]}"; do echo "    U  $f"; done
+  fi
+  if [[ ${#to_merge[@]} -gt 0 ]]; then
+    for f in "${to_merge[@]}"; do echo "    ~  $f (frontmatter merge)"; done
+  fi
+
+  if [[ ${#to_add[@]} -eq 0 && ${#to_update[@]} -eq 0 && ${#to_merge[@]} -eq 0 ]]; then
     echo "  (nothing to change)"
     return
   fi
 
+  # ── Phase 2: Apply ──
   echo ""
   read -p "  Apply update? [y/N] " confirm
   if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
@@ -183,27 +260,49 @@ cmd_upgrade() {
     return
   fi
 
-  # Copy new/changed files, skip locally modified ones
-  local copied=0
-  while IFS= read -r f; do
-    local target="$f"
-    local source="$tmp/repo/$f"
-    if [[ -f "$target" ]]; then
-      if diff -q "$target" "$source" &>/dev/null; then
-        continue
+  local copied=0 merged=0
+  if [[ ${#to_add[@]} -gt 0 ]]; then
+    for f in "${to_add[@]}"; do
+      mkdir -p "$(dirname "$f")"
+      cp "$tmp/repo/$f" "$f"
+      copied=$((copied + 1))
+    done
+  fi
+  if [[ ${#to_update[@]} -gt 0 ]]; then
+    for f in "${to_update[@]}"; do
+      mkdir -p "$(dirname "$f")"
+      cp "$tmp/repo/$f" "$f"
+      copied=$((copied + 1))
+    done
+  fi
+  if [[ ${#to_merge[@]} -gt 0 ]]; then
+    for f in "${to_merge[@]}"; do
+      merge_frontmatter "$f" "$tmp/repo/$f" && merged=$((merged + 1))
+    done
+  fi
+
+  # ── Phase 3: Sync product templates ──
+  local sys_templates_dir="$tmp/repo/.codepress/system/templates"
+  local product_templates_dir=".codepress/product/templates"
+  if [[ -d "$sys_templates_dir" ]]; then
+    mkdir -p "$product_templates_dir"
+    while IFS= read -r t; do
+      local tname="${t#$sys_templates_dir/}"
+      local product_target="$product_templates_dir/$tname"
+      if [[ -f "$product_target" ]]; then
+        merge_frontmatter "$product_target" "$t" && merged=$((merged + 1))
+      else
+        mkdir -p "$(dirname "$product_target")"
+        cp "$t" "$product_target"
+        echo "    +  .codepress/product/templates/$tname"
+        copied=$((copied + 1))
       fi
-    fi
-    mkdir -p "$(dirname "$target")"
-    cp "$source" "$target"
-    copied=$((copied + 1))
-  done < <(cd "$tmp/repo" && find .codepress/system -type f | sed 's|^\./||')
+    done < <(find "$sys_templates_dir" -type f)
+  fi
 
   echo ""
-  echo "✓ Upgraded from v$current to v$latest ($copied files updated)."
-  if [[ "$local_mods" -gt 0 ]]; then
-    echo "  ⚠ $local_mods local file(s) left unchanged. Review manually:"
-    echo "    diff -u <local> <system> to merge changes."
-  fi
+  echo "✓ Upgraded from v$current to v$latest."
+  echo "  $copied file(s) copied, $merged template(s) frontmatter-merged."
 }
 
 # ─── Migrate ──────────────────────────────────────────────────────────────────
@@ -267,16 +366,16 @@ detect_pending_actions() {
   local action_count=0
   local out
 
-  # 1. Initiatives with status "shaping" that have no matching Galley
+  # 1. Initiatives ready for shaping (approved or shaping) with no matching Galley
   if [[ -d ".codepress/product/initiatives" ]]; then
     for f in .codepress/product/initiatives/*.md; do
       [[ ! -f "$f" ]] && continue
       local id init_status
       id=$(grep -m1 "^id:" "$f" 2>/dev/null | sed 's/id: *//')
-      init_status=$(grep -m1 "^status:" "$f" 2>/dev/null | sed 's/status: *//' || echo "draft")
+      init_status=$(grep -m1 "^status:" "$f" 2>/dev/null | sed 's/status: *//' || echo "inbox")
       [[ -z "$id" ]] && id=$(basename "$f" .md)
 
-      if [[ "$init_status" == "shaping" ]]; then
+      if [[ "$init_status" == "approved" || "$init_status" == "shaping" ]]; then
         local found=false
         if [[ -d ".codepress/product/galleys" ]]; then
           for g in .codepress/product/galleys/*/galley.md; do
@@ -288,9 +387,9 @@ detect_pending_actions() {
         fi
         if [[ "$found" == false ]]; then
           if [[ "$format" == "json" ]]; then
-            out="create-galley|$id|Initiative '$id' is shaping but no Galley exists"
+            out="create-galley|$id|Initiative '$id' is $init_status but no Galley exists"
           else
-            echo "  create-galley  $id    Initiative '$id' is shaping — no Galley yet"
+            echo "  create-galley  $id    Initiative '$id' is $init_status — no Galley yet"
           fi
           action_count=$((action_count + 1))
         fi
@@ -308,24 +407,24 @@ detect_pending_actions() {
       [[ "$gname" == _* ]] && continue
       gstatus=$(grep -m1 "^status:" "$g" 2>/dev/null | sed 's/status: *//' || echo "")
 
-      # Approved but no slugs → needs split
-      if [[ "$gstatus" == "approved" ]]; then
+      # ready but no slugs → needs split
+      if [[ "$gstatus" == "ready" ]]; then
         local slug_count=0
         for s in "$gdir"/slugs/*.md; do
           [[ -f "$s" ]] && slug_count=$((slug_count + 1))
         done
         if [[ "$slug_count" -eq 0 ]]; then
           if [[ "$format" == "json" ]]; then
-            out="split-galley|$gname|Galley '$gname' is approved but has no slugs"
+            out="split-galley|$gname|Galley '$gname' is ready but has no slugs"
           else
-            echo "  split-galley  $gname  Galley '$gname' is approved — no slugs yet"
+            echo "  split-galley  $gname  Galley '$gname' is ready — no slugs yet"
           fi
           action_count=$((action_count + 1))
         fi
       fi
 
-      # Delivering with all slugs complete → needs review
-      if [[ "$gstatus" == "delivering" ]]; then
+      # building with all slugs complete → needs review
+      if [[ "$gstatus" == "building" ]]; then
         local total=0 complete=0
         for s in "$gdir"/slugs/*.md; do
           [[ ! -f "$s" ]] && continue
@@ -344,12 +443,12 @@ detect_pending_actions() {
         fi
       fi
 
-      # Review done → needs release + capture
+      # review done → needs release + learn
       if [[ "$gstatus" == "review" ]]; then
         if [[ "$format" == "json" ]]; then
-          out="release+capture|$gname|Galley '$gname' review done, ready for release and capture"
+          out="release+learn|$gname|Galley '$gname' review done, ready to release and capture knowledge"
         else
-          echo "  release+capture  $gname  Galley '$gname' — review done, ready to release and capture"
+          echo "  release+learn   $gname  Galley '$gname' — review done, ready to release and learn"
         fi
         action_count=$((action_count + 1))
       fi
@@ -475,12 +574,12 @@ dispatch_skill_for() {
     review)
       echo "  Engine: $engine  →  playbooks/review.md  (galley: $target)"
       ;;
-    release+capture)
+    release+learn)
       local release_engine capture_engine
       release_engine=$(resolve_engine "release")
       capture_engine=$(resolve_engine "capture")
       echo "  Engine: $release_engine  →  skills/generate-release.md  (galley: $target)"
-      echo "  Engine: $capture_engine  →  skills/capture-pattern.md  (galley: $target)"
+      echo "  Engine: $capture_engine  →  playbooks/learn.md  (galley: $target)"
       ;;
   esac
 }
@@ -498,7 +597,7 @@ regenerate_boards() {
       echo "kanban-plugin: board"
       echo "---"
       echo ""
-      for pair in "Shaping:shaping" "Approved:approved" "Delivering:delivering" "Review:review" "Done:done"; do
+      for pair in "Draft:draft" "Ready:ready" "Building:building" "Review:review" "Released:released" "Learned:learned"; do
         local heading="${pair%%:*}"
         local slug="${pair##*:}"
         echo "## $heading"
@@ -513,7 +612,7 @@ regenerate_boards() {
           [[ "$gstatus" != "$slug" ]] && continue
           gtitle=$(grep -m1 "^# Galley:" "$g" 2>/dev/null | sed 's/# Galley: *//' || echo "$gname")
           local checkbox=" "
-          [[ "$heading" == "Done" ]] && checkbox="x"
+          [[ "$heading" == "Released" || "$heading" == "Learned" ]] && checkbox="x"
           rel=".codepress/product/galleys/$gname/galley"
           echo "- [$checkbox] [[$rel|$gtitle]]"
         done
@@ -641,14 +740,14 @@ execute_action() {
       echo "  → Hand off to $(resolve_engine "$action") for galley '$target'"
       ;;
 
-    release+capture)
+    release+learn)
       local release_file="$script_dir/skills/generate-release.md"
-      local capture_file="$script_dir/skills/capture-pattern.md"
+      local learn_file="$script_dir/playbooks/learn.md"
       echo "  Skill: $release_file"
       [[ -f "$release_file" ]] && cat "$release_file" || echo "  ⚠ File not found: $release_file"
       echo ""
-      echo "  Skill: $capture_file"
-      [[ -f "$capture_file" ]] && cat "$capture_file" || echo "  ⚠ File not found: $capture_file"
+      echo "  Playbook: $learn_file"
+      [[ -f "$learn_file" ]] && cat "$learn_file" || echo "  ⚠ File not found: $learn_file"
       echo "  → Hand off to $(resolve_engine "release") and $(resolve_engine "capture") for galley '$target'"
       ;;
   esac
@@ -722,6 +821,42 @@ cmd_run() {
   rm -f "$tmpfile"
 }
 
+# ─── Watch ─────────────────────────────────────────────────────────────────────
+
+cmd_watch() {
+  local watched=".codepress/product"
+  local interval="${1:-2}"
+
+  if ! command -v fswatch &>/dev/null; then
+    echo "codepress watch requires fswatch."
+    echo "  Install: brew install fswatch"
+    exit 1
+  fi
+
+  echo "CodePress watch — monitoring $watched/ (every ${interval}s)"
+  echo "  Press Ctrl+C to stop."
+  echo ""
+
+  # Initial scan
+  detect_pending_actions text
+
+  fswatch -0 -l "$interval" "$watched" 2>/dev/null | while read -d "" event; do
+    echo ""
+    echo "─── change detected: $(basename "$(dirname "$event")") ───"
+    local count=0
+    detect_pending_actions json > /tmp/codepress-pending 2>/dev/null || true
+    count=$(grep -c "" /tmp/codepress-pending 2>/dev/null || echo "0")
+    if [[ "$count" -gt 0 ]]; then
+      echo "  ${count} pending action(s) — running..."
+      cmd_run --all < /dev/null
+      regenerate_boards
+    else
+      echo "  No pending actions."
+    fi
+    echo "  Watching..."
+  done
+}
+
 # ─── Galley commands ──────────────────────────────────────────────────────────
 
 cmd_galley_new() {
@@ -741,7 +876,6 @@ cmd_galley_new() {
 
   if [[ -f ".codepress/system/templates/galley.md" ]]; then
     cp ".codepress/system/templates/galley.md" "$dir/galley.md"
-    # Fill in the id
     if [[ "$OSTYPE" == "darwin"* ]]; then
       sed -i '' "s/^id: /id: $name/" "$dir/galley.md" 2>/dev/null
     else
@@ -751,7 +885,7 @@ cmd_galley_new() {
     cat > "$dir/galley.md" << EOF
 ---
 id: $name
-status: shaping
+status: draft
 created: $(date +%Y-%m-%d)
 ---
 
@@ -798,7 +932,7 @@ cmd_galley_list() {
 cmd_galley_move() {
   local name="${1:-}"
   local target="${2:-}"
-  local valid_statuses="shaping approved delivering review done"
+  local valid_statuses="draft ready building review released learned"
 
   if [[ -z "$name" || -z "$target" ]]; then
     echo "✗ Usage: codepress galley move <name> <status>"
@@ -845,6 +979,7 @@ case "${1:-}" in
   migrate) cmd_migrate ;;
   status) cmd_status ;;
   run) shift; cmd_run "$@" ;;
+  watch) shift; cmd_watch "$@" ;;
   galley) shift; cmd_galley "$@" ;;
   -h|--help|"") usage ;;
   *) echo "Unknown: $1"; usage; exit 1 ;;

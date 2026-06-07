@@ -1,6 +1,6 @@
 ---
 id: ee-v1
-status: delivering
+status: building
 initiative: ee-001
 release:
 created: 2026-06-05

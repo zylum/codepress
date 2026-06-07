@@ -126,11 +126,13 @@ Compound Engineering helps build software faster. CodePress helps decide what to
 ## Learn more
 
 | Page | Description |
-|---|---|
+|---|---|---|
 | [Quick Start](quick-start.html) | Install and first steps |
+| [Modes of Use](modes-of-use.html) | Scaffold → Workshop → Engine — choose your level |
 | [Quick Reference](quick-reference.html) | Commands, structure, and workflow at a glance |
 | [Structure](structure.html) | Full folder layout and artefact reference |
 | [Core Concepts](core-concepts.html) | Initiative, Galley, Slug, Signal, Pattern explained |
 | [Overview](overview.html) | Pipeline diagram and lifecycle visual |
+| [Hermes Integration](hermes.html) | Optional automation agent for context-aware execution |
 | [FAQ](faq.html) | Frequently asked questions |
 | [References](references.html) | Inspiration and related work |

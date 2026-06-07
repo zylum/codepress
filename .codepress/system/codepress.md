@@ -17,18 +17,9 @@ garner-project:     # path relative to garner silos/ e.g. marv/projects/loom
 
 ---
 
-## Release Theme
-Each release is named after _____.
-Use the theme name as the release codename when creating a new release.
-
-Pool:
-- Programming languages
-- Compilers
-- Terminal commands
-- Editor shortcuts
-- File formats
-
 ---
+
+
 
 ## Working Style
 
@@ -96,6 +87,30 @@ engines:
 ```
 
 If this section is missing, all stages default to `claude`.
+
+---
+
+## Verify
+
+Verification gates that a Galley must pass before its status advances. Each gate maps to a shell command. Set gates globally here and/or per-Galley in galley.md.
+
+```yaml
+verify:
+  typecheck: tsc --noEmit
+  test: pytest
+  lint: ruff check
+  build: cargo check
+```
+
+A Galley declares which gates apply:
+
+```yaml
+verify: [typecheck, test]
+```
+
+The engine will block transitions — `building → review`, `review → released` — unless all listed gates pass.
+
+Missing: no gates defined. That's fine — no automatic verification, human judgment instead.
 
 ---
 

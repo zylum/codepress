@@ -1,9 +1,10 @@
 ---
 id: 
-status: shaping
+status: draft
 initiative: 
 release: 
 created: 
+verify: 
 ---
 
 # Galley: [name]

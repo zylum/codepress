@@ -2,20 +2,23 @@
 kanban-plugin: board
 ---
 
-## Shaping
+## Draft
 
 
-## Approved
+## Ready
 
 
-## Delivering
+## Building
 
 - [ ] [[.codepress/product/galleys/execution-engine-v1/galley|Execution Engine v1]]
 
 ## Review
 
 
-## Done
+## Released
+
+
+## Learned
 
 
 %% kanban:settings

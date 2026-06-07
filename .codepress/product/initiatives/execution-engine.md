@@ -1,6 +1,6 @@
 ---
 id: ee-001
-status: shaping
+status: galley-ready
 created: 2026-06-05
 ---
 
