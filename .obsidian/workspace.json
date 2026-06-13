@@ -11,22 +11,14 @@
             "id": "f89cdf66b848ede3",
             "type": "leaf",
             "state": {
-              "type": "kanban",
+              "type": "markdown",
               "state": {
-                "file": ".codepress/views/galley-board.md",
-                "kanbanViewState": {
-                  "kanban-plugin": "board",
-                  "list-collapse": [
-                    false,
-                    false,
-                    false,
-                    false,
-                    false
-                  ]
-                }
+                "file": ".codepress/system/playbooks/split.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-trello",
-              "title": "galley-board"
+              "icon": "lucide-file",
+              "title": "split"
             }
           }
         ]
@@ -102,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": ".codepress/views/galley-board.md",
+                "file": ".codepress/system/playbooks/split.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -112,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for galley-board"
+              "title": "Backlinks for split"
             }
           },
           {
@@ -121,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": ".codepress/views/galley-board.md",
+                "file": ".codepress/system/playbooks/split.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from galley-board"
+              "title": "Outgoing links from split"
             }
           },
           {
@@ -164,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": ".codepress/views/galley-board.md",
+                "file": ".codepress/system/playbooks/split.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of galley-board"
+              "title": "Outline of split"
             }
           }
         ]
@@ -193,15 +185,26 @@
       "obsidian-kanban:Create new board": false
     }
   },
-  "active": "a87f20c8faa63e7c",
+  "active": "f89cdf66b848ede3",
   "lastOpenFiles": [
+    ".codepress/system/playbooks/shape.md",
+    ".codepress/system/playbooks/review.md",
+    ".codepress/system/playbooks/learn.md",
+    ".codepress/system/playbooks/release.md",
+    ".codepress/system/playbooks/build.md",
+    "README.md",
+    "AGENTS.md",
+    ".codepress/product/initiatives/execution-engine.md",
+    ".codepress/views/roadmap.md",
+    ".codepress/views/release-board.md",
+    ".codepress/views/knowledge-map.md",
+    ".codepress/views/initiative-board.md",
+    ".codepress/views/dashboard.md",
+    ".codepress/views/galley-board.md",
     ".codepress/system/playbooks/verify.md",
     "docs/hermes.md",
     "docs/modes-of-use.md",
-    ".codepress/system/playbooks/learn.md",
     ".codepress/product/galleys/execution-engine-v1/galley.md",
-    ".codepress/views/galley-board.md",
-    ".codepress/views/dashboard.md",
     ".codepress/product/galleys/execution-engine-v1/slugs/engine-config.md",
     ".codepress/product/galleys/execution-engine-v1/slugs/watch-mode.md",
     ".codepress/product/galleys/execution-engine-v1/slugs/test-and-docs.md",
@@ -214,17 +217,6 @@
     ".codepress/product/galleys/_archive/.gitkeep",
     ".codepress/knowledge/decisions/.gitkeep",
     ".codepress/knowledge/signals/.gitkeep",
-    ".codepress/knowledge/patterns/_template.md",
-    ".codepress/system/templates/slug.md",
-    ".codepress/system/templates/release.md",
-    ".codepress/system/templates/pattern.md",
-    ".codepress/system/templates/initiative.md",
-    ".codepress/system/templates/galley.md",
-    ".codepress/system/templates/decision.md",
-    ".codepress/system/skills/update-domain.md",
-    ".codepress/system/skills/status.md",
-    ".codepress/system/skills/split-galley.md",
-    ".codepress/system/skills/generate-release.md",
     ".codepress/product/releases/.gitkeep",
     ".codepress/product/initiatives/.gitkeep",
     ".codepress/product/galleys/execution-engine-v1",

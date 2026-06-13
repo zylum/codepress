@@ -68,16 +68,20 @@ Never start implementation without reading Knowledge first.
 
 ### Galley lifecycle
 
-`draft → ready → building → review → released → learned`
+`shaping → approved → delivering → review → done`
 
 | Status | Meaning |
 |---|---|
-| `draft` | Being written |
-| `ready` | Shaped and approved, ready for split |
-| `building` | Slugs in progress |
-| `review` | All slugs done, learning capture |
-| `released` | Shipped |
-| `learned` | Signals captured, patterns promoted, knowledge updated |
+| `shaping` | Galley being drafted (Problem, Approach, AC) |
+| `approved` | Shaped and greenlit, ready to split into Slugs |
+| `delivering` | Slugs in progress |
+| `review` | All slugs done — capturing learning, running verify gates |
+| `done` | Released **and** compound loop complete (Signals → Patterns → Knowledge) |
+
+The compound step is the **gate** on `review → done`, not a separate status:
+a Galley cannot be marked `done` until `review.md` is complete, Signals are
+promoted to Patterns where warranted, and Knowledge is updated. Learning is a
+behaviour, not a place.
 
 ---
 
