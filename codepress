@@ -56,7 +56,7 @@ Usage:
 
   codepress -h|--help             Show this help
 
-See .codepress/system/playbooks/ and .codepress/system/skills/ for workflow docs.
+See .codepress/system/skills/ for workflow docs.
 EOF
 }
 
@@ -104,7 +104,7 @@ cmd_init() {
 
   echo "→ Bootstrapping CodePress structure..."
 
-  mkdir -p .codepress/system/{playbooks,skills,templates,hooks}
+  mkdir -p .codepress/system/{skills,templates,hooks}
   mkdir -p .codepress/product/{initiatives,galleys,releases}
   mkdir -p .codepress/knowledge/{decisions,signals,patterns}
   mkdir -p .codepress/views docs src
@@ -638,20 +638,20 @@ dispatch_skill_for() {
 
   case "$action" in
     create-galley)
-      echo "  Engine: $engine  →  skills/create-galley.md  (initiative: $target)"
+      echo "  Engine: $engine  →  skills/shape.md  (initiative: $target)"
       ;;
     split-galley)
-      echo "  Engine: $engine  →  skills/split-galley.md  (galley: $target)"
+      echo "  Engine: $engine  →  skills/split.md  (galley: $target)"
       ;;
     review)
-      echo "  Engine: $engine  →  playbooks/review.md  (galley: $target)"
+      echo "  Engine: $engine  →  skills/review.md  (galley: $target)"
       ;;
     release+learn)
       local release_engine capture_engine
       release_engine=$(resolve_engine "release")
       capture_engine=$(resolve_engine "capture")
-      echo "  Engine: $release_engine  →  skills/generate-release.md  (galley: $target)"
-      echo "  Engine: $capture_engine  →  playbooks/learn.md  (galley: $target)"
+      echo "  Engine: $release_engine  →  skills/release.md  (galley: $target)"
+      echo "  Engine: $capture_engine  →  skills/review.md  (galley: $target)"
       ;;
   esac
 }
@@ -777,7 +777,7 @@ execute_action() {
 
   case "$action" in
     create-galley)
-      skill_file="$script_dir/skills/create-galley.md"
+      skill_file="$script_dir/skills/shape.md"
       echo "  Skill: $skill_file"
       if [[ -f "$skill_file" ]]; then
         cat "$skill_file"
@@ -789,7 +789,7 @@ execute_action() {
       ;;
 
     split-galley)
-      skill_file="$script_dir/skills/split-galley.md"
+      skill_file="$script_dir/skills/split.md"
       echo "  Skill: $skill_file"
       if [[ -f "$skill_file" ]]; then
         cat "$skill_file"
@@ -801,25 +801,25 @@ execute_action() {
       ;;
 
     review)
-      skill_file="$script_dir/playbooks/review.md"
-      echo "  Playbook: $skill_file"
+      skill_file="$script_dir/skills/review.md"
+      echo "  Skill: $skill_file"
       if [[ -f "$skill_file" ]]; then
         cat "$skill_file"
       else
-        echo "  ⚠ Playbook file not found: $skill_file"
+        echo "  ⚠ Skill file not found: $skill_file"
         return 2
       fi
       echo "  → Hand off to $(resolve_engine "$action") for galley '$target'"
       ;;
 
     release+learn)
-      local release_file="$script_dir/skills/generate-release.md"
-      local learn_file="$script_dir/playbooks/learn.md"
+      local release_file="$script_dir/skills/release.md"
+      local review_file="$script_dir/skills/review.md"
       echo "  Skill: $release_file"
       [[ -f "$release_file" ]] && cat "$release_file" || echo "  ⚠ File not found: $release_file"
       echo ""
-      echo "  Playbook: $learn_file"
-      [[ -f "$learn_file" ]] && cat "$learn_file" || echo "  ⚠ File not found: $learn_file"
+      echo "  Skill: $review_file"
+      [[ -f "$review_file" ]] && cat "$review_file" || echo "  ⚠ File not found: $review_file"
       echo "  → Hand off to $(resolve_engine "release") and $(resolve_engine "capture") for galley '$target'"
       ;;
   esac

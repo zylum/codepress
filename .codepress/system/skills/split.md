@@ -1,18 +1,18 @@
-# Skill: Split Galley
+# Skill: Split
 
-Decompose an approved Galley into Slugs.
+Decompose an approved Galley into atomic Slugs.
 
 ---
 
-## Input
-An approved `galley.md` — status must be `approved`.
+## When to use
+When a Galley is `approved` and ready for execution planning.
 
 ---
 
 ## Steps
 
 1. Read the full Galley (Problem, Approach, AC, Constraints)
-2. Read `.codepress/knowledge/concepts.md` for module boundaries
+2. Read `knowledge/concepts.md` for module boundaries
 3. Identify atomic units of work:
    - Each Slug should be independently deliverable
    - Each Slug should have verifiable acceptance criteria
@@ -20,16 +20,25 @@ An approved `galley.md` — status must be `approved`.
 4. Identify parallel opportunities:
    - Which Slugs touch different domain areas and can run concurrently?
    - Which must be sequential (data dependency, interface dependency)?
-5. Create `.codepress/product/galleys/{galley-id}/run-sheet.md` with ordered Slug list
-6. Create each Slug at `.codepress/product/galleys/{galley-id}/slugs/{id}-{name}.md`
-7. For each Slug, set:
+5. Create `run-sheet.md` with ordered Slug list. Mark parallel groups explicitly:
+   ```yaml
+   parallel-groups:
+     - id: A
+       slugs: [slug-1, slug-3]
+       note: "independent — no shared files"
+     - id: B
+       slugs: [slug-2]
+       depends-on: [A]
+   ```
+6. Create each Slug at `slugs/{id}-{name}.md` using `.codepress/system/templates/slug.md`
+7. For each Slug set:
    - Purpose (one sentence)
    - Acceptance checklist (3–7 items)
    - Autonomy level (`continuous` / `confirm` / `stop`)
    - Dependencies (if any)
-8. Create `.codepress/product/galleys/{galley-id}/review.md` from the template (blank, ready)
-9. Update `.codepress/views/galley-board.md` — move card from Shaping to Delivering
-10. Update Galley frontmatter: `status: delivering`
+8. Create `review.md` (blank, ready for signal capture during delivery)
+9. Update Galley `status: delivering`
+10. Update `.codepress/views/galley-board.md`
 
 ---
 
@@ -41,13 +50,12 @@ A well-sized Slug:
 - Touches one primary domain area
 - Produces a single coherent commit
 
-If a Slug feels too large, split it. If it feels too small, consider merging with adjacent work.
+If a Slug feels too large, split it. If too small, merge with adjacent work.
 
 ---
 
 ## Output
-- `run-sheet.md` with ordered Slug list
+- `run-sheet.md` with Slug order and parallel groups
 - `slugs/{id}-{name}.md` for each Slug
 - `review.md` ready (blank)
-- Galley status updated to `delivering`
-- Board updated
+- Galley `status: delivering`

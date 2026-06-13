@@ -11,10 +11,10 @@ autonomy: continuous
 Create `skills/signal.md` — a quick-capture skill for recording observations mid-session without opening the full review workflow.
 
 ## Acceptance checklist
-- [ ] `skills/signal.md` exists with clear input/output spec
-- [ ] Skill instructions work without a running galley (falls back to `knowledge/signals/scratch.md`)
-- [ ] Skill appends a dated bullet: `- YYYY-MM-DD: <observation>` under the Signals section
-- [ ] Instructions are ≤20 lines — lightweight, not a ceremony
+- [x] `skills/signal.md` exists with clear input/output spec
+- [x] Skill instructions work without a running galley (falls back to `knowledge/signals/scratch.md`)
+- [x] Skill appends a dated bullet: `- YYYY-MM-DD: <observation>` under the Signals section
+- [x] Instructions are ≤20 lines — lightweight, not a ceremony
 
 ## Context
 The signal should feel like typing a quick note, not running a process. The skill is invoked as `/signal <observation>` or by calling it directly. It should find the most recently active galley's `review.md` automatically.

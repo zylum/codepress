@@ -11,9 +11,9 @@ autonomy: continuous
 Update the review.md template to the four-section structure so galley-close is structured and agent-fillable.
 
 ## Acceptance checklist
-- [ ] `templates/` review template updated with four sections: Signals / Surprises / Pattern candidates / Knowledge updates
-- [ ] Each section has a clear one-line prompt (not empty, not verbose)
-- [ ] Existing blank `review.md` files in the project updated to new format
+- [x] `templates/` review template updated with four sections: Signals / Surprises / Pattern candidates / Knowledge updates
+- [x] Each section has a clear one-line prompt (not empty, not verbose)
+- [x] Existing blank `review.md` files in the project updated to new format
 
 ## Context
 The new structure must make it obvious what the agent should write in each section. Signals = raw observations. Surprises = what didn't match expectations. Pattern candidates = signals seen in 2+ galleys. Knowledge updates = what changed.

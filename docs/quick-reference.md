@@ -53,13 +53,63 @@ your-project/
 ```bash
 codepress init              # Bootstrap a new project
 codepress upgrade           # Pull latest CodePress version
-codepress status            # Show delivery board
-codepress run               # Dispatch next action
-codepress run --all         # Dispatch all pending actions
+codepress status            # Show delivery board + pending actions
+codepress run               # Dispatch next pending action
+codepress run --all         # Dispatch all pending actions in sequence
 codepress galley new        # Create a new galley
 codepress galley list       # List all galleys
 codepress galley move       # Move galley to a new status
 ```
+
+### `codepress status`
+
+Shows the current project state: galley list with statuses, knowledge counts, and — most importantly — the pending action queue. After displaying, it regenerates all board views from artefact frontmatter.
+
+```
+CodePress status
+
+  Version:  v0.2.0
+
+  Initiatives:  1
+  Galleys:
+    my-feature  [delivering]
+  Releases:  0
+
+  Knowledge:  2 patterns  |  4 signals  |  1 decisions
+
+  Pending actions:
+    review  my-feature  Galley 'my-feature' — all slugs complete, ready for review
+
+  → Run 'codepress run' to execute the next pending action
+
+  ✓ Boards regenerated
+```
+
+### `codepress run`
+
+Reads the pending action queue and prompts to execute the next action. Displays the skill file for the agent, shows which engine is configured to handle it, then waits for confirmation.
+
+```bash
+codepress run          # Execute next action (interactive confirm)
+codepress run --all    # Iterate all pending actions with confirm per action
+```
+
+### Engine configuration
+
+Add an `engines:` block to `.codepress/system/codepress.md` to route each workflow stage to a different AI agent:
+
+```yaml
+engines:
+  shaping: claude
+  split: claude
+  build: opencode
+  review: claude
+  release: claude
+  capture: claude
+  compound: claude
+```
+
+If the section is absent, all stages default to `claude`. Engine names are strings — the CLI prints which agent should handle each action; actual dispatch is manual or via `codepress watch`.
 
 ## Galley lifecycle
 

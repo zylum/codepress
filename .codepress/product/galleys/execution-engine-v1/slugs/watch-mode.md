@@ -1,6 +1,6 @@
 ---
 id: ee-v1-s3
-status: open
+status: archived
 galley: ee-v1
 autonomy: stop
 ---

@@ -1,6 +1,6 @@
 ---
 id: 
-status: draft
+status: shaping
 initiative: 
 release: 
 created: 

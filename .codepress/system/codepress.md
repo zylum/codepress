@@ -5,7 +5,7 @@
 ---
 
 ## CodePress version
-codepress-version: 0.2.0
+codepress-version: 0.3.0
 codepress-source: https://github.com/zylum/codepress
 
 ---
@@ -16,10 +16,6 @@ description: Compound product development operating system for the AI era
 garner-project:     # path relative to garner silos/ e.g. marv/projects/loom
 
 ---
-
----
-
-
 
 ## Working Style
 
@@ -66,8 +62,6 @@ Roles:
 ## Conventions
 <!-- Project-specific naming, commit, or workflow conventions -->
 - 
-
----
 
 ---
 
