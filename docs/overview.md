@@ -36,3 +36,14 @@ The diagram illustrates the full lifecycle:
 7. **Knowledge** — shared understanding that improves future work
 
 Each cycle feeds the next. Every delivery leaves the system smarter.
+
+## Reading order (4 hops)
+
+Agents bootstrap context in exactly 4 hops:
+
+1. `codepress.md` — project config and conventions
+2. `knowledge/current-state.md` — what exists today
+3. `knowledge/patterns/` — reusable lessons from past deliveries
+4. Active galley — the current shaped solution
+
+This keeps context tight: agents read only what they need, in order of stability.

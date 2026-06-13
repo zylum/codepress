@@ -33,6 +33,8 @@ A shaped solution ready for delivery. The Galley captures Problem, Users, Succes
 
 An atomic unit of delivery. Each Slug has a purpose, an acceptance checklist (3–7 items), and an autonomy level (`continuous`, `confirm`, or `stop`). Slugs are designed to be built independently and in parallel. They live in `.codepress/product/galleys/{name}/slugs/`.
 
+A Slug template ends with a `## Signals` block — a place to record raw observations during delivery. These are filled in as the slug is built and become the input for the galley `review.md` at close.
+
 ## Signal
 
 A raw observation captured during delivery. Signals are recorded in the Galley's `review.md` during the build phase and promoted to `.codepress/knowledge/signals/` at galley-close. A good Signal is specific, evidence-backed, and actionable.

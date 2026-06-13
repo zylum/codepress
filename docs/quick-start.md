@@ -46,7 +46,7 @@ codepress upgrade
 | 3 | Populate `.codepress/system/config.md` with your project details |
 | 4 | Read `AGENTS.md` for the full operating manual |
 | 5 | Capture your first Initiative in `.codepress/product/initiatives/` |
-| 6 | Run the create-galley skill to shape it |
+| 6 | Run the `shape` skill to create your first Galley |
 
 ## Requirements
 
@@ -60,10 +60,9 @@ codepress upgrade
 your-project/
 ├── .codepress/
 │   ├── system/           How we work
-│   │   ├── config.md     Project configuration
+│   │   ├── codepress.md  Project config + reading order
 │   │   ├── AGENTS.md     Agent operating manual
-│   │   ├── playbooks/    Workflow guides
-│   │   ├── skills/       AI-executable behaviours
+│   │   ├── skills/       AI-executable skills (8)
 │   │   ├── templates/    Artefact templates
 │   │   └── hooks/        Automation hooks
 │   ├── product/          What we build

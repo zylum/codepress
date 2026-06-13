@@ -29,7 +29,7 @@ CodePress supports three levels of operation. Each level adds capability without
 |---|---|---|---|
 | `.codepress/` structure | ✓ | ✓ | ✓ |
 | AI agent operating manual (AGENTS.md) | ✓ | ✓ | ✓ |
-| Playbooks, skills, templates | ✓ | ✓ | ✓ |
+| Skills and templates | ✓ | ✓ | ✓ |
 | Frontmatter-driven status | ✓ | ✓ | ✓ |
 | Obsidian Kanban boards | — | ✓ | ✓ |
 | `codepress status` (board regeneration) | — | ✓ | ✓ |
@@ -44,13 +44,13 @@ CodePress supports three levels of operation. Each level adds capability without
 
 ## Level 1: Scaffold
 
-The foundation. A `.codepress/` directory with the full system, playbooks, skills, templates, and AGENTS.md. You and your AI agent work directly with markdown files.
+The foundation. A `.codepress/` directory with the full system, skills, templates, and AGENTS.md. You and your AI agent work directly with markdown files.
 
 **Setup:** `codepress init` or clone the template.
 
 **Workflow:**
 1. Write an Initiative in `product/initiatives/`
-2. Ask your AI to shape it (follows `skills/create-galley.md`)
+2. Ask your AI to shape it (follows `skills/shape.md`)
 3. Approve the Galley, split into Slugs
 4. Build each Slug with your AI
 5. Capture learning at galley-close

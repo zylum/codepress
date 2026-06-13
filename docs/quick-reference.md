@@ -25,10 +25,9 @@ title: Quick Reference
 your-project/
 ├── .codepress/
 │   ├── system/           How we work
-│   │   ├── config.md     Project configuration
+│   │   ├── codepress.md  Project config + reading order
 │   │   ├── AGENTS.md     Agent operating manual
-│   │   ├── playbooks/    Workflow guides
-│   │   ├── skills/       AI-executable behaviours
+│   │   ├── skills/       AI-executable skills (8)
 │   │   ├── templates/    Artefact templates
 │   │   └── hooks/        Automation hooks
 │   ├── product/          What we build
@@ -52,11 +51,14 @@ your-project/
 ## CLI commands
 
 ```bash
-codepress init           # Bootstrap a new project
-codepress migrate        # Migrate from old structure
-codepress status         # Show delivery board
-codepress galley new     # Create a new galley
-codepress galley list    # List all galleys
+codepress init              # Bootstrap a new project
+codepress upgrade           # Pull latest CodePress version
+codepress status            # Show delivery board
+codepress run               # Dispatch next action
+codepress run --all         # Dispatch all pending actions
+codepress galley new        # Create a new galley
+codepress galley list       # List all galleys
+codepress galley move       # Move galley to a new status
 ```
 
 ## Galley lifecycle
@@ -71,8 +73,8 @@ codepress galley list    # List all galleys
 
 ## Core workflow
 
-1. **Initiative** → create-galley skill → **Galley**
-2. **Galley** → split-galley skill → **Slugs**
-3. **Slugs** → build playbook → **Deliver**
-4. **Done** → capture-pattern skill → **Signals → Patterns**
-5. **Patterns** → compound playbook → **Knowledge update**
+1. **Initiative** → `shape` skill → **Galley**
+2. **Galley** → `split` skill → **Slugs**
+3. **Slugs** → `build` skill → **Deliver**
+4. **Done** → `review` skill → **Signals → Patterns**
+5. **Patterns** → **Knowledge update**

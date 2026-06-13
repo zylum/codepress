@@ -59,7 +59,7 @@ Raw observations from delivery (Signals) are promoted to validated reusable less
 
 ## Do I need to use the CLI?
 
-No. The CLI is a helper, not a requirement. All playbooks and skills are plain markdown files. You can follow them manually in any AI agent.
+No. The CLI is a helper, not a requirement. All skills are plain markdown files. You can follow them manually in any AI agent.
 
 ## Can I customise the structure?
 

@@ -54,7 +54,7 @@ title: Hermes Integration
 
 1. **CodePress must work without Hermes.** Hermes is a layer on top, never a requirement.
 2. **Hermes reads and writes CodePress artefacts.** It never becomes the source of truth — frontmatter is always the source.
-3. **Hermes follows the same playbooks and skills.** It does not create new workflows; it automates existing ones.
+3. **Hermes follows the same skills.** It does not create new workflows; it automates existing ones.
 4. **Hermes dispatches to configured engines.** The `engines:` config in `codepress.md` determines which agent runs each stage.
 
 ---
@@ -93,7 +93,7 @@ Compound loop: Hermes cross-references new signals
 
 | Artefact state | Pending action | Dispatches |
 |---|---|---|
-| Initiative `approved` or `shaping`, no galley | `create-galley` | `skills/create-galley.md` |
-| Galley `ready`, no slugs | `split-galley` | `skills/split-galley.md` |
-| Galley `building`, all slugs complete | `review` | `playbooks/review.md` |
-| Galley `review` done | `release+learn` | `generate-release` + `playbooks/learn.md` |
+| Initiative `approved` or `shaping`, no galley | `shape` | `skills/shape.md` |
+| Galley `ready`, no slugs | `split` | `skills/split.md` |
+| Galley `building`, all slugs complete | `review` | `skills/review.md` |
+| Galley `review` done | `release+learn` | `skills/release.md` |

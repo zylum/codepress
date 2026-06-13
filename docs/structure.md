@@ -29,10 +29,9 @@ The operating system — how work happens.
 
 | Path | Purpose |
 |---|---|
-| `.codepress/system/config.md` | Project name, release theme, working conventions |
+| `.codepress/system/codepress.md` | Project name, release theme, working conventions, reading order |
 | `.codepress/system/AGENTS.md` | Agent operating manual — reading order, rules, autonomy levels |
-| `.codepress/system/playbooks/` | Workflow guides: shape, split, build, review, release, compound |
-| `.codepress/system/skills/` | AI-executable behaviours: bootstrap, create-galley, split-galley, etc. |
+| `.codepress/system/skills/` | 8 AI-executable skills: shape, split, build, review, verify, release, bootstrap, status |
 | `.codepress/system/templates/` | Artefact templates: initiative, galley, slug, release, pattern, decision |
 | `.codepress/system/hooks/` | Automation triggers: on-galley-complete, on-release, on-pattern |
 
@@ -85,23 +84,17 @@ Signals are captured during delivery, promoted to Patterns when validated, and u
 ```text
 .codepress/
 ├── system/
-│   ├── config.md
+│   ├── codepress.md
 │   ├── AGENTS.md
-│   ├── playbooks/
+│   ├── skills/
 │   │   ├── shape.md
 │   │   ├── split.md
 │   │   ├── build.md
 │   │   ├── review.md
+│   │   ├── verify.md
 │   │   ├── release.md
-│   │   └── compound.md
-│   ├── skills/
 │   │   ├── bootstrap.md
-│   │   ├── create-galley.md
-│   │   ├── split-galley.md
-│   │   ├── capture-pattern.md
-│   │   ├── status.md
-│   │   ├── generate-release.md
-│   │   └── update-domain.md
+│   │   └── status.md
 │   ├── templates/
 │   │   ├── initiative.md
 │   │   ├── galley.md
