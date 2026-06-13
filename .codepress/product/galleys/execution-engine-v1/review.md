@@ -4,13 +4,13 @@
 
 (Signals captured during delivery — observations, discoveries, unexpected behaviours)
 
-## Patterns
+## Surprises
 
-(Patterns promoted from signals — validated, reusable lessons)
+(What didn't match expectations — harder, easier, different than shaped)
 
-## Retrospective
+## Pattern candidates
 
-(What went well, what would we change next time)
+(Patterns promoted from signals — validated, reusable lessons. Agent drafts; human approves.)
 
 ## Knowledge updates
 

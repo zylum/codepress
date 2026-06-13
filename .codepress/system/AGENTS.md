@@ -11,27 +11,22 @@ A compound loop runs across all three, continuously improving them.
 
 ## Modes of use
 
-CodePress supports three levels of operation:
-
 | Level | Name | What's available |
 |---|---|---|
-| 1 | Scaffold | `.codepress/` structure + AGENTS.md + templates. Human and AI work directly with markdown files. No tooling required. |
-| 2 | Workshop | Scaffold + Obsidian Kanban boards. `codepress status` regenerates views. Visual pipeline management. |
-| 3 | Engine | Workshop + automation. `codepress run` dispatches skills. Watch mode or Hermes auto-triggers workflows. |
+| 1 | Scaffold | `.codepress/` structure + templates. Human and AI work directly with markdown files. |
+| 2 | Workshop | Scaffold + Obsidian Kanban boards. `codepress status` regenerates views. |
+| 3 | Engine | Workshop + automation. `codepress run` dispatches skills. |
 
 ---
 
 ## Reading order
 
-Before any work, read in this order:
+Before any work:
 
 1. `system/codepress.md` — project name, pace, conventions
-2. `knowledge/concepts.md` — core entities and what they do
-3. `knowledge/current-state.md` — what exists today
-4. Relevant `knowledge/patterns/` — reusable lessons for this area
-5. Active galley in `product/galleys/` — what you are working on
-
-Never start implementation without reading Knowledge first.
+2. `knowledge/current-state.md` — what exists today
+3. Relevant `knowledge/patterns/` — reusable lessons for this area
+4. Active galley in `product/galleys/` — what you are working on
 
 ---
 
@@ -41,7 +36,7 @@ Never start implementation without reading Knowledge first.
 |---|---|---|
 | Initiative | `product/initiatives/` | An idea or problem worth exploring |
 | Galley | `product/galleys/{name}/galley.md` | A shaped solution ready for delivery |
-| Run Sheet | `product/galleys/{name}/run-sheet.md` | Execution plan — slug order, parallel options |
+| Run Sheet | `product/galleys/{name}/run-sheet.md` | Execution plan — Slug order, parallel groups |
 | Slug | `product/galleys/{name}/slugs/` | An atomic unit of delivery |
 | Review | `product/galleys/{name}/review.md` | Galley-close learning capture |
 | Signal | `knowledge/signals/` | A raw observation from delivery |
@@ -56,32 +51,11 @@ Never start implementation without reading Knowledge first.
 
 `inbox → research → candidate → approved → shaping → galley-ready → archived`
 
-| Status | Meaning |
-|---|---|
-| `inbox` | Raw idea captured, no evaluation yet |
-| `research` | Being explored — gathering context, feasibility |
-| `candidate` | Looks promising, needs shaping |
-| `approved` | Greenlit — ready to shape into a Galley |
-| `shaping` | Galley being drafted |
-| `galley-ready` | Galley exists and is approved |
-| `archived` | Not moving forward — reason recorded |
-
 ### Galley lifecycle
 
 `shaping → approved → delivering → review → done`
 
-| Status | Meaning |
-|---|---|
-| `shaping` | Galley being drafted (Problem, Approach, AC) |
-| `approved` | Shaped and greenlit, ready to split into Slugs |
-| `delivering` | Slugs in progress |
-| `review` | All slugs done — capturing learning, running verify gates |
-| `done` | Released **and** compound loop complete (Signals → Patterns → Knowledge) |
-
-The compound step is the **gate** on `review → done`, not a separate status:
-a Galley cannot be marked `done` until `review.md` is complete, Signals are
-promoted to Patterns where warranted, and Knowledge is updated. Learning is a
-behaviour, not a place.
+The compound step gates `review → done`: a Galley cannot be marked `done` until `review.md` is complete, Signals are promoted to Patterns where warranted, and Knowledge is updated.
 
 ---
 
@@ -94,13 +68,14 @@ Read the Galley fully before touching code.
 Check `knowledge/` before planning. Do not re-discover what already exists.
 
 **Update Knowledge.**
-When you encounter a concept, decision or capability not in `knowledge/`, add it. Prefer a 5-line stub over nothing.
+When you encounter a concept, decision or capability not in `knowledge/`, add it. A 5-line stub beats nothing.
 
-**Capture Signals.**
-When you observe something interesting during delivery — a discovery, unexpected behaviour, a better approach — record it in `review.md` under Signals.
+**Capture Signals during delivery.**
+Fill the Signals block in each Slug before committing — not deferred to galley-close.
+Quick capture mid-session: run `skills/signal.md` with your observation.
 
 **Galley-close is mandatory.**
-Before marking a Galley `learned`, complete `review.md`, promote Signals to Patterns, and update Knowledge.
+Before marking a Galley `done`, complete `review.md`, promote Signals, and update Knowledge.
 
 **Commit discipline.**
 One commit per Slug: `slug:<name> done — <summary>`
@@ -118,23 +93,16 @@ One commit per Galley close: `galley:<name> done`
 
 ---
 
-## Playbooks
-
-- `playbooks/shape.md` — shape an Initiative into a Galley
-- `playbooks/split.md` — decompose a Galley into Slugs
-- `playbooks/build.md` — execute a Galley through Slugs
-- `playbooks/review.md` — Galley-close learning capture
-- `playbooks/learn.md` — Signals → Patterns → Knowledge
-- `playbooks/verify.md` — run verification gates before status transitions
-- `playbooks/release.md` — cut a release
-
----
-
 ## Skills
 
-- `skills/bootstrap.md` — seed Knowledge from an existing codebase
-- `skills/create-galley.md` — shape an Initiative into a Galley
-- `skills/split-galley.md` — decompose a Galley into Slugs
-- `skills/capture-pattern.md` — Galley-close learning step
-- `skills/generate-release.md` — create a release note
-- `skills/status.md` — regenerate the delivery board
+| Skill | Purpose |
+|---|---|
+| `skills/shape.md` | Shape an Initiative into a Galley |
+| `skills/split.md` | Decompose a Galley into Slugs |
+| `skills/build.md` | Execute a Galley through its Slugs |
+| `skills/review.md` | Galley-close: Signals → Patterns → Knowledge |
+| `skills/verify.md` | Run verification gates |
+| `skills/release.md` | Cut a release |
+| `skills/bootstrap.md` | Seed Knowledge from an existing codebase |
+| `skills/status.md` | Regenerate the delivery board |
+| `skills/signal.md` | Quick-capture an observation mid-session |
