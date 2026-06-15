@@ -29,6 +29,36 @@ Add any rework entries as additional signals.
 
 Write everything into `product/galleys/{id}/review.md` under **Signals** and **Surprises** — no recall from memory, the Slug files are the source of truth.
 
+### 1b. Aggregate cost
+
+Read every Slug file in `product/galleys/{id}/slugs/` for `type: cost` YAML blocks. Sum `tokens-in`, `tokens-out`, and `cost-estimate` across all slugs.
+
+Read the Galley frontmatter `budget.tokens` and `budget.cost`. Compute variance:
+
+```
+tokens: {actual} / {budget} ({variance}%)
+cost:   {actual} / {budget} ({variance}%)
+```
+
+If actual > budget, flag the overrun in `review.md` under a **Cost** section:
+
+```markdown
+## Cost
+| Metric | Budget | Actual | Variance |
+|---|---|---|---|
+| Tokens | {budget} | {actual} | {variance}% |
+| Cost | {budget} | {actual} | {variance}% |
+| Most expensive slug | {slug-id} | {cost} | |
+
+### Per-slug breakdown
+| Slug | Model | Tokens-in | Tokens-out | Cost |
+|---|---|---|---|---|
+```
+
+If no cost signals exist, write: "No cost signals captured — FinOps not active for this galley." and proceed.
+
+Propose cost Patterns when a slug-type consistently costs more or less than others (e.g. "documentation slugs average 1/5 the tokens of backend slugs").
+
 ### 2. Draft Pattern candidates — human approves
 
 A Signal is a Pattern candidate when:
@@ -80,7 +110,7 @@ Before closing, answer these four questions in `review.md` under **Entropy**:
    Same problems, same approaches, no surprises — that is a plateau. Name it if true.
 
 4. **What would make the next galley 20% cheaper?**
-   Missing knowledge, unclear AC, wrong autonomy level — be specific.
+   Reference the cost-per-slug data from the Cost section. Which slug type was most expensive? What knowledge, if seeded, would reduce that cost? Missing knowledge, unclear AC, wrong autonomy level — be specific.
 
 If the Galley had `holdout: true`, review the holdout criteria now with the reviewer. Did the builder satisfy the underlying intent, or only the visible spec?
 

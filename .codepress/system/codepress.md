@@ -95,6 +95,22 @@ verify:
   test: pytest
   lint: ruff check
   build: cargo check
+  cost-check: >
+    budget_tokens=$(grep -A3 '^budget:' .codepress/product/galleys/*/galley.md 2>/dev/null | grep 'tokens:' | head -1 | awk '{print $2}');
+    budget_cost=$(grep -A3 '^budget:' .codepress/product/galleys/*/galley.md 2>/dev/null | grep 'cost:' | head -1 | awk '{print $2}');
+    if [ -z "$budget_tokens$budget_cost" ]; then exit 0; fi;
+    actual_tokens=0; actual_cost=0;
+    for slug in .codepress/product/galleys/*/slugs/*.md; do
+      if grep -q 'type: cost' "$slug" 2>/dev/null; then
+        t=$(sed -n '/type: cost/,/^---/p' "$slug" | grep 'tokens-in:' | awk '{print $2}');
+        c=$(sed -n '/type: cost/,/^---/p' "$slug" | grep 'cost-estimate:' | awk '{print $2}');
+        [ -n "$t" ] && actual_tokens=$((actual_tokens + t));
+        actual_cost=$(echo "$actual_cost + ${c:-0}" | bc 2>/dev/null || echo "$actual_cost");
+      fi;
+    done;
+    [ -n "$budget_tokens" ] && [ "$actual_tokens" -gt "$budget_tokens" ] && echo "FAIL: tokens $actual_tokens > $budget_tokens" && exit 1;
+    [ -n "$budget_cost" ] && [ "$(echo "$actual_cost > $budget_cost" | bc 2>/dev/null || echo 0)" -eq 1 ] && echo "FAIL: cost $actual_cost > $budget_cost" && exit 1;
+    exit 0;
 ```
 
 A Galley declares which gates apply:

@@ -18,7 +18,13 @@ Regenerate the delivery board from Galley frontmatter.
 3. Read `title` from the first H1 heading in each file
 4. Read `initiative` and `release` frontmatter if present
 5. Group Galleys by status: `shaping` | `approved` | `delivering` | `review` | `done`
-6. Regenerate `.codepress/views/galley-board.md` using the format below
+6. **Budget check** — for each delivering/review galley, read `budget.tokens` and `budget.cost` from frontmatter. Then scan its slug files for `type: cost` YAML blocks. Sum `tokens-in` and `cost-estimate` across all slugs. If actual > budget, flag as pending action:
+   - `⚠️ Budget overrun: {actual} tokens used vs {budget} budgeted in {galley-id}`
+   - `⚠️ Budget overrun: ${actual} spent vs ${budget} budgeted in {galley-id}`
+   Skip if no budget is set or no cost signals exist.
+7. Regenerate `.codepress/views/galley-board.md` using the format below
+
+Include detected overruns at the top of the board as a `## Alerts` section, before the status columns.
 
 ---
 

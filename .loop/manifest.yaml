@@ -31,7 +31,7 @@ signals:
     term: cost
     unit: count
     direction: lower_better
-    description: Token spend to close a galley.
+    description: Token spend to close a galley. Aggregated from `type: cost` signals captured per slug during build — FinOps pipeline operationalised by galley `ai-finops`.
 
 loops:
   - id: galley-delivery

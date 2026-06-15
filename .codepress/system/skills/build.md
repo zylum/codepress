@@ -25,11 +25,13 @@ Never start implementation without reading the Galley and Knowledge first.
 1. Read the Slug purpose and acceptance checklist
 2. Check autonomy level: `continuous` / `confirm` / `stop`
 3. Read context and dependencies
-4. Implement
-5. Verify against acceptance checklist
-6. Record evidence in the Slug `Evidence` section
-7. **Fill the Signals block before committing** — 2–3 bullets: what surprised you, what you'd change, any pattern emerging
-8. Commit: `slug:<name> done — <summary>`
+4. Read the Galley `budget:` — know the token and cost ceiling before starting
+5. Implement
+6. Verify against acceptance checklist
+7. Record evidence in the Slug `Evidence` section
+8. **Capture cost** — record token usage and estimated cost as a `type: cost` signal (see `skills/signal.md`). Add the YAML block to the slug's `## Signals` section. If exact counts are unknown, estimate and set `source: estimated`.
+9. **Fill the Signals block before committing** — 2–3 bullets: what surprised you, what you'd change, any pattern emerging
+10. Commit: `slug:<name> done — <summary>`
 
 ---
 
