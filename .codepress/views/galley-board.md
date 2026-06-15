@@ -8,14 +8,13 @@ kanban-plugin: board
 
 ## Approved
 
-- [ ] [[.codepress/product/galleys/loop-interop-v1/galley|Loop Interop v1]]
-
 ## Delivering
 
 ## Review
 
 ## Done
 
+- [x] [[.codepress/product/galleys/loop-interop-v1/galley|Loop Interop v1]]
 - [x] [[.codepress/product/galleys/ai-finops/galley|AI FinOps v1]]
 
 %% kanban:settings

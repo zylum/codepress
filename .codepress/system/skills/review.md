@@ -114,7 +114,20 @@ Before closing, answer these four questions in `review.md` under **Entropy**:
 
 If the Galley had `holdout: true`, review the holdout criteria now with the reviewer. Did the builder satisfy the underlying intent, or only the visible spec?
 
-### 7. Close
+### 7. Emit signal events
+
+For each unique signal type captured during this galley (observation, failure, cost), emit a `signal_published` event envelope to `.codepress/loop-events/`.
+
+Read the galley frontmatter for `id`. For each signal found in the slugs' `## Signals` blocks and in the `review.md` **Signals** section:
+
+Append to `.codepress/loop-events/{YYYY-MM-DD}.jsonl`:
+```
+{"id":"<uuid>","type":"signal_published","source_system":"codepress","source_loop":"<galley-id>","ts":"<ISO-8601>","payload":{"id":"<uuid>","source_system":"codepress","source_loop":"<galley-id>","name":"<signal-name>","term":"<canonical-term from manifest>","value":"<aggregated-value>","unit":"<unit from manifest>","ts":"<ISO-8601>","pointer":"<galley-path>","consumers":null},"pointer":null}
+```
+
+For failure signals found, also emit `failure_logged` envelopes.
+
+### 8. Close
 
 - Update Galley `status: done`
 - Update `.codepress/views/galley-board.md`

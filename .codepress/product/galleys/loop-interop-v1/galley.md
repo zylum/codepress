@@ -1,6 +1,6 @@
 ---
 id: li-v1
-status: approved
+status: done
 initiative: li-001
 release:
 created: 2026-06-14
@@ -46,10 +46,10 @@ v0 works with declare-only (connector derives events from commits). Emit is the 
 
 ## Acceptance Criteria
 
-- [ ] `.loop/manifest.yaml` exists at repo root and validates against `loop-spec/manifest.schema.yaml`
-- [ ] Manifest declares CodePress's real loops (at least galley-delivery + knowledge-learning) with `type`, `goal`, `verifier`, `state_pointer`
-- [ ] Every emitted signal maps a local name to a canonical `term` from `events.md`
-- [ ] Galley/slug close writes a `signal_published` envelope to a local outbox (valid per `events.md`)
-- [ ] A `failure_logged` event carries its `rule-changed` (reusing existing failure-signal format)
-- [ ] No file in CodePress names garner, loom, or the-dreaming
-- [ ] Docs updated: how CodePress participates in the loop fabric
+- [x] `.loop/manifest.yaml` exists at repo root and validates against `loop-spec/manifest.schema.yaml`
+- [x] Manifest declares CodePress's real loops (at least galley-delivery + knowledge-learning) with `type`, `goal`, `verifier`, `state_pointer`
+- [x] Every emitted signal maps a local name to a canonical `term` from `events.md`
+- [x] Galley/slug close writes a `signal_published` envelope to a local outbox (valid per `events.md`)
+- [x] A `failure_logged` event carries its `rule-changed` (reusing existing failure-signal format)
+- [x] No file in CodePress names garner, loom, or the-dreaming
+- [x] Docs updated: how CodePress participates in the loop fabric

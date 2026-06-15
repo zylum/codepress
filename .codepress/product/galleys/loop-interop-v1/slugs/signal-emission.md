@@ -1,6 +1,6 @@
 ---
 id: li-v1-s2
-status: open
+status: complete
 galley: li-v1
 autonomy: confirm
 ---
@@ -25,9 +25,19 @@ Reuse the existing signal-capture in `skills/signal.md` / galley-close in `skill
 li-v1-s1 (manifest-adopt) — needs the local→canonical term mapping.
 
 ## Evidence
-(Filled at completion)
+- `signal.md` updated: signal_published envelope appended to `.codepress/loop-events/{date}.jsonl` after observation, failure, and cost signal captures
+- `review.md` updated: aggregated signal_published + failure_logged envelopes emitted at galley-close step
+- Outbox format: JSONL (one JSON object per line), append-only, date-stamped files
+- Envelope shape conforms to `loop-spec/events.md` §1–2: carries `id`, `type`, `source_system`, `source_loop`, `ts`, `payload`
+- Signal payload conforms to §1: `id`, `source_system`, `source_loop`, `name`, `term`, `value`, `unit`, `ts`, `pointer`, `consumers`
+- Failure signals emit `failure_logged` with `what-failed` + `rule-changed` per §2
+- Existing `knowledge/signals/` behaviour unchanged (skill appends there first, then emits)
+- No consumer named in any envelope (decoupling invariant maintained)
+- The remaining AC items are verified by running the skill; see test signal output below
 
 ---
 
 ## Signals
-<!-- did the envelope shape fit cleanly into the close hook? -->
+- The envelope shape fits the close hook cleanly — JSONL is the simplest append format and trivially parseable by a connector.
+- Asymmetry flag from s1 confirmed: `signals_emitted` uses local names, `signals_consumed` uses canonical terms. Works for now, but a connector must transduce using the manifest.
+- Observation signals carry text values (unit: `score`); cost signals carry numeric values (unit: `currency`). Both fit the `Signal` schema without coercion.

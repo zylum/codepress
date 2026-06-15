@@ -16,7 +16,18 @@ Quick-capture an observation mid-session without running a full review.
    ```
    Use today's date. One bullet per call. Keep the observation to one sentence.
 
-3. No other changes. Do not open the review workflow. Do not restructure the file.
+3. Emit a `signal_published` event envelope to the loop-events outbox:
+
+   Read `product/galleys/{active-galley}/galley.md` frontmatter for `id`. Read `.loop/manifest.yaml` for `system.id` and the signal's canonical `term`.
+
+   Append to `.codepress/loop-events/{YYYY-MM-DD}.jsonl`:
+   ```
+   {"id":"<uuid>","type":"signal_published","source_system":"codepress","source_loop":"<galley-id>","ts":"<ISO-8601>","payload":{"id":"<uuid>","source_system":"codepress","source_loop":"<galley-id>","name":"observation","term":"<canonical-term-from-manifest>","value":"<the observation text>","unit":"score","ts":"<ISO-8601>","pointer":null,"consumers":null},"pointer":null}
+   ```
+
+   One JSON object per line. Use the active galley ID as `source_loop` if available; omit otherwise.
+
+4. No other changes. Do not open the review workflow. Do not restructure the file.
 
 ---
 
@@ -34,6 +45,15 @@ rule-changed: "<generalisable lesson — the rule the system should follow next 
 ```
 
 `rule-changed` is mandatory. A failure without a lesson is just an incident log. A failure with a rule is a Pattern candidate.
+
+Then emit a `failure_logged` event envelope to the loop-events outbox:
+
+Read `product/galleys/{active-galley}/galley.md` frontmatter for `id` if available.
+
+Append to `.codepress/loop-events/{YYYY-MM-DD}.jsonl`:
+```
+{"id":"<uuid>","type":"failure_logged","source_system":"codepress","source_loop":"<galley-id or null>","ts":"<ISO-8601>","payload":{"what-failed":"<from above>","rule-changed":"<from above>"},"pointer":null}
+```
 
 ---
 
@@ -67,6 +87,15 @@ Fields:
 Self-reported is the default. If exact counts are unavailable, estimate and set `source: estimated`.
 
 Cost signals feed the `cost-check` verify gate (defined in `codepress.md`). Without them, budget enforcement cannot run.
+
+Then emit a `signal_published` event envelope to the loop-events outbox:
+
+Read `product/galleys/{active-galley}/galley.md` frontmatter for `id` if available.
+
+Append to `.codepress/loop-events/{YYYY-MM-DD}.jsonl`:
+```
+{"id":"<uuid>","type":"signal_published","source_system":"codepress","source_loop":"<galley-id or null>","ts":"<ISO-8601>","payload":{"id":"<uuid>","source_system":"codepress","source_loop":"<galley-id or null>","name":"tokens_per_galley","term":"cost","value":<cost-estimate>,"unit":"currency","ts":"<ISO-8601>","pointer":"<slug-path>","consumers":null},"pointer":null}
+```
 
 ---
 
