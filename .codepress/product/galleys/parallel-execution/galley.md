@@ -1,6 +1,6 @@
 ---
 id: parallel-execution
-status: approved
+status: done
 initiative: 
 release: 
 created: 2026-06-13

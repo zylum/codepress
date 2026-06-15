@@ -1,6 +1,6 @@
 ---
 id: ee-v1-s6
-status: open
+status: done
 galley: ee-v1
 autonomy: confirm
 ---
@@ -37,4 +37,49 @@ The documentation site is Jekyll-based at `docs/`. The existing pages (index, qu
 
 ## Evidence
 
-(Filled at completion)
+- `tests/test_status_detection.sh` — 7 tests covering all 4 state transitions: approved initiative → create-galley, shaping initiative → create-galley, approved galley (no slugs) → split-galley, delivering galley (all complete) → review, delivering galley (partial) → no-review, galley in review → release+learn, done galley → no pending actions
+- `tests/test_board_regeneration.sh` — 6 tests: shaping/delivering/done galley → correct column, board created when missing, stale board updated, `galley move` triggers regeneration
+- `tests/run_tests.sh` — runs both suites, reports per-suite and total counts, exits 1 on any failure
+- All 3 scripts are executable (chmod +x)
+- Bug found and fixed: `codepress status` exited nonzero when pending actions existed (action_count propagated as exit code from `detect_pending_actions`). Fixed with `|| true` in `cmd_status`. Tests now run cleanly end-to-end without set -e abort.
+- `codepress status --json` flag added to CLI and documented in quick-reference
+- `docs/quick-reference.md` updated: `--json` flag in CLI commands block + prose explanation in `status` section
+- `README.md` already had `codepress run` and `codepress run --all` from prior docs-refresh — verified, no changes needed
+
+Test run output:
+```
+═══════════════════════════════════════════════════
+  Suite: test_board_regeneration
+═══════════════════════════════════════════════════
+PASS  galley with status shaping → appears in Shaping column of board
+PASS  galley with status delivering → appears in Delivering column of board
+PASS  board file is created when views/galley-board.md does not exist
+PASS  board file is updated when it already exists with stale content
+PASS  galley with status done → appears in Done column of board
+PASS  codepress galley move triggers board regeneration
+
+Results: 6 passed, 0 failed
+
+═══════════════════════════════════════════════════
+  Suite: test_status_detection
+═══════════════════════════════════════════════════
+PASS  approved initiative without galley → detects create-galley
+PASS  approved galley without slugs → detects split-galley
+PASS  delivering galley with all slugs complete → detects review
+PASS  no pending actions → shows up-to-date message
+PASS  delivering galley with incomplete slugs → no review action
+PASS  shaping initiative without galley → detects create-galley
+PASS  galley in review status → detects release+learn action
+
+Results: 7 passed, 0 failed
+
+═══════════════════════════════════════════════════
+  TOTAL: 13 passed, 0 failed
+═══════════════════════════════════════════════════
+```
+
+## Signals
+
+- Shell test harness (mktemp isolation, pass/fail helpers, summary exit code) is a reusable pattern for bash CLI projects
+- `set -euo pipefail` in test scripts requires all called commands to exit 0 — status commands that encode data in exit codes need `|| true` guards
+- The 3-test-file structure (per-feature suites + runner) scales well; adding a new suite is just adding a `test_*.sh` file

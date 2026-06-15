@@ -1,6 +1,6 @@
 ---
 id: claude-commands
-status: open
+status: done
 galley: parallel-execution
 autonomy: continuous
 ---
@@ -34,6 +34,12 @@ None (can run in parallel with parallel-run-skill).
 
 ## Evidence
 
+`.claude/commands/` created with four files: `shape.md`, `split.md`, `build.md`, `learn.md`. Each is ≤5 lines with a frontmatter description and a single instruction to read the target skill. `codepress init` `cmd_init()` updated to `mkdir -p .claude/commands` alongside the other scaffold directories.
+
 ---
 
 ## Signals
+
+- Wrapper format is minimal by design — description + one line; no content duplication with the skill files
+- `shape.md` and `split.md` were partially pre-created; `build.md` and `learn.md` added in this slug
+- Adding `.claude/commands` to `cmd_init()` ensures all new projects get slash command support without manual setup

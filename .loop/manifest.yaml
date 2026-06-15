@@ -1,0 +1,75 @@
+spec_version: "0.1"
+
+# CodePress loop manifest. Declares CodePress's own loops only.
+# Validates against /Users/marv/code/loop-spec/manifest.schema.yaml.
+# Names no consumer (decoupling invariant).
+
+system:
+  id: codepress
+  name: CodePress
+  kind: git_repo
+  description: Compound product-development OS. Initiative -> Galley -> Slug; Signal -> Pattern -> Knowledge.
+  state_pointer: "repo://codepress/.codepress"
+
+signals:
+  - name: time_to_first_value
+    term: latency
+    unit: seconds
+    direction: lower_better
+    description: Time from slug start to first verifiable value.
+  - name: verifier_pass_rate
+    term: quality
+    unit: ratio
+    direction: higher_better
+    description: Share of slugs passing the independent verifier first time.
+  - name: rework_rate
+    term: friction
+    unit: ratio
+    direction: lower_better
+    description: Share of slugs reopened after close.
+  - name: tokens_per_galley
+    term: cost
+    unit: count
+    direction: lower_better
+    description: Token spend to close a galley.
+
+loops:
+  - id: galley-delivery
+    name: Galley delivery loop
+    type: reinforcing
+    goal:
+      statement: Close galleys that meet acceptance criteria with minimal rework.
+      rubric: ".codepress/system/skills/verify.md"
+      target: "verifier_pass_rate >= 0.8"
+    actors: [build-agent, split-agent]
+    verifier:
+      kind: shell
+      ref: ".codepress/product/galleys/{galley}/verify"
+    signals_emitted: [time_to_first_value, verifier_pass_rate, tokens_per_galley]
+    signals_consumed: [risk]
+    state_pointer: "repo://codepress/.codepress/product/galleys"
+    health: [convergence_rate, stability, intervention_frequency]
+
+  - id: knowledge-learning
+    name: Signal -> Pattern -> Knowledge loop
+    type: balancing
+    goal:
+      statement: Turn delivery failures into rules so the same failure does not recur.
+      rubric: ".codepress/system/skills/review.md"
+      target: "rework_rate trending down"
+    actors: [review-agent]
+    verifier:
+      kind: model
+      ref: ".codepress/system/skills/review.md#entropy-check"
+    signals_emitted: [rework_rate]
+    signals_consumed: [quality, friction]
+    state_pointer: "repo://codepress/.codepress/knowledge"
+    health: [drift, dependency_pressure]
+
+discovery:
+  fingerprints: ["/.codepress", "/.codepress/knowledge", "/.codepress/system/skills"]
+
+sync:
+  mode: poll
+  interval: "5m"
+  strategy: git_head_diff

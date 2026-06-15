@@ -12,7 +12,7 @@ fail() { echo "FAIL  $1"; FAIL=$((FAIL + 1)); }
 # Run codepress from a temp dir, return stdout
 run_status() {
   local dir="$1"
-  (cd "$dir" && "$CODEPRESS" status 2>/dev/null)
+  (cd "$dir" && "$CODEPRESS" status 2>/dev/null) || true
 }
 
 run_status_pending() {
@@ -25,6 +25,7 @@ run_status_pending() {
 mk_project() {
   local d
   d=$(mktemp -d)
+  mkdir -p "$d/.codepress/system"
   mkdir -p "$d/.codepress/product/initiatives"
   mkdir -p "$d/.codepress/product/galleys"
   mkdir -p "$d/.codepress/product/releases"
@@ -76,8 +77,6 @@ EOF
 
 T="approved initiative without galley → detects create-galley"
 d=$(mk_project)
-mkdir -p "$d/.codepress/system"
-echo "codepress-version: 0.2.0" > "$d/.codepress/system/codepress.md"
 mk_initiative "$d" "init-001" "approved"
 out=$(run_status_pending "$d")
 if echo "$out" | grep -q "create-galley"; then
@@ -92,8 +91,6 @@ rm -rf "$d"
 
 T="approved galley without slugs → detects split-galley"
 d=$(mk_project)
-mkdir -p "$d/.codepress/system"
-echo "codepress-version: 0.2.0" > "$d/.codepress/system/codepress.md"
 mk_galley "$d" "my-galley" "approved"
 out=$(run_status_pending "$d")
 if echo "$out" | grep -q "split-galley"; then
@@ -108,8 +105,6 @@ rm -rf "$d"
 
 T="delivering galley with all slugs complete → detects review"
 d=$(mk_project)
-mkdir -p "$d/.codepress/system"
-echo "codepress-version: 0.2.0" > "$d/.codepress/system/codepress.md"
 mk_galley "$d" "eng-galley" "delivering"
 mk_slug "$d" "eng-galley" "slug-a" "complete"
 mk_slug "$d" "eng-galley" "slug-b" "complete"
@@ -126,8 +121,6 @@ rm -rf "$d"
 
 T="no pending actions → shows up-to-date message"
 d=$(mk_project)
-mkdir -p "$d/.codepress/system"
-echo "codepress-version: 0.2.0" > "$d/.codepress/system/codepress.md"
 mk_galley "$d" "done-galley" "done"
 out=$(run_status_pending "$d")
 if echo "$out" | grep -q "no pending actions"; then
@@ -142,8 +135,6 @@ rm -rf "$d"
 
 T="delivering galley with incomplete slugs → no review action"
 d=$(mk_project)
-mkdir -p "$d/.codepress/system"
-echo "codepress-version: 0.2.0" > "$d/.codepress/system/codepress.md"
 mk_galley "$d" "wip-galley" "delivering"
 mk_slug "$d" "wip-galley" "slug-a" "complete"
 mk_slug "$d" "wip-galley" "slug-b" "open"
@@ -160,8 +151,6 @@ rm -rf "$d"
 
 T="shaping initiative without galley → detects create-galley"
 d=$(mk_project)
-mkdir -p "$d/.codepress/system"
-echo "codepress-version: 0.2.0" > "$d/.codepress/system/codepress.md"
 mk_initiative "$d" "init-002" "shaping"
 out=$(run_status_pending "$d")
 if echo "$out" | grep -q "create-galley"; then
@@ -176,8 +165,6 @@ rm -rf "$d"
 
 T="galley in review status → detects release+learn action"
 d=$(mk_project)
-mkdir -p "$d/.codepress/system"
-echo "codepress-version: 0.2.0" > "$d/.codepress/system/codepress.md"
 mk_galley "$d" "review-galley" "review"
 out=$(run_status_pending "$d")
 if echo "$out" | grep -q "release"; then

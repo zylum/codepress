@@ -1,6 +1,6 @@
 ---
 id: docs-update
-status: open
+status: done
 galley: parallel-execution
 autonomy: continuous
 ---
@@ -21,6 +21,12 @@ Depends on slugs 1, 2, 3.
 
 ## Evidence
 
+`AGENTS.md` Skills table updated: added `skills/parallel-run.md` row with description "Run a parallel Slug group using git worktrees". Added note after the table: "Claude Code users: `.claude/commands/` contains slash command wrappers — type `/shape`, `/split`, `/build`, or `/learn` to invoke skills directly." `codepress init` `cmd_init()` updated with `mkdir -p .claude/commands`.
+
 ---
 
 ## Signals
+
+- AGENTS.md is the canonical entry point for agents — adding parallel-run.md there makes it discoverable without agents needing to know about it in advance
+- The Claude Code note sits outside the Skills table so it's additive and doesn't confuse non-Claude Code agents
+- `codepress init` scaffold update ensures the `.claude/commands/` directory is created consistently for all new projects

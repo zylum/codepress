@@ -1,6 +1,6 @@
 ---
 id: parallel-run-skill
-status: open
+status: done
 galley: parallel-execution
 autonomy: continuous
 ---
@@ -25,6 +25,12 @@ None.
 
 ## Evidence
 
+`/Users/marv/code/codepress/.codepress/system/skills/parallel-run.md` exists — 155 lines covering: worktree creation, per-group agent sessions, Claude Code specifics, merge strategy (`--no-ff`), conflict resolution, integration Slug pattern, and when not to use worktrees.
+
 ---
 
 ## Signals
+
+- `git worktree` is sufficient as the core primitive — no extra tooling needed
+- Keeping Claude Code specifics in a single callout (step 3) keeps the skill platform-agnostic otherwise
+- Integration Slug template embedded in the skill eliminates ambiguity about when/how to create one

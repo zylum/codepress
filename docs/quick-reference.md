@@ -54,6 +54,7 @@ your-project/
 codepress init              # Bootstrap a new project
 codepress upgrade           # Pull latest CodePress version
 codepress status            # Show delivery board + pending actions
+codepress status --json     # Machine-readable pending actions (pipe-delimited)
 codepress run               # Dispatch next pending action
 codepress run --all         # Dispatch all pending actions in sequence
 codepress galley new        # Create a new galley
@@ -64,6 +65,8 @@ codepress galley move       # Move galley to a new status
 ### `codepress status`
 
 Shows the current project state: galley list with statuses, knowledge counts, and — most importantly — the pending action queue. After displaying, it regenerates all board views from artefact frontmatter.
+
+Use `--json` to get machine-readable output (one action per line, pipe-delimited as `action|target|description`) for scripting or watch-mode automation.
 
 ```
 CodePress status

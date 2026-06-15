@@ -106,3 +106,6 @@ One commit per Galley close: `galley:<name> done`
 | `skills/bootstrap.md` | Seed Knowledge from an existing codebase |
 | `skills/status.md` | Regenerate the delivery board |
 | `skills/signal.md` | Quick-capture an observation mid-session |
+| `skills/parallel-run.md` | Run a parallel Slug group using git worktrees |
+
+Claude Code users: `.claude/commands/` contains slash command wrappers — type `/shape`, `/split`, `/build`, or `/learn` to invoke skills directly.

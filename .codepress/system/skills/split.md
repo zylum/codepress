@@ -30,6 +30,7 @@ When a Galley is `approved` and ready for execution planning.
        slugs: [slug-2]
        depends-on: [A]
    ```
+   If parallel groups are present, see `skills/parallel-run.md` for execution instructions.
 6. Create each Slug at `slugs/{id}-{name}.md` using `.codepress/system/templates/slug.md`
 7. For each Slug set:
    - Purpose (one sentence)

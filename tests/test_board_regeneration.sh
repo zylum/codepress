@@ -40,7 +40,7 @@ EOF
 
 run_status() {
   local dir="$1"
-  (cd "$dir" && "$CODEPRESS" status 2>/dev/null)
+  (cd "$dir" && "$CODEPRESS" status 2>/dev/null) || true
 }
 
 # ── Test 1: shaping galley appears in Shaping column ─────────────────────────
