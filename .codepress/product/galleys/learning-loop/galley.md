@@ -37,8 +37,8 @@ Three targeted changes:
 3. **`skills/signal.md` quick-capture** — a one-line skill callable mid-session. Appends a dated bullet to the active galley's `review.md` Signals section without requiring the full review skill.
 
 ## Acceptance Criteria
-- [ ] `skills/signal.md` exists and works: given a galley ID + observation, appends to `review.md`
-- [ ] `review.md` template updated to the four-section structure
-- [ ] `skills/review.md` updated: step 1 reads Slug Signals blocks first (not just the Galley file), drafts pattern candidates
-- [ ] The Loom project's existing `review.md` files converted to the new format
-- [ ] AGENTS.md updated to reference the quick-capture mechanic
+- [x] `skills/signal.md` exists and works: given a galley ID + observation, appends to `review.md`
+- [x] `review.md` template updated to the four-section structure
+- [x] `skills/review.md` updated: step 1 reads Slug Signals blocks first (not just the Galley file), drafts pattern candidates
+- [x] The Loom project's existing `review.md` files converted to the new format
+- [x] AGENTS.md updated to reference the quick-capture mechanic

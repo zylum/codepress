@@ -36,7 +36,7 @@ Budget well under — this galley used a free model, so cost reflects only token
 
 ## Pattern candidates
 
-- [ ] proposed: **Cost signal format stably mirrors failure format** — both `type: failure` and `type: cost` use identical YAML frontmatter structure with required fields. If a third structured type is added, follow the same pattern. This reduces cognitive overhead for builders switching between signal types.
+- [x] proposed: **Structured signal convention** — promoted to `knowledge/patterns/structured-signal-convention.md`
 
 ## Knowledge updates
 

@@ -15,3 +15,11 @@ Terminology used in this codebase that might be unclear.
 | self-reported | Cost data captured by the builder estimating their own token usage. V0 default. |
 | budget variance | Difference between budgeted and actual cost/tokens for a galley. Computed at review and by the cost-check gate. |
 | cost-check | A verify gate that reads galley budget and compares against aggregated cost signals. Defined in codepress.md. |
+| galley | A shaped solution ready for delivery. Contains Problem, Users, Success, Constraints, Approach, AC. |
+| slug | An atomic delivery unit. Has an acceptance checklist, autonomy level, and a Signals block. |
+| initiative | A free-form idea or problem worth exploring. The input to the shaping process. |
+| autonomy level | The degree of independence a slug executor has: continuous (run to completion), confirm (check with human between slugs), stop (halt and wait). |
+| compound loop | Signal → Pattern → Knowledge — the mechanism by which CodePress continuously improves. |
+| outbox | The `.codepress/loop-events/` directory where signal_published and failure_logged event envelopes are written in JSONL format. |
+| decoupling invariant | The rule that loop fabric files must name only CodePress, never a consumer system. |
+| manifest | `.loop/manifest.yaml` — declares a system's loops and signal mappings against a neutral standard. |

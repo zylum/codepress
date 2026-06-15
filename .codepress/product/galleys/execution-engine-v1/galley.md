@@ -62,12 +62,12 @@ The engine itself should be an addition to the existing bash CLI or a small help
 
 ## Acceptance Criteria
 
-- [ ] `codepress status` shows pending actions grouped by workflow (not just artefact counts)
-- [ ] `codepress run` executes the next pending action by running the appropriate skill/playbook
-- [ ] `codepress run --all` executes all pending actions in sequence
-- [ ] Engine dispatch routes to configured agent per workflow stage
-- [ ] Artefact frontmatter drives all detection (no separate state file)
-- [ ] Manual workflows still work unchanged
-- [ ] Tests exist for status detection and action execution
-- [ ] Docs updated: new CLI commands, engine config, architecture
-- [ ] Board views regenerate automatically after each action
+- [x] `codepress status` shows pending actions grouped by workflow (not just artefact counts)
+- [x] `codepress run` executes the next pending action by running the appropriate skill/playbook
+- [x] `codepress run --all` executes all pending actions in sequence
+- [x] Engine dispatch routes to configured agent per workflow stage
+- [x] Artefact frontmatter drives all detection (no separate state file)
+- [x] Manual workflows still work unchanged
+- [x] Tests exist for status detection and action execution
+- [x] Docs updated: new CLI commands, engine config, architecture
+- [x] Board views regenerate automatically after each action

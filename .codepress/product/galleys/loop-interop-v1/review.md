@@ -16,8 +16,9 @@
 
 ## Pattern candidates
 
-- [ ] proposed: **manifest-first pattern** — When adding loop interop to a system, author the manifest from a spec example before writing any emission code. The example forced clarity on signal names, canonical terms, and loop structure before any implementation.
-- [ ] proposed: **outbox-owned-by-source pattern** — The event outbox belongs to the source system's `.codepress/` namespace, not the shared `.loop/` namespace. Keeps the manifest as the single shared contract and the outbox as the source's private write-ahead log. A connector reads from it but never writes to it.
+- [x] proposed: **manifest-first pattern** — promoted to `knowledge/patterns/manifest-first.md`
+- [x] proposed: **outbox-owned-by-source pattern** — promoted to `knowledge/patterns/outbox-owned-by-source.md`
+- Decision recorded: outbox namespace decision in `knowledge/decisions/2026-06-15-loop-events-namespace.md`
 
 ## Cost
 

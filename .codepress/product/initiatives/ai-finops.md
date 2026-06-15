@@ -1,6 +1,6 @@
 ---
 id: af-001
-status: approved
+status: archived
 created: 2026-06-15
 ---
 

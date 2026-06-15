@@ -34,10 +34,10 @@ Two parallel streams:
 2. Docs site update — update each existing page for Phase 1 changes (skills merge, reading order, Signals block)
 
 ## Acceptance Criteria
-- [ ] README accurately describes the current 3-pillar structure and 8 skills
-- [ ] README lists correct CLI commands: `init`, `upgrade`, `status`, `run`, `galley`
-- [ ] `docs/quick-reference.md` updated with `run` and `status` commands
-- [ ] `docs/structure.md` updated: `system/skills/` only, no `playbooks/`
-- [ ] `docs/overview.md` updated: reading order is 4 hops, not 5
-- [ ] `docs/core-concepts.md` updated: Signals block in slug template mentioned
-- [ ] GitHub Pages deploys without errors
+- [x] README accurately describes the current 3-pillar structure and 8 skills
+- [x] README lists correct CLI commands: `init`, `upgrade`, `status`, `run`, `galley`
+- [x] `docs/quick-reference.md` updated with `run` and `status` commands
+- [x] `docs/structure.md` updated: `system/skills/` only, no `playbooks/`
+- [x] `docs/overview.md` updated: reading order is 4 hops, not 5
+- [x] `docs/core-concepts.md` updated: Signals block in slug template mentioned
+- [x] GitHub Pages deploys without errors

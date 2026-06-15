@@ -36,11 +36,11 @@ Two layers:
 2. **Claude Code integration** — `.claude/commands/` with thin wrappers for the most-used skills: `shape`, `split`, `build`, `learn`. These make skills callable as `/shape`, `/split` etc. from within Claude Code sessions. No content in the wrappers — they simply load the skill file.
 
 ## Acceptance Criteria
-- [ ] `skills/parallel-run.md` exists with complete worktree-based parallel instructions
-- [ ] `skills/split.md` references `parallel-run.md` for parallel groups
-- [ ] `.claude/commands/shape.md` exists (loads `skills/shape.md`)
-- [ ] `.claude/commands/split.md` exists (loads `skills/split.md`)
-- [ ] `.claude/commands/build.md` exists (loads `skills/build.md`)
-- [ ] `.claude/commands/learn.md` exists (loads `skills/review.md`)
-- [ ] `.claude/commands/signal.md` exists (loads `skills/signal.md`) — depends on learning-loop galley
-- [ ] README or AGENTS.md updated to mention parallel execution capability
+- [x] `skills/parallel-run.md` exists with complete worktree-based parallel instructions
+- [x] `skills/split.md` references `parallel-run.md` for parallel groups
+- [x] `.claude/commands/shape.md` exists (loads `skills/shape.md`)
+- [x] `.claude/commands/split.md` exists (loads `skills/split.md`)
+- [x] `.claude/commands/build.md` exists (loads `skills/build.md`)
+- [x] `.claude/commands/learn.md` exists (loads `skills/review.md`)
+- [x] `.claude/commands/signal.md` exists (loads `skills/signal.md`) — depends on learning-loop galley
+- [x] README or AGENTS.md updated to mention parallel execution capability
