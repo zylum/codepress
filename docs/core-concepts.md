@@ -75,7 +75,29 @@ budget:
   cost: $2.00
 ```
 
-Hooks emit a warning Signal when 80% is consumed and halt the Slug at 100%.
+Budgets are enforced by the `cost-check` verify gate (configured in `codepress.md`). At galley-close, actual costs are aggregated from `type: cost` signals and compared against the declared budget. Overruns are flagged in review and as pending actions on the delivery board.
+
+## Cost Signal
+
+A structured Signal for tracking AI token usage and cost per slug:
+
+```yaml
+type: cost
+slug: <slug-id>
+tokens-in: <integer>
+tokens-out: <integer>
+model: <model-name>
+cost-estimate: <float>
+source: self-reported | wrapper | estimated
+```
+
+Recorded in each slug's `## Signals` block after implementation. Aggregated at galley-close (step 1b of `skills/review.md`) and enforced by the `cost-check` verify gate.
+
+## Loop Fabric
+
+CodePress participates in the cross-system loop fabric — a neutral standard for declaring loops and emitting signals. The manifest at `.loop/manifest.yaml` declares CodePress's loops and maps local signal names to canonical terms (latency, quality, friction, cost). At lifecycle points, `signal_published` and `failure_logged` event envelopes are written to `.codepress/loop-events/` in JSONL format.
+
+The decoupling invariant: loop fabric files name only CodePress. A connector discovers and syncs CodePress; CodePress never reaches out. See `docs/interop.md`.
 
 ## The compound loop
 

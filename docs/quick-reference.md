@@ -136,6 +136,19 @@ The `verifier` engine is intentionally separate from `build`. The verifier recei
 5. **Gates pass** → `review` skill → **Signals → Patterns → Knowledge**
 6. **Review** → Entropy check → **Galley done**
 
+## FinOps
+
+Track AI costs per Galley:
+
+| Field | Location | Purpose |
+|---|---|---|
+| `budget:` | Galley + Slug frontmatter | Declare token and cost ceilings |
+| `type: cost` Signal | Slug `## Signals` block | Record tokens-in, tokens-out, model, cost-estimate, source |
+| `cost-check` gate | `codepress.md` `verify:` | Enforce budget — fails if actual > declared |
+| Cost aggregation | `skills/review.md` step 1b | Sum costs at galley-close, compare vs budget, propose cost Patterns |
+
+Cost signals are self-reported by the builder after each slug. Set `source: estimated` if exact counts are unavailable.
+
 ## Loop-grade execution
 
 | Field | Location | Purpose |
@@ -145,3 +158,15 @@ The `verifier` engine is intentionally separate from `build`. The verifier recei
 | `verifier:` | Engines block | Fresh-context evaluation agent separate from builder |
 | `type: failure` Signal | `knowledge/signals/` | Structured failure: what-failed / why / rule-changed |
 | Entropy section | `review.md` | Did we improve the system or just ship a feature? |
+
+## Loop Interop
+
+CodePress participates in the cross-system loop fabric:
+
+| Artefact | Purpose |
+|---|---|
+| `.loop/manifest.yaml` | Declares loops and canonical signal term mappings |
+| `.codepress/loop-events/{date}.jsonl` | Append-only outbox of `signal_published` and `failure_logged` events |
+| `docs/interop.md` | Connector guide — discover, sync, transduce |
+
+The decoupling invariant: loop fabric files name only CodePress, never a consumer system.

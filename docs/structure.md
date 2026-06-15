@@ -62,14 +62,31 @@ Shared understanding — what we know.
 | `.codepress/knowledge/signals/` | Raw observations from delivery (staging area) |
 | `.codepress/knowledge/patterns/` | Reusable lessons promoted from signals |
 
+### Loop Fabric (`.loop/`)
+
+Cross-system interop artefacts.
+
+| Path | Purpose |
+|---|---|
+| `.loop/manifest.yaml` | Loop declarations and canonical signal mappings |
+
+Decoupling invariant: loop fabric files name only CodePress, never a consumer system.
+
+### Event Outbox (`.codepress/loop-events/`)
+
+Append-only JSONL event log for connector consumption.
+
+| Path | Purpose |
+|---|---|
+| `.codepress/loop-events/{date}.jsonl` | `signal_published` and `failure_logged` envelopes |
+
 ### Views (`.codepress/views/`)
 
 Helper views for at-a-glance status.
 
 | Path | Purpose |
 |---|---|
-| `.codepress/views/board.md` | Delivery board (kanban) |
-| `.codepress/views/knowledge-map.md` | Map of all knowledge artefacts |
+| `.codepress/views/galley-board.md` | Delivery board (kanban) |
 
 ## The compound loop
 
@@ -90,18 +107,18 @@ Signals are captured during delivery, promoted to Patterns when validated, and u
 │   │   ├── shape.md
 │   │   ├── split.md
 │   │   ├── build.md
-│   │   ├── review.md
+│   │   ├── review.md      # includes cost aggregation step 1b
 │   │   ├── verify.md
 │   │   ├── release.md
 │   │   ├── bootstrap.md
-│   │   ├── status.md
-│   │   ├── signal.md
+│   │   ├── status.md      # includes budget overrun detection
+│   │   ├── signal.md      # observation, failure, and cost signal types
 │   │   └── parallel-run.md
 │   ├── templates/
 │   │   ├── initiative.md
 │   │   ├── galley.md      # holdout + budget frontmatter
 │   │   ├── slug.md        # budget frontmatter
-│   │   ├── review.md      # includes Entropy section
+│   │   ├── review.md      # includes Entropy + Cost sections
 │   │   ├── release.md
 │   │   ├── pattern.md
 │   │   └── decision.md
@@ -117,7 +134,7 @@ Signals are captured during delivery, promoted to Patterns when validated, and u
 │   ├── decisions/
 │   ├── signals/
 │   └── patterns/
+├── loop-events/           # signal_published outbox (JSONL)
 └── views/
-    ├── board.md
-    └── knowledge-map.md
+    └── galley-board.md
 ```

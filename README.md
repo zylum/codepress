@@ -47,6 +47,14 @@ codepress upgrade
 10 AI-executable skills in `.codepress/system/skills/`:
 `shape` · `split` · `build` · `review` · `verify` · `release` · `bootstrap` · `status` · `signal` · `parallel-run`
 
+## FinOps
+
+Track token and cost budgets per Galley. Fill `budget:` in galley/slug frontmatter, capture `type: cost` signals during build, and enforce with the `cost-check` verify gate. See `docs/quick-reference.md#finops`.
+
+## Loop Interop
+
+CodePress participates in the cross-system loop fabric via `.loop/manifest.yaml` and a JSONL event outbox at `.codepress/loop-events/`. See `docs/interop.md`.
+
 ## Reading order (4 hops)
 
 1. `codepress.md` — project config and conventions
@@ -59,7 +67,8 @@ codepress upgrade
 ```bash
 codepress init              # Bootstrap a new project
 codepress upgrade           # Pull latest CodePress version
-codepress status            # Show delivery board
+codepress status            # Show delivery board + pending actions
+codepress status --json     # Machine-readable pending actions
 codepress run               # Dispatch next action
 codepress run --all         # Dispatch all pending actions
 codepress galley new        # Create a new galley
