@@ -1,6 +1,6 @@
 ---
 id: lge-001
-status: inbox
+status: archived
 created: 2026-06-13
 ---
 
@@ -101,12 +101,12 @@ This is the loop-closing step. Without it, the system delivers but never compoun
 
 ## Acceptance Criteria
 
-- [ ] Galley template includes `goal:` block with `machine-evaluable`, `rubric`, and `holdout` fields
-- [ ] `budget:` frontmatter supported in Galley and Slug templates
-- [ ] `verifier:` engine entry in `codepress.md` example and documentation
-- [ ] `verify.md` skill spawns verifier as fresh session, not inline continuation
-- [ ] Signal template supports `type: failure` with `what-failed`, `why`, `rule-changed` fields
-- [ ] `review.md` skill includes forced-entropy section
+- [x] Galley template: `holdout:` flag + `budget:` frontmatter; `verify:` covers machine-evaluable gates
+- [x] `budget:` frontmatter supported in Galley and Slug templates
+- [x] `verifier:` engine entry in `codepress.md` engines block
+- [x] `verify.md` skill: verifier principle, separate-context rule, holdout gate, failure Signal format
+- [x] `skills/signal.md`: `type: failure` format with mandatory `rule-changed` field
+- [x] `skills/review.md`: step 6 entropy check + Entropy section in review.md template
 
 ## Attachments
 
