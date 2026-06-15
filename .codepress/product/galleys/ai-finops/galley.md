@@ -1,6 +1,6 @@
 ---
 id: af-v1
-status: delivering
+status: done
 initiative: af-001
 release:
 created: 2026-06-15
@@ -51,12 +51,12 @@ The `.loop/manifest.yaml` mapping `tokens_per_galley → cost` already exists �
 
 ## Acceptance Criteria
 
-- [ ] `skills/signal.md` documents a `type: cost` YAML variant with fields: slug, tokens-in, tokens-out, model, cost-estimate, source
-- [ ] `templates/galley.md` and `templates/slug.md` have budget fields with doc guidance and examples — not just blank YAML keys
-- [ ] `skills/build.md` includes a cost-capture step (between implementation and Signals block) that records token/model/cost in the slug's Signals section
-- [ ] `codepress.md` has a `cost-check` verify gate that reads galley `budget.tokens` + `budget.cost`, sums cost signals from completed slugs, and fails on overrun
-- [ ] `skills/status.md` detects cost overruns (actual > budget) as pending actions
-- [ ] `skills/review.md` aggregates cost signals at galley-close, compares against budget, and proposes cost Patterns
-- [ ] FinOps concepts seeded in `knowledge/concepts.md`, `knowledge/glossary.md`, `knowledge/current-state.md`
-- [ ] `tokens_per_galley → cost` mapping in `.loop/manifest.yaml` preserved and annotated
-- [ ] Existing `type: failure` signal behaviour unchanged
+- [x] `skills/signal.md` documents a `type: cost` YAML variant with fields: slug, tokens-in, tokens-out, model, cost-estimate, source
+- [x] `templates/galley.md` and `templates/slug.md` have budget fields with doc guidance and examples — not just blank YAML keys
+- [x] `skills/build.md` includes a cost-capture step (between implementation and Signals block) that records token/model/cost in the slug's Signals section
+- [x] `codepress.md` has a `cost-check` verify gate that reads galley `budget.tokens` + `budget.cost`, sums cost signals from completed slugs, and fails on overrun
+- [x] `skills/status.md` detects cost overruns (actual > budget) as pending actions
+- [x] `skills/review.md` aggregates cost signals at galley-close, compares against budget, and proposes cost Patterns
+- [x] FinOps concepts seeded in `knowledge/concepts.md`, `knowledge/glossary.md`, `knowledge/current-state.md`
+- [x] `tokens_per_galley → cost` mapping in `.loop/manifest.yaml` preserved and annotated
+- [x] Existing `type: failure` signal behaviour unchanged

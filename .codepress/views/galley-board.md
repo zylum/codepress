@@ -2,27 +2,22 @@
 kanban-plugin: board
 ---
 
-## Draft
+---
+kanban-plugin: board
+---
 
+## Approved
 
-## Ready
+- [ ] [[.codepress/product/galleys/loop-interop-v1/galley|Loop Interop v1]]
 
-
-## Building
-
-- [ ] [[.codepress/product/galleys/execution-engine-v1/galley|Execution Engine v1]]
+## Delivering
 
 ## Review
 
+## Done
 
-## Released
-
-
-## Learned
-
+- [x] [[.codepress/product/galleys/ai-finops/galley|AI FinOps v1]]
 
 %% kanban:settings
-```
 {"kanban-plugin":"board","list-collapse":[false,false,false,false,false]}
-```
 %%

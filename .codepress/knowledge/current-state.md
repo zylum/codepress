@@ -23,7 +23,6 @@ What is deployed and being used.
 ## In progress
 What is actively being built (link to active Galleys).
 
-- `product/galleys/ai-finops/` — AI FinOps: cost signal format, budget templates, build integration, verify gate, cost compounding
 - `product/galleys/loop-interop-v1/` — Loop interoperability: manifest adoption, signal emission, interop docs
 
 ## Known limitations
@@ -32,6 +31,7 @@ What it cannot do, or does poorly.
 - Cost tracking is self-reported (v0) — no automatic wrapper or provider API integration
 - No cross-galley cost trending yet (cost Patterns will enable this as galleys close)
 - No budget field validation in the CLI — relies on verify gates
+- Cost-check gate uses globs that could match multiple galleys — needs a target parameter for multi-galley projects
 
 ## Last updated
-2026-06-15 — Galley `ai-finops` initiated
+2026-06-15 — Galley `ai-finops` done
