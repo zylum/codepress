@@ -7,9 +7,9 @@ created:
 verify: 
 holdout: false
 budget:
-  wall-clock: 
-  tokens: 
-  cost: 
+  wall-clock:       # expected duration e.g. 2d — optional, for planning
+  tokens:           # expected total tokens e.g. 25000 — required for cost-check gate
+  cost:             # expected total USD e.g. 1.50 — required for cost-check gate
 ---
 
 # Galley: [name]

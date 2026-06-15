@@ -4,9 +4,9 @@ status: open
 galley: 
 autonomy: continuous
 budget:
-  wall-clock: 
-  tokens: 
-  cost: 
+  wall-clock:       # expected duration e.g. 2h
+  tokens:           # expected tokens e.g. 5000 — feeds cost-check verify gate
+  cost:             # expected USD e.g. 0.25 — feeds cost-check verify gate
 ---
 
 # Slug: [name]
