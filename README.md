@@ -1,4 +1,4 @@
-# CodePress v0.3.0
+# CodePress v0.4.0
 
 A compound product development operating system for the AI era.
 
