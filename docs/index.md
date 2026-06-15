@@ -40,9 +40,9 @@ Shape once. Build many. Learn forever.
     <h3>⚙️ System</h3>
     <div class="q">How do we work?</div>
     <ul>
-      <li>Playbooks</li>
-      <li>Skills</li>
+      <li>Skills (10)</li>
       <li>Templates</li>
+      <li>Hooks</li>
       <li>Configuration</li>
     </ul>
   </div>

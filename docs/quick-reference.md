@@ -103,6 +103,7 @@ engines:
   shaping: claude
   split: claude
   build: opencode
+  verifier: claude      # spawns a fresh session — no build context, spec + artefacts only
   review: claude
   release: claude
   capture: claude
@@ -110,6 +111,8 @@ engines:
 ```
 
 If the section is absent, all stages default to `claude`. Engine names are strings — the CLI prints which agent should handle each action; actual dispatch is manual or via `codepress watch`.
+
+The `verifier` engine is intentionally separate from `build`. The verifier receives only the Galley spec and artefacts — never the build session history. This prevents motivated reasoning from leaking through verification.
 
 ## Galley lifecycle
 
@@ -126,5 +129,16 @@ If the section is absent, all stages default to `claude`. Engine names are strin
 1. **Initiative** → `shape` skill → **Galley**
 2. **Galley** → `split` skill → **Slugs**
 3. **Slugs** → `build` skill → **Deliver**
-4. **Done** → `review` skill → **Signals → Patterns**
-5. **Patterns** → **Knowledge update**
+4. **Done** → `verify` skill (separate verifier engine) → **Gates pass**
+5. **Gates pass** → `review` skill → **Signals → Patterns → Knowledge**
+6. **Review** → Entropy check → **Galley done**
+
+## Loop-grade execution
+
+| Field | Location | Purpose |
+|---|---|---|
+| `holdout: true` | Galley frontmatter | Reviewer holds additional criteria not visible to builder |
+| `budget:` | Galley + Slug frontmatter | Wall-clock, token, and cost ceilings |
+| `verifier:` | Engines block | Fresh-context evaluation agent separate from builder |
+| `type: failure` Signal | `knowledge/signals/` | Structured failure: what-failed / why / rule-changed |
+| Entropy section | `review.md` | Did we improve the system or just ship a feature? |

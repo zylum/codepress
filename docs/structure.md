@@ -31,7 +31,7 @@ The operating system — how work happens.
 |---|---|
 | `.codepress/system/codepress.md` | Project name, release theme, working conventions, reading order |
 | `.codepress/system/AGENTS.md` | Agent operating manual — reading order, rules, autonomy levels |
-| `.codepress/system/skills/` | 8 AI-executable skills: shape, split, build, review, verify, release, bootstrap, status |
+| `.codepress/system/skills/` | 10 AI-executable skills: shape, split, build, review, verify, release, bootstrap, status, signal, parallel-run |
 | `.codepress/system/templates/` | Artefact templates: initiative, galley, slug, release, pattern, decision |
 | `.codepress/system/hooks/` | Automation triggers: on-galley-complete, on-release, on-pattern |
 
@@ -94,11 +94,14 @@ Signals are captured during delivery, promoted to Patterns when validated, and u
 │   │   ├── verify.md
 │   │   ├── release.md
 │   │   ├── bootstrap.md
-│   │   └── status.md
+│   │   ├── status.md
+│   │   ├── signal.md
+│   │   └── parallel-run.md
 │   ├── templates/
 │   │   ├── initiative.md
-│   │   ├── galley.md
-│   │   ├── slug.md
+│   │   ├── galley.md      # holdout + budget frontmatter
+│   │   ├── slug.md        # budget frontmatter
+│   │   ├── review.md      # includes Entropy section
 │   │   ├── release.md
 │   │   ├── pattern.md
 │   │   └── decision.md

@@ -44,8 +44,8 @@ codepress upgrade
 
 ## Skills
 
-8 AI-executable skills in `.codepress/system/skills/`:
-`shape` · `split` · `build` · `review` · `verify` · `release` · `bootstrap` · `status`
+10 AI-executable skills in `.codepress/system/skills/`:
+`shape` · `split` · `build` · `review` · `verify` · `release` · `bootstrap` · `status` · `signal` · `parallel-run`
 
 ## Reading order (4 hops)
 
