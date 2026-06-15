@@ -74,6 +74,7 @@ engines:
   shaping: claude
   split: claude
   build: opencode
+  verifier: claude      # spawns a fresh session — no build context, spec + artefacts only
   review: claude
   release: claude
   capture: claude

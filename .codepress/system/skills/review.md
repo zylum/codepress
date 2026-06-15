@@ -66,7 +66,25 @@ A 5-line stub beats an empty file. Update incrementally.
 
 Record each change in `review.md` under **Knowledge updates**.
 
-### 6. Close
+### 6. Entropy check
+
+Before closing, answer these four questions in `review.md` under **Entropy**:
+
+1. **Did we improve the system, or just deliver a feature?**
+   What does the system know now that it didn't before?
+
+2. **What rule did this Galley discover?**
+   If you can't name one, you overfitted to the visible spec.
+
+3. **Did we plateau?**
+   Same problems, same approaches, no surprises — that is a plateau. Name it if true.
+
+4. **What would make the next galley 20% cheaper?**
+   Missing knowledge, unclear AC, wrong autonomy level — be specific.
+
+If the Galley had `holdout: true`, review the holdout criteria now with the reviewer. Did the builder satisfy the underlying intent, or only the visible spec?
+
+### 7. Close
 
 - Update Galley `status: done`
 - Update `.codepress/views/galley-board.md`
@@ -88,4 +106,11 @@ Record each change in `review.md` under **Knowledge updates**.
 
 ## Knowledge updates
 - [what changed in current-state / concepts / decisions]
+
+## Entropy
+- Did we improve the system or just deliver a feature?
+- Rule discovered:
+- Plateau detected: yes / no
+- What would make the next galley 20% cheaper:
+- Holdout verdict (if holdout: true): did builder satisfy underlying intent?
 ```

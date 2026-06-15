@@ -4,7 +4,7 @@ Quick-capture an observation mid-session without running a full review.
 
 ---
 
-## Steps
+## Observation signal (default)
 
 1. Identify the target file:
    - If a galley is active, use `product/galleys/{id}/review.md`
@@ -17,6 +17,23 @@ Quick-capture an observation mid-session without running a full review.
    Use today's date. One bullet per call. Keep the observation to one sentence.
 
 3. No other changes. Do not open the review workflow. Do not restructure the file.
+
+---
+
+## Failure signal
+
+When capturing a failure — a gate that didn't pass, an assumption that broke, a rework incident — use the structured failure format instead. Create a file in `knowledge/signals/` or append to `review.md`:
+
+```yaml
+---
+type: failure
+what-failed: "<specific gate, test, or criterion that failed>"
+why: "<root cause — be honest, not diplomatic>"
+rule-changed: "<generalisable lesson — the rule the system should follow next time>"
+---
+```
+
+`rule-changed` is mandatory. A failure without a lesson is just an incident log. A failure with a rule is a Pattern candidate.
 
 ---
 

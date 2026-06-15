@@ -5,6 +5,11 @@ initiative:
 release: 
 created: 
 verify: 
+holdout: false
+budget:
+  wall-clock: 
+  tokens: 
+  cost: 
 ---
 
 # Galley: [name]
@@ -26,8 +31,12 @@ The shaped solution. Direction and key decisions — not a spec.
 Enough clarity for someone else to build it without asking questions.
 
 ## Acceptance Criteria
+
 What does done look like from the outside?
 
 - [ ] 
 - [ ] 
 - [ ]
+
+<!-- Machine-evaluable criteria go in the `verify:` frontmatter field (shell commands).
+     Set `holdout: true` if the reviewer holds additional criteria not visible to the builder. -->

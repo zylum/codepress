@@ -3,6 +3,10 @@ id:
 status: open
 galley: 
 autonomy: continuous
+budget:
+  wall-clock: 
+  tokens: 
+  cost: 
 ---
 
 # Slug: [name]
