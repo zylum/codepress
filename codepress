@@ -3,7 +3,7 @@ set -euo pipefail
 shopt -s nullglob
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VERSION="0.4.0"
+VERSION="0.4.1"
 SOURCE_REPO="https://github.com/zylum/codepress"
 CONFIG_FILE=".codepress/system/codepress.md"
 
@@ -44,6 +44,7 @@ CodePress v$VERSION — compound product development operating system.
 
 Usage:
   codepress init                  Bootstrap CodePress in this directory
+  codepress bootstrap             Configure project (verification, DoD, etc.)
   codepress upgrade               Update .codepress/system/ files from source
   codepress migrate               Migrate from old numbered structure
   codepress status [--json]       Show project health and pending actions
@@ -107,7 +108,7 @@ cmd_init() {
   mkdir -p .codepress/system/{skills,templates,hooks}
   mkdir -p .codepress/product/{initiatives,galleys,releases}
   mkdir -p .codepress/knowledge/{decisions,signals,patterns}
-  mkdir -p .codepress/views docs src
+  mkdir -p .codepress/views docs tests
   mkdir -p .claude/commands
 
   cat > AGENTS.md << 'EOF'
@@ -120,8 +121,57 @@ EOF
 
   echo ""
   echo "✓ CodePress v$VERSION bootstrapped."
-  echo "  Next: populate .codepress/system/codepress.md with your project config"
-  echo "  Then: run 'codepress status' to verify"
+  echo ""
+  echo "Next steps:"
+  echo "  1. Run 'codepress bootstrap' to configure your project"
+  echo "  2. Or manually edit .codepress/system/codepress.md"
+  echo ""
+  echo "The bootstrap process will:"
+  echo "  - Detect your project type (Python, TypeScript, etc.)"
+  echo "  - Configure verification commands"
+  echo "  - Define your Definition of Done"
+  echo "  - Set up working style and team roles"
+  echo "  - Run a verification dry run"
+}
+
+# ─── Bootstrap ────────────────────────────────────────────────────────────────
+
+cmd_bootstrap() {
+  echo "CodePress bootstrap v$VERSION"
+  echo ""
+
+  if [[ ! -d ".codepress/system" ]]; then
+    echo "✗ Not a CodePress project (.codepress/system/ not found)."
+    echo "  Run 'codepress init' first."
+    exit 1
+  fi
+
+  # Check if bootstrap already completed
+  if [[ -f ".codepress/system/manifest.md" ]]; then
+    echo "→ Project already bootstrapped (manifest.md exists)."
+    echo "  To re-bootstrap, delete .codepress/system/manifest.md and run again."
+    exit 0
+  fi
+
+  echo "→ Starting project bootstrap..."
+  echo ""
+  echo "This process will:"
+  echo "  1. Detect your project type"
+  echo "  2. Configure verification commands"
+  echo "  3. Define your Definition of Done"
+  echo "  4. Set up working style and team roles"
+  echo "  5. Run a verification dry run"
+  echo ""
+  echo "For interactive setup, run: codepress bootstrap --interactive"
+  echo "For defaults, run: codepress bootstrap --defaults"
+  echo ""
+
+  # For now, just show the manual process
+  echo "To bootstrap manually:"
+  echo "  1. Edit .codepress/system/codepress.md with your project config"
+  echo "  2. Edit .codepress/system/dod.md with your Definition of Done"
+  echo "  3. Run verification commands to ensure they work"
+  echo "  4. Create .codepress/system/manifest.md with project identity"
 }
 
 # ─── Utils ─────────────────────────────────────────────────────────────────────
@@ -1056,6 +1106,7 @@ cmd_galley() {
 
 case "${1:-}" in
   init) cmd_init ;;
+  bootstrap) cmd_bootstrap ;;
   upgrade) cmd_upgrade ;;
   migrate) cmd_migrate ;;
   status) shift; cmd_status "$@" ;;

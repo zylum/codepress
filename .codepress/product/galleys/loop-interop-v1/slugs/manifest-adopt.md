@@ -12,14 +12,14 @@ Author and validate a `.loop/manifest.yaml` at the CodePress repo root that decl
 
 ## Acceptance checklist
 - [ ] `.loop/manifest.yaml` created at repo root
-- [ ] Validates against `/Users/marv/code/loop-spec/manifest.schema.yaml`
+- [ ] Validates against `loop-spec/manifest.schema.yaml`
 - [ ] Declares at least `galley-delivery` and `knowledge-learning` loops with `type`, `goal`, `verifier`, `state_pointer`
 - [ ] Each signal maps a local name to a canonical `term` (latency / quality / friction / cost)
 - [ ] `discovery.fingerprints` lists CodePress's real markers (`/.codepress`, etc.)
-- [ ] No mention of garner / loom / the-dreaming anywhere in the file
+- [ ] No mention of any consumer system anywhere in the file
 
 ## Context
-Start from `/Users/marv/code/loop-spec/examples/codepress.loop.yaml` — it already drafts the two loops; verify each field against the actual repo (real verifier refs, real state paths). Read `loop-spec/manifest.schema.yaml` for required fields.
+Start from `loop-spec/examples/codepress.loop.yaml` — it already drafts the two loops; verify each field against the actual repo (real verifier refs, real state paths). Read `loop-spec/manifest.schema.yaml` for required fields.
 
 ## Dependencies
 None.

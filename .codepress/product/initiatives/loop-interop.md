@@ -14,11 +14,11 @@ For CodePress to be System 1 in a larger loop system, it must **declare its loop
 
 ## Context
 
-A neutral standard now exists: `loop-spec` at `/Users/marv/code/loop-spec` (`manifest.schema.yaml`, `events.md`, worked example `examples/codepress.loop.yaml`). It defines `.loop/manifest.yaml` (declare loops + signals) and a signal/event vocabulary with canonical terms (transduction).
+A neutral standard now exists: `loop-spec` (`manifest.schema.yaml`, `events.md`, worked example `examples/codepress.loop.yaml`). It defines `.loop/manifest.yaml` (declare loops + signals) and a signal/event vocabulary with canonical terms (transduction).
 
-The decoupling invariant is non-negotiable: **CodePress declares only itself. It never names garner, loom, or any consumer.** A connector discovers CodePress via its manifest and derives events from git history (v0) or receives emitted signals (v1).
+The decoupling invariant is non-negotiable: **CodePress declares only itself. It never names any consumer.** A connector discovers CodePress via its manifest and derives events from git history (v0) or receives emitted signals (v1).
 
-This is galley C2 in the loop programme. See vault: `loops-codepress`, `loops-galley-plan`, `loops-build-backlog`.
+This is galley C2 in the loop programme.
 
 ## Why now
 
@@ -33,6 +33,5 @@ The internal loop is built and the standard is drafted. Emitting signals now —
 
 ## Attachments
 
-- Standard: `/Users/marv/code/loop-spec/`
+- Standard: `loop-spec/`
 - Done internal loop: `initiatives/loop-grade-execution.md`
-- Vault plan: `helm/silos/marv/loops-galley-plan.md`, `loops-build-backlog.md`

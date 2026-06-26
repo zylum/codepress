@@ -19,7 +19,7 @@ At slug/galley close, emit `signal_published` (and `failure_logged`) event envel
 - [ ] No consumer named in any envelope
 
 ## Context
-Reuse the existing signal-capture in `skills/signal.md` / galley-close in `skills/review.md`. Map the local signal to its canonical `term` using the manifest from s1. Envelope shape and event types are in `/Users/marv/code/loop-spec/events.md` §1–2.
+Reuse the existing signal-capture in `skills/signal.md` / galley-close in `skills/review.md`. Map the local signal to its canonical `term` using the manifest from s1. Envelope shape and event types are in `loop-spec/events.md` §1–2.
 
 ## Dependencies
 li-v1-s1 (manifest-adopt) — needs the local→canonical term mapping.

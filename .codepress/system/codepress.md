@@ -1,19 +1,31 @@
 # CodePress Config
 
-> Populated by `skills/bootstrap.md`. Edit freely after that.
+> Populated by `skills/bootstrap-project.md`. Edit freely after that.
 
 ---
 
 ## CodePress version
-codepress-version: 0.4.0
+codepress-version: 0.4.1
 codepress-source: https://github.com/zylum/codepress
+
+---
+
+## System files
+
+| File | Purpose | Editable |
+|---|---|---|
+| `principles.md` | Core rules (never configurable) | No |
+| `capabilities.md` | Required capabilities (implementation varies) | No |
+| `dod.md` | Global Definition of Done | Project-specific |
+| `codepress.md` | Project config (this file) | Yes |
+| `AGENTS.md` | Agent operating manual | No |
 
 ---
 
 ## Project
 name: CodePress
 description: Compound product development operating system for the AI era
-garner-project:     # path relative to garner silos/ e.g. marv/projects/loom
+consumer-project:     # optional: path for external consumer sync (e.g. project ID)
 
 ---
 
@@ -121,7 +133,12 @@ verify: [typecheck, test]
 
 The engine will block transitions — `building → review`, `review → released` — unless all listed gates pass.
 
-Missing: no gates defined. That's fine — no automatic verification, human judgment instead.
+**Verification inheritance:**
+1. Galley-specific: `verify:` in galley.md frontmatter
+2. Project defaults: `verify:` in this file (codepress.md)
+3. Capability requirements: Lint must exist, typecheck if applicable, tests if applicable
+
+Missing: no gates defined. System falls back to capability requirements (lint mandatory, typecheck/test if applicable).
 
 ---
 
@@ -129,9 +146,9 @@ Missing: no gates defined. That's fine — no automatic verification, human judg
 
 ```
 ## Project
-name: Loom
-description: MCP and access layer connecting AI systems to Garner.
-garner-project: marv/projects/loom
+name: MyProject
+description: A sample project demonstrating CodePress configuration.
+consumer-project: team/my-project
 
 ## Release Theme
 Each release is named after an iconic 80s movie.
