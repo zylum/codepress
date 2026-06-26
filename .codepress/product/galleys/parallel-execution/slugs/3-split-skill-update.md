@@ -20,7 +20,7 @@ Depends on both slug 1 (parallel-run-skill) and slug 2 (claude-commands) complet
 
 ## Evidence
 
-`/Users/marv/code/codepress/.codepress/system/skills/split.md` updated: added single line after the `parallel-groups` YAML block in step 5 — "If parallel groups are present, see `skills/parallel-run.md` for execution instructions." No content duplicated between the two files.
+`skills/split.md` updated: added single line after the `parallel-groups` YAML block in step 5 — "If parallel groups are present, see `skills/parallel-run.md` for execution instructions." No content duplicated between the two files.
 
 ---
 

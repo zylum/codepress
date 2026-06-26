@@ -24,6 +24,6 @@ Three slugs. Declare before emit; emit before docs.
 
 ## Notes for the executor
 
-- The neutral standard is at `/Users/marv/code/loop-spec`. Read `manifest.schema.yaml` and `events.md` first.
+- The neutral standard is in `loop-spec/`. Read `manifest.schema.yaml` and `events.md` first.
 - Start from `loop-spec/examples/codepress.loop.yaml` — it already drafts CodePress's two loops.
 - If you find the standard insufficient, edit it in `loop-spec` and bump `spec_version`; never hard-code around it.

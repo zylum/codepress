@@ -69,4 +69,4 @@ A connector pointed at this repo:
 
 ## Decoupling invariant
 
-No file in `.codepress/` or `.loop/` names a consumer system (garner, loom, the-dreaming). CodePress declares and emits; the fabric connects. If you need to add a consumer, add it in the connector — not here.
+No file in `.codepress/` or `.loop/` names a consumer system. CodePress declares and emits; the fabric connects. If you need to add a consumer, add it in the connector — not here.

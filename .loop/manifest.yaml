@@ -1,7 +1,7 @@
 spec_version: "0.1"
 
 # CodePress loop manifest. Declares CodePress's own loops only.
-# Validates against /Users/marv/code/loop-spec/manifest.schema.yaml.
+# Validates against loop-spec/manifest.schema.yaml.
 # Names no consumer (decoupling invariant).
 
 system:

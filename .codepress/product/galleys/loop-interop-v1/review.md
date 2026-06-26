@@ -7,7 +7,7 @@
 - The envelope shape fits the close hook cleanly — JSONL is the simplest append format and trivially parseable by a connector (s2)
 - Observation signals carry text values (unit: `score`); cost signals carry numeric values (unit: `currency`). Both fit the `Signal` schema without coercion (s2)
 - Outbox location ambiguity surfaced: `.codepress/loop-events/` vs `.loop/events/` — `.codepress/` is correct; the outbox is CodePress's own write-ahead log, the `.loop/` namespace is for the manifest only (s3)
-- Consumer references exist in `system/codepress.md` (`garner-project:`) and `system/hooks/` — these are internal sync config, not loop fabric. Audit confirmed no loop fabric file names a consumer (s3)
+- Consumer references exist in `system/codepress.md` (`consumer-project:`) and `system/hooks/` — these are internal sync config, not loop fabric. Audit confirmed no loop fabric file names a consumer (s3)
 
 ## Surprises
 

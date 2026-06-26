@@ -9,6 +9,18 @@ A compound loop runs across all three, continuously improving them.
 
 ---
 
+## System files
+
+| File | Purpose | Editable |
+|---|---|---|
+| `principles.md` | Core rules (never configurable) | No |
+| `capabilities.md` | Required capabilities (implementation varies) | No |
+| `dod.md` | Global Definition of Done | Project-specific |
+| `codepress.md` | Project config | Yes |
+| `AGENTS.md` | Agent operating manual (this file) | No |
+
+---
+
 ## Modes of use
 
 | Level | Name | What's available |
@@ -23,10 +35,12 @@ A compound loop runs across all three, continuously improving them.
 
 Before any work:
 
-1. `system/codepress.md` — project name, pace, conventions
-2. `knowledge/current-state.md` — what exists today
-3. Relevant `knowledge/patterns/` — reusable lessons for this area
-4. Active galley in `product/galleys/` — what you are working on
+1. `system/principles.md` — core rules (never configurable)
+2. `system/codepress.md` — project name, pace, conventions
+3. `system/dod.md` — Definition of Done
+4. `knowledge/current-state.md` — what exists today
+5. Relevant `knowledge/patterns/` — reusable lessons for this area
+6. Active galley in `product/galleys/` — what you are working on
 
 ---
 
@@ -83,6 +97,50 @@ One commit per Galley close: `galley:<name> done`
 
 ---
 
+## Quality contract
+
+### Principles (never configurable)
+
+See `system/principles.md` for the full list.
+
+Core rules:
+- Builder cannot self-certify completion
+- Verification is mandatory before merge
+- Evidence required for every acceptance criterion
+- Definition of Done applies globally
+
+### Capabilities (must exist, implementation varies)
+
+See `system/capabilities.md` for the full list.
+
+Required capabilities:
+- Automated verification (lint, typecheck, test)
+- Evidence capture
+- Independent review
+- Decision documentation
+
+### Defaults (configurable)
+
+Configured in `system/codepress.md`:
+- Reviewer: claude
+- Tools: ruff, mypy, pytest (or alternatives)
+- Branch naming: feature/*
+- etc.
+
+---
+
+## Verification inheritance
+
+Galleys inherit verification requirements from:
+
+1. **Galley-specific** — `verify:` in galley.md frontmatter
+2. **Project defaults** — `verify:` in codepress.md
+3. **Capability requirements** — Lint must exist, typecheck if applicable, tests if applicable
+
+If a Galley defines `verify: [test]`, only test runs. If it defines nothing, project defaults apply. If project defaults are empty, capability requirements apply.
+
+---
+
 ## Autonomy levels
 
 | Level | Meaning |
@@ -97,6 +155,7 @@ One commit per Galley close: `galley:<name> done`
 
 | Skill | Purpose |
 |---|---|
+| `skills/bootstrap-project.md` | Bootstrap a new project (verification, DoD, etc.) |
 | `skills/shape.md` | Shape an Initiative into a Galley |
 | `skills/split.md` | Decompose a Galley into Slugs |
 | `skills/build.md` | Execute a Galley through its Slugs |

@@ -25,7 +25,7 @@ None.
 
 ## Evidence
 
-`/Users/marv/code/codepress/.codepress/system/skills/parallel-run.md` exists — 155 lines covering: worktree creation, per-group agent sessions, Claude Code specifics, merge strategy (`--no-ff`), conflict resolution, integration Slug pattern, and when not to use worktrees.
+`skills/parallel-run.md` exists — 155 lines covering: worktree creation, per-group agent sessions, Claude Code specifics, merge strategy (`--no-ff`), conflict resolution, integration Slug pattern, and when not to use worktrees.
 
 ---
 
