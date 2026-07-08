@@ -6,11 +6,13 @@ Global standards that apply to every Galley unless explicitly overridden.
 
 ## Galley Done means
 
-1. **Acceptance criteria met** — Every criterion in the Galley has corresponding evidence
+1. **Acceptance criteria met** — Every criterion in the Galley has corresponding evidence that exercises the real path (no mock-theatre)
 2. **Verification passes** — All defined verification gates pass (lint, typecheck, test)
 3. **Review completed** — Independent review approved the work
 4. **Knowledge updated** — Signals captured, Patterns promoted where warranted
-5. **Ready for merge** — Code is ready to ship
+5. **Wired end-to-end** — Every new function, tool, or route has a caller; grepped and confirmed
+6. **Set status to `review`, not `done`** — The builder sets `status: review`; an independent reviewer promotes to `done` or flips to `rework`
+7. **Ready for merge** — Code is ready to ship
 
 ---
 
@@ -30,6 +32,10 @@ Every acceptance criterion needs:
 - **What** was verified (the criterion)
 - **How** it was verified (test, command, observation)
 - **Proof** it passed (test output, command output, screenshot)
+
+### Test quality
+
+Tests must exercise the real path — never mock the unit under test. A galley's regression test must drive actual code end-to-end (fetch → parse → store → retrieve), not assert that a mock's return value was passed through. Mocking the boundary under test produces theatre: the gate goes green while the feature is broken.
 
 Example:
 ```markdown

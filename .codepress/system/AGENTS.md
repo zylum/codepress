@@ -81,6 +81,9 @@ Read the Galley fully before touching code.
 **Read Knowledge first.**
 Check `knowledge/` before planning. Do not re-discover what already exists.
 
+**Prose is not implementation.**
+If a behavior depends on data (a schedule, a fact, a status), fetch the data and pass it into the model/logic. A rule written only in a system prompt is not built. Prompt-only behavior will hallucinate when the prompt is read in isolation.
+
 **Update Knowledge.**
 When you encounter a concept, decision or capability not in `knowledge/`, add it. A 5-line stub beats nothing.
 
