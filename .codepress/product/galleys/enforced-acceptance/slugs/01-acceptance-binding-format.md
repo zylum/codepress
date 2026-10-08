@@ -1,6 +1,6 @@
 ---
 id: acceptance-binding-format
-status: complete
+status: closed
 galley: enforced-acceptance
 autonomy: continuous
 budget:

@@ -1,6 +1,6 @@
 ---
 id: verifier-verdict-gate
-status: complete
+status: closed
 galley: enforced-acceptance
 autonomy: confirm
 budget:

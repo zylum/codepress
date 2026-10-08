@@ -1,6 +1,6 @@
 ---
 id: parallel-run-skill
-status: done
+status: closed
 galley: parallel-execution
 autonomy: continuous
 ---

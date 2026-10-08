@@ -1,10 +1,13 @@
 ---
 id: enforced-acceptance
-status: approved
+status: building
 initiative: trust-boundary
 release:
 created: 2026-07-11
 verify: [test]
+legacy_status: approved
+approved_by: legacy
+approved_on: 2026-07-11
 ---
 
 # Galley: Enforced acceptance — the prose becomes mechanics

@@ -1,6 +1,6 @@
 ---
 id: codepress-check-and-gated-move
-status: complete
+status: closed
 galley: enforced-acceptance
 autonomy: confirm
 budget:

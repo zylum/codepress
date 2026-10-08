@@ -1,6 +1,6 @@
 ---
 id: li-v1-s1
-status: complete
+status: closed
 galley: li-v1
 autonomy: continuous
 ---

@@ -1,6 +1,6 @@
 ---
 id: readme
-status: done
+status: closed
 galley: docs-refresh
 autonomy: continuous
 ---
