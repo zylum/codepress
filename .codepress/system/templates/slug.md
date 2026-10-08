@@ -1,6 +1,7 @@
 ---
+# status: open | building | closed | dropped
 id: 
-status: open            # open | building | closed | dropped
+status: open
 galley: 
 autonomy: continuous    # continuous | confirm | stop
 domain:                 # optional: defaults to the galley's domain

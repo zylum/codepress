@@ -132,7 +132,7 @@ get_fm_field() {
   awk -v k="$key" '
     NR == 1 && /^---[ \t]*$/ { infm = 1; next }
     infm && /^---[ \t]*$/ { exit }
-    infm && $0 ~ ("^" k ":") { sub("^" k ":[ \t]*", ""); sub(/[ \t]+$/, ""); print; exit }
+    infm && $0 ~ ("^" k ":") { sub("^" k ":[ \t]*", ""); sub(/[ \t]+#.*$/, ""); sub(/[ \t]+$/, ""); print; exit }
   ' "$file"
 }
 

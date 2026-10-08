@@ -1505,7 +1505,7 @@ def main(argv=None):
             edge = schema.edge("galley", a, b)
             if edge is None:
                 print("illegal transition %s -> %s (allowed from %s: %s)" % (
-                    a, b, a, ", ".join(k.split("->")[1] for k in schema.transitions("galley") if k.startswith(a + "->")) or "none"))
+                    a, b, a, ", ".join(k.split("->")[1] for k in schema.transitions("galley") if k.startswith(a + "->")) or "(none — terminal)"))
                 return 3
             bad = 0
             for r in edge.get("requires") or []:

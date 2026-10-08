@@ -1,6 +1,7 @@
 ---
+# status: proposed | shaped | building | verifying | done | killed | superseded
 id: 
-status: proposed        # proposed | shaped | building | verifying | done | killed | superseded
+status: proposed
 initiative: 
 release: 
 domain:                 # optional: the area of the work; slugs inherit it
