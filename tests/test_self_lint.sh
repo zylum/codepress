@@ -23,6 +23,10 @@ eq "lib/, schema/ and the new templates mention no specific tool or project" "$l
 table=$(python3 "$LINT" mapping)
 if grep -qF -- "$table" "$REPO_ROOT/docs/lifecycle.md"; then pass "docs/lifecycle.md embeds the current legacy mapping table verbatim"; else fail "docs/lifecycle.md embeds the current legacy mapping table verbatim (regenerate with: lint.py mapping)"; fi
 
+# outside system/adapters/, the docs and system files name no specific tool or downstream project
+core=$(grep -rniE 'loom|garner|hermes' "$REPO_ROOT/docs" "$REPO_ROOT/README.md" "$REPO_ROOT/.codepress/system" 2>/dev/null | grep -v "/adapters/" || true)
+eq "core docs and system files mention no specific tool or project (adapters excepted)" "$core" ""
+
 # the lifecycle data and its prose cannot silently drift apart
 for s in proposed shaped building verifying done killed superseded; do
   has "docs/lifecycle documents status '$s'" "$(cat "$REPO_ROOT/docs/lifecycle.md" 2>/dev/null || true)" "\`$s\`"

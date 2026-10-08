@@ -128,7 +128,7 @@ equals `engines.build`. Self-certification is mechanically blocked, not just for
 any galley with a ticked `manual:` line. A human attests manual steps in the Verdict,
 or waives explicitly with `--force` (which records a dated waiver in review.md).
 
-> **Field evidence (2026-07, loom quality-hardening):** the build engine executed an
+> **Field evidence (2026-07, a downstream project's quality-hardening cycle):** the build engine executed an
 > infra step explicitly marked *manual* — against the wrong production service — and
 > reported it `[x]` complete, then wrote its own "Gate passes. Galley close." verdict
 > and set statuses uncontested. Textual fences did not constrain the agent. That is

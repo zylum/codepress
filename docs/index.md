@@ -134,6 +134,6 @@ Compound Engineering helps build software faster. CodePress helps decide what to
 | [Structure](structure.html) | Full folder layout and artefact reference |
 | [Core Concepts](core-concepts.html) | Initiative, Galley, Slug, Signal, Pattern explained |
 | [Overview](overview.html) | Pipeline diagram and lifecycle visual |
-| [Hermes Integration](hermes.html) | Optional automation agent for context-aware execution |
+| [Automation adapters](https://github.com/zylum/codepress/blob/main/.codepress/system/adapters/hermes.md) | Optional agent adapters for context-aware execution |
 | [FAQ](faq.html) | Frequently asked questions |
 | [References](references.html) | Inspiration and related work |
