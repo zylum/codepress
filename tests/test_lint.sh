@@ -558,6 +558,34 @@ sig "$d" "2026-10-08-a.md" "$SIG_OK"$'\ngalley: ghost'
 lint_run "$d" --base none
 has "a signal naming a missing galley warns" "$OUT" "[N003]"
 
+# ── adopting the schema on a messy project ────────────────────────────────────
+
+d=$(mk_project)
+mk_galley "$d" alpha building $'approved_by: m\napproved_on: 2026-10-02'
+mkdir -p "$d/.codepress/product/galleys/alpha/slugs"
+printf -- '---\nstatus: open\n---\n## Acceptance checklist\n- [ ] AC1 · check: true\n' > "$d/.codepress/product/galleys/alpha/slugs/no-id-no-galley.md"
+printf -- '---\nid: x\n---\n' > "$d/.codepress/product/galleys/alpha/slugs/no-status.md"
+printf -- 'just prose, no frontmatter\n' > "$d/.codepress/product/galleys/alpha/slugs/bare.md"
+lint_run "$d" --base none
+eq "slugs without id or galley are fine (the file and directory say it)" "$RC" "0"
+has "a slug without a status is treated as open, with a warning" "$OUT" "[S003]"
+has "a slug with no frontmatter at all is a warning, not an error" "$OUT" "[S009]"
+
+d=$(mk_project)
+mk_galley "$d" messy building
+mk_galley "$d" tidy shaped
+mk_git "$d"
+mk_galley "$d" tidy shaped "created: 2026-10-02"
+lint_run "$d" --changed
+eq "--changed judges only the galleys this change touches" "$RC" "0"
+lacks "…leaving older mess alone" "$OUT" "messy"
+lint_run "$d"
+eq "while the full lint still reports it" "$RC" "1"
+has "…naming it" "$OUT" "messy"
+mk_galley "$d" messy building "created: 2026-10-03"
+lint_run "$d" --changed
+eq "touching the messy galley makes it answerable" "$RC" "1"
+
 # ── output modes ──────────────────────────────────────────────────────────────
 
 d=$(mk_project)

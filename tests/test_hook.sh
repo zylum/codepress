@@ -62,10 +62,16 @@ hook_run "$d" CODEPRESS_HOOK_GATES=lint
 eq "a clean project passes the hook" "$RC" "0"
 has "…reporting the gate it ran" "$OUT" "✅ lint"
 
-d=$(mk_project); mk_galley "$d" alpha review; mk_git "$d"
+d=$(mk_project); mk_galley "$d" alpha shaped; mk_git "$d"
+mk_galley "$d" alpha review
 hook_run "$d" CODEPRESS_HOOK_GATES=lint
-eq "lint errors fail the hook" "$RC" "1"
+eq "lint errors in a galley you are changing fail the hook" "$RC" "1"
 has "…showing the finding" "$OUT" "retired galley status 'review'"
+
+d=$(mk_project); mk_galley "$d" old review; mk_galley "$d" alpha shaped; mk_git "$d"
+mk_galley "$d" alpha shaped "created: 2026-10-02"
+hook_run "$d" CODEPRESS_HOOK_GATES=lint
+eq "…but older mess in galleys you are not touching never blocks a commit" "$RC" "0"
 
 d=$(mk_project); mk_git "$d"
 hook_run "$d"

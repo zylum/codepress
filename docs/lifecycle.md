@@ -90,11 +90,11 @@ To override a gate on purpose: `codepress galley move <g> <status> --force --rea
 
 A slug is an atomic delivery unit with its own lifecycle: `open → building → closed`, or `dropped`. Dropping a slug is a plan change — say why in `plan-changes.md`.
 
-Slug frontmatter (all but the first four are optional; absent means the default):
+Slug frontmatter — every field is optional; absent means the default (a missing `id` is the file name, a missing `galley` is the directory it lives in, a missing `status` is `open` with a warning):
 
 | Field | Values | Default | Meaning |
 |---|---|---|---|
-| `id`, `status`, `galley` | | | required |
+| `id`, `status`, `galley` | | file name / `open` / its directory | identity and state |
 | `autonomy` | `continuous` \| `confirm` \| `stop` | `continuous` | run to completion / check with a human before the next slug / halt and wait |
 | `domain` | text | the galley's | the area of the work; slugs in different domains can run in parallel |
 | `tier` | `plan` \| `build` \| `mechanical` | `build` | how much capability the slug deserves: judgment and design / ordinary delivery / rote, well-specified edits |
@@ -110,6 +110,7 @@ Galley frontmatter: `id`, `status`, `created` are required; `initiative`, `relea
 ```bash
 codepress lint                    # compare against HEAD (what a pre-commit hook wants)
 codepress lint --base origin/main # compare against a base branch (what CI wants)
+codepress lint --changed          # only galleys this change touches (what the hook uses)
 codepress lint --strict           # warnings fail too
 codepress lint --json             # machine-readable
 codepress lint --verbose          # also show legacy findings
@@ -188,7 +189,7 @@ One source of truth: `codepress-version:` in `.codepress/system/codepress.md`. T
 codepress hook install     # writes .git/hooks/pre-commit
 ```
 
-The hook runs `codepress hook run`: `codepress lint`, then every verify gate in `codepress.md` (the `test` gate by default). It is built so nobody needs `--no-verify`:
+The hook runs `codepress hook run`: `codepress lint --changed` (so older mess in galleys you are not touching never blocks a commit — CI runs the full lint), then every verify gate in `codepress.md` (the `test` gate by default). It is built so nobody needs `--no-verify`:
 
 - A fresh git worktree has no virtualenv, so the gates would fail with "command not found". The hook finds a tool environment: `CODEPRESS_ENV=<dir>` (a venv root with `bin/`), else `hook-env:` in `codepress.md`, else `./.venv` / `./venv`, else the same names in the **main worktree**.
 - `CODEPRESS_HOOK_GATES="lint"` narrows one commit to lint alone — the sanctioned alternative when an environment truly is absent.
@@ -209,6 +210,8 @@ codepress status --json --galleys
 One row per galley: canonical `status`, `raw_status`, slug counts, acceptance counts, `last_activity` (commits that name the galley count), `days_since_activity`, `stalled`, `next_action`, **`needs`** (`human` | `agent` | `verifier` | `none`), and `blocked_by` (the unmet gates of the next transition).
 
 ## Migrating older statuses
+
+`codepress upgrade --dry-run` first shows which of your local edits to system files an upgrade would replace (do it in git so you can review and revert). `codepress upgrade` never overwrites `codepress.md`; it moves the version marker.
 
 `codepress migrate-status` plans the move (dry run), and `--apply` writes it. The mapping below lives in `lifecycle.yaml` under `legacy:`; **judgment calls** are the ones worth a human glance first.
 

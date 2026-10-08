@@ -185,7 +185,8 @@ CodePress v$VERSION — compound product development operating system.
 Usage:
   codepress init                  Bootstrap CodePress in this directory
   codepress bootstrap             Configure project (verification, DoD, etc.)
-  codepress upgrade               Update .codepress/system/ files from source
+  codepress upgrade [--dry-run]   Update .codepress/system/ files from source
+                                  (--dry-run shows the local edits it would replace)
   codepress migrate               Migrate from old numbered structure
   codepress status [--json]       Show project health and pending actions
                                   [--json --galleys] per-galley state: slugs, activity, next action
@@ -395,6 +396,8 @@ merge_frontmatter() {
 # ─── Upgrade ──────────────────────────────────────────────────────────────────
 
 cmd_upgrade() {
+  local dry=false
+  [[ "${1:-}" == "--dry-run" ]] && dry=true
   local current
   current=$(get_codepress_version)
   echo "CodePress upgrade v$current → latest"
@@ -471,6 +474,22 @@ cmd_upgrade() {
 
   if [[ ${#to_add[@]} -eq 0 && ${#to_update[@]} -eq 0 && ${#to_merge[@]} -eq 0 ]]; then
     echo "  (no files to change — only the version marker moves)"
+  fi
+
+  # ── Dry run: show what local edits an update would replace, then stop ──
+  if [[ "$dry" == true ]]; then
+    if [[ ${#to_update[@]} -gt 0 ]]; then
+      echo ""
+      echo "→ Files that would be REPLACED (diff: yours → incoming):"
+      for f in "${to_update[@]}"; do
+        echo ""
+        echo "  ── $f"
+        diff -u "$f" "$tmp/repo/$f" | sed -n '3,40p' | sed 's/^/     /' || true
+      done
+    fi
+    echo ""
+    echo "Dry run — nothing changed. Re-run without --dry-run to apply (use git so you can review and revert)."
+    return
   fi
 
   # ── Phase 2: Apply ──
@@ -1999,7 +2018,7 @@ cmd_hook_run() {
 
   for gate in $gates; do
     if [[ "$gate" == "lint" ]]; then
-      if out=$(cmd_lint --quiet 2>&1); then
+      if out=$(cmd_lint --quiet --changed 2>&1); then
         echo "  ✅ lint"
       else
         echo "  ❌ lint"
@@ -2103,7 +2122,7 @@ cmd_hook() {
 case "${1:-}" in
   init) cmd_init ;;
   bootstrap) cmd_bootstrap ;;
-  upgrade) cmd_upgrade ;;
+  upgrade) shift; cmd_upgrade "$@" ;;
   migrate) cmd_migrate ;;
   status) shift; cmd_status "$@" ;;
   run) shift; cmd_run "$@" ;;

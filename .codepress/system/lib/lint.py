@@ -903,7 +903,9 @@ def lint_slug(project, g, s, findings, seen, base):
         findings.append(Finding("F001", ERROR, spath, "cannot parse frontmatter: %s" % s.error))
         return
     if not s.fm:
-        findings.append(Finding("F002", ERROR, spath, "no frontmatter"))
+        findings.append(Finding("S009", WARN, spath, "slug has no frontmatter — treated as open",
+                                "Add frontmatter (id, status) so lint and status can see it."))
+        seen.setdefault(s.id, s)
         return
     if s.id in seen:
         findings.append(Finding("S006", ERROR, spath, "duplicate slug id %r (also %s)" % (s.id, project.rel(seen[s.id].path))))
@@ -911,7 +913,8 @@ def lint_slug(project, g, s, findings, seen, base):
 
     canon = None
     if _empty(s.status):
-        findings.append(Finding("S003", ERROR, spath, "missing required field 'status'"))
+        findings.append(Finding("S003", WARN, spath, "slug has no status — treated as open",
+                                "Set status: open | building | closed | dropped."))
     else:
         canon = _status_finding(schema, "slug", spath, s.status, findings)
 
@@ -1063,13 +1066,21 @@ def lint_signals(project, findings):
     return count
 
 
-def run_lint(project, base=None, only=None, cli_version=None):
+def run_lint(project, base=None, only=None, cli_version=None, changed_only=False):
     findings = []
     lint_versions(project, findings, cli_version)
     selected = [g for g in project.galleys if not only or g.name in only or g.id in only]
+    if changed_only:
+        # Hook mode: judge only the galleys this change touches, so adopting the
+        # schema on a project with older mess never blocks unrelated commits.
+        # CI runs the full lint.
+        files = project.git.changed_files(base) if base else None
+        if files is not None:
+            prefix = os.path.relpath(project.cp, project.root) + os.sep + "product" + os.sep + "galleys" + os.sep
+            selected = [g for g in selected if any(f.startswith(prefix + g.name + os.sep) for f in files)]
     for g in selected:
         lint_galley(project, g, findings, base)
-    if not only:
+    if not only and not changed_only:
         lint_drift(project, findings)
         n_signals = lint_signals(project, findings)
     else:
@@ -1407,7 +1418,7 @@ def cmd_lint(args):
     elif not project.git.has_ref(base):
         print("lint: base ref %r not found" % base, file=sys.stderr)
         return 2
-    findings, galleys, n_signals = run_lint(project, base, args.galley or None, args.cli_version)
+    findings, galleys, n_signals = run_lint(project, base, args.galley or None, args.cli_version, args.changed)
     errs = [f for f in findings if f.severity == ERROR or (args.strict and f.severity == WARN)]
     if args.json:
         print(json.dumps({
@@ -1432,6 +1443,7 @@ def main(argv=None):
     sp.add_argument("--strict", action="store_true", help="treat warnings as errors")
     sp.add_argument("--json", action="store_true")
     sp.add_argument("--quiet", action="store_true", help="show errors only")
+    sp.add_argument("--changed", action="store_true", help="only galleys changed against the base ref (hook mode)")
     sp.add_argument("--verbose", action="store_true", help="also show legacy (info) findings")
     sp.add_argument("--galley", action="append")
     sp.add_argument("--cli-version", default=None)
