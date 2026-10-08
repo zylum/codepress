@@ -66,6 +66,22 @@ cat > "$f" <<'EOF'
 EOF
 parity "payloads with shell metacharacters survive (pipes aside)" "$f"
 
+cat > "$f" <<'EOF'
+## Acceptance Criteria
+<!--
+- [ ] AC1 · check: inside a multi-line comment
+-->
+- [ ] AC2 · check: real one
+<!-- one-line comment -->
+- [ ] AC3 · check: after a one-line comment
+<!-- opens here
+- [ ] AC4 · check: hidden
+still hidden --> - [ ] AC5 trailing text on the closing line
+- [ ] AC6 · manual: visible again
+EOF
+parity "HTML comment blocks hide criteria identically in bash and python" "$f"
+eq "…and only the real criteria remain" "$(python3 "$LINT" acs "$f" | awk -F'|' '{printf "%s ", $1}')" "AC2 AC3 AC6 "
+
 # every real galley and slug in this repo parses identically
 mismatch=0
 for g in "$REPO_ROOT"/.codepress/product/galleys/*/galley.md "$REPO_ROOT"/.codepress/product/galleys/*/slugs/*.md; do

@@ -7,13 +7,14 @@ kanban-plugin: board
 
 ## Approved
 
-- [ ] [[.codepress/product/galleys/enforced-acceptance/galley|Enforced acceptance — the prose becomes mechanics]]
 
 ## Delivering
 
+- [ ] [[.codepress/product/galleys/enforced-acceptance/galley|Enforced acceptance — the prose becomes mechanics]]
 
 ## Review
 
+- [ ] [[.codepress/product/galleys/schema-and-lint/galley|[name]]]
 
 ## Done
 

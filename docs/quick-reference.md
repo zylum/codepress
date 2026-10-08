@@ -80,7 +80,7 @@ Use `--json --galleys` for per-galley state (one JSON document): canonical `stat
 ```
 CodePress status
 
-  Version:  v0.4.1
+  Version:  v0.5.0
 
   Initiatives:  1
   Galleys:

@@ -5,7 +5,7 @@
 ---
 
 ## CodePress version
-codepress-version: 0.4.1
+codepress-version: 0.5.0
 codepress-source: https://github.com/zylum/codepress
 
 ---

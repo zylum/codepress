@@ -45,7 +45,15 @@ mkdir -p "$d/.codepress/product/galleys/alpha"
 printf -- '---\nid: alpha\nstatus: proposed\ncreated: 2026-10-01\n---\n\n# Galley: alpha\n\n## Problem\nx\n' > "$d/.codepress/product/galleys/alpha/galley.md"
 cp_run "$d" galley move alpha shaped
 eq "proposed -> shaped is refused while sections are missing" "$RC" "1"
-has "…naming them" "$OUT" "lacks sections: Success, Approach, Acceptance Criteria"
+has "…naming them" "$OUT" "Success (missing), Approach (missing), Acceptance Criteria (missing)"
+
+d=$(mk_project)
+cp -r "$REPO_ROOT/.codepress/system/templates" "$d/.codepress/system/templates"
+cp_run "$d" galley new tpl
+cp_run "$d" galley move tpl shaped
+eq "an untouched template cannot be shaped (guidance comments are not content)" "$RC" "1"
+has "…every section is reported empty" "$OUT" "Problem (empty)"
+has "…and the criteria section too" "$OUT" "Acceptance Criteria (empty)"
 
 d=$(mk_project)
 mk_galley "$d" alpha shaped

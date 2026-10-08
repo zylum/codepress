@@ -235,7 +235,17 @@ def parse_acs(text):
     """Acceptance criteria as dicts. Mirrors the CLI's extract_acs (awk)."""
     acs = []
     inside = False
+    in_comment = False
     for line in text.split("\n"):
+        # Lines inside an HTML comment block are not criteria. A line that opens a
+        # comment without closing it starts the block; a line holding `-->` ends it.
+        if in_comment:
+            if "-->" in line:
+                in_comment = False
+            continue
+        if "<!--" in line and "-->" not in line.split("<!--", 1)[1]:
+            in_comment = True
+            continue
         if line.startswith("## Acceptance"):
             inside = True
             continue
@@ -598,10 +608,25 @@ def eval_gate(project, g, gate):
     schema = project.schema
     fm = g.fm
     if gate == "shape_complete":
+        # Each section must exist AND say something (guidance in HTML comments
+        # does not count); Acceptance Criteria needs at least one criterion.
+        body = strip_html_comments(g.body)
         want = [("Problem", r"^##\s+problem\b"), ("Success", r"^##\s+success\b"),
                 ("Approach", r"^##\s+approach\b"), ("Acceptance Criteria", r"^##\s+acceptance\b")]
-        miss = [n for n, rx in want if not re.search(rx, g.body, flags=re.IGNORECASE | re.MULTILINE)]
-        return ["galley.md lacks sections: %s" % ", ".join(miss)] if miss else []
+        heads = [(m.start(), m.group(0)) for m in re.finditer(r"^##\s.*$", body, flags=re.MULTILINE)]
+        problems = []
+        for name, rx in want:
+            m = re.search(rx + r".*$", body, flags=re.IGNORECASE | re.MULTILINE)
+            if not m:
+                problems.append("%s (missing)" % name)
+                continue
+            nxt = [pos for pos, _ in heads if pos > m.start()]
+            section = body[m.end(): (nxt[0] if nxt else len(body))]
+            if not section.strip():
+                problems.append("%s (empty)" % name)
+            elif name == "Acceptance Criteria" and not g.acs:
+                problems.append("%s (no criteria)" % name)
+        return ["galley.md sections are not filled in: %s" % ", ".join(problems)] if problems else []
     if gate == "approved":
         miss = [f for f in ("approved_by", "approved_on") if _empty(fm.get(f))]
         return ["not approved (missing %s)" % ", ".join(miss)] if miss else []
