@@ -79,6 +79,9 @@ load_status_table() {
   [[ "$_STATUS_TABLE_LOADED" == true ]] && return 0
   _STATUS_TABLE_LOADED=true
   _STATUS_TABLE=$(run_lint_py table 2>/dev/null || true)
+  # leading newline so every row can be found as "\n<kind> <status> " (pure bash lookup)
+  [[ -n "$_STATUS_TABLE" ]] && _STATUS_TABLE=$'\n'"$_STATUS_TABLE"
+  return 0
 }
 
 # canon_status <galley|slug> <status> — sets CANON_STATUS and CANON_FLAGS.
@@ -88,10 +91,12 @@ CANON_STATUS=""
 CANON_FLAGS=""
 CANON_KNOWN=false
 canon_status() {
-  local kind="$1" raw="$2" row
+  local kind="$1" raw="$2" key rest row
   load_status_table
-  row=$(printf '%s\n' "$_STATUS_TABLE" | awk -v k="$kind" -v s="$raw" '$1 == k && $2 == s { print $3, $4; exit }')
-  if [[ -n "$row" ]]; then
+  key=$'\n'"$kind $raw "
+  if [[ -n "$raw" && "$_STATUS_TABLE" == *"$key"* ]]; then
+    rest="${_STATUS_TABLE#*"$key"}"
+    row="${rest%%$'\n'*}"          # "<canonical> <flags>"
     CANON_STATUS="${row%% *}"
     CANON_FLAGS="${row#* }"
     CANON_KNOWN=true
@@ -133,6 +138,34 @@ set_marker() {
   awk -v v="$ver" '/^codepress-version:/ && !done { print "codepress-version: " v; done = 1; next } { print }' "$file" > "$tmp" \
     && cat "$tmp" > "$file"
   rm -f "$tmp"
+}
+
+# fm_read <file> <key> — pure-bash frontmatter reader (no forks); sets FM_VALUE.
+# Status checks run per galley on every `status`, so they must not spawn
+# grep/sed/dirname/basename each time (150 galleys = 750 forks = seconds).
+FM_VALUE=""
+fm_read() {
+  FM_VALUE=""
+  local file="$1" key="$2" line n=0 infm=false v
+  [[ -f "$file" ]] || return 0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    n=$((n + 1))
+    if [[ $n -eq 1 ]]; then
+      [[ "$line" == ---* ]] && infm=true
+      [[ "$infm" == true ]] && continue
+    elif [[ "$infm" == true && "$line" == ---* ]]; then
+      return 0
+    fi
+    if [[ "$line" == "$key:"* ]]; then
+      v="${line#"$key:"}"
+      v="${v%%[[:space:]]#*}"
+      v="${v#"${v%%[![:space:]]*}"}"
+      v="${v%"${v##*[![:space:]]}"}"
+      FM_VALUE="$v"
+      return 0
+    fi
+  done < "$file"
+  return 0
 }
 
 # Value of a frontmatter key ("" when absent).
@@ -669,10 +702,11 @@ detect_pending_actions() {
     for g in .codepress/product/galleys/*/galley.md; do
       [[ -f "$g" ]] || continue
       local gdir gname gstatus gcanon gflags
-      gdir=$(dirname "$g")
-      gname=$(basename "$gdir")
+      gdir="${g%/*}"
+      gname="${gdir##*/}"
       [[ "$gname" == _* ]] && continue
-      gstatus=$(grep -m1 "^status:" "$g" 2>/dev/null | sed 's/status: *//' || echo "")
+      fm_read "$g" status
+      gstatus="$FM_VALUE"
       canon_status galley "$gstatus"
       gcanon="$CANON_STATUS"
       gflags="$CANON_FLAGS"
@@ -700,15 +734,16 @@ detect_pending_actions() {
 
       # building with all slugs settled → needs review
       if [[ "$gcanon" == "building" ]]; then
-        local total=0 complete=0
-        for s in "$gdir"/slugs/*.md; do
-          [[ ! -f "$s" ]] && continue
-          total=$((total + 1))
-          local sstatus
-          sstatus=$(grep -m1 "^status:" "$s" 2>/dev/null | sed 's/status: *//' || echo "open")
+        local total="$slug_count" complete=0 sline sstatus
+        # one grep for every slug's status line, resolved in-process (no per-slug forks)
+        while IFS= read -r sline; do
+          sstatus="${sline#status:}"
+          sstatus="${sstatus%%#*}"
+          sstatus="${sstatus#"${sstatus%%[![:space:]]*}"}"
+          sstatus="${sstatus%"${sstatus##*[![:space:]]}"}"
           canon_status slug "$sstatus"
           [[ "$CANON_FLAGS" == *settled* ]] && complete=$((complete + 1))
-        done
+        done < <([[ "$slug_count" -gt 0 ]] && grep -h -m1 "^status:" "$gdir"/slugs/*.md </dev/null 2>/dev/null || true)
         if [[ "$total" -gt 0 && "$complete" -eq "$total" ]]; then
           if [[ "$format" == "json" ]]; then
             out="review|$gname|All slugs complete for '$gname', ready for review"
@@ -896,6 +931,21 @@ regenerate_boards() {
       echo "kanban-plugin: board"
       echo "---"
       echo ""
+      # Resolve each galley once (name, canonical status, title) — not once per column.
+      local _bn=() _bs=() _bt=() g gdir gname gstatus
+      for g in .codepress/product/galleys/*/galley.md; do
+        [[ -f "$g" ]] || continue
+        gdir="${g%/*}"
+        gname="${gdir##*/}"
+        [[ "$gname" == _* ]] && continue
+        fm_read "$g" status
+        gstatus="$FM_VALUE"
+        canon_status galley "$gstatus"
+        _bn+=("$gname")
+        _bs+=("$CANON_STATUS")
+        _bt+=("$(grep -m1 "^# Galley:" "$g" 2>/dev/null | sed 's/# Galley: *//' || echo "$gname")")
+      done
+
       # Column headings keep their familiar names; each holds the canonical
       # lifecycle status it corresponds to (retired values resolve to them).
       for pair in "Shaping:proposed" "Approved:shaped" "Delivering:building" "Review:verifying" "Done:done"; do
@@ -903,20 +953,12 @@ regenerate_boards() {
         local slug="${pair##*:}"
         echo "## $heading"
         echo ""
-        for g in .codepress/product/galleys/*/galley.md; do
-          [[ -f "$g" ]] || continue
-          local gdir gname gstatus gtitle
-          gdir=$(dirname "$g")
-          gname=$(basename "$gdir")
-          [[ "$gname" == _* ]] && continue
-          gstatus=$(grep -m1 "^status:" "$g" 2>/dev/null | sed 's/status: *//' || echo "")
-          canon_status galley "$gstatus"
-          [[ "$CANON_STATUS" != "$slug" ]] && continue
-          gtitle=$(grep -m1 "^# Galley:" "$g" 2>/dev/null | sed 's/# Galley: *//' || echo "$gname")
+        local i
+        for ((i = 0; i < ${#_bn[@]}; i++)); do
+          [[ "${_bs[$i]}" != "$slug" ]] && continue
           local checkbox=" "
           [[ "$heading" == "Done" ]] && checkbox="x"
-          rel=".codepress/product/galleys/$gname/galley"
-          echo "- [$checkbox] [[$rel|$gtitle]]"
+          echo "- [$checkbox] [[.codepress/product/galleys/${_bn[$i]}/galley|${_bt[$i]:-${_bn[$i]}}]]"
         done
         echo ""
       done

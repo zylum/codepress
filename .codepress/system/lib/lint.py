@@ -342,6 +342,24 @@ class Git(object):
         rc, out = self._run(["show", "%s:./%s" % (ref, relpath)])
         return out if rc == 0 else None
 
+    def changed_files(self, base):
+        """Paths (relative to root) that differ from `base` or are untracked.
+
+        Status transitions only exist for files that changed, so lint asks git
+        about those alone instead of running `git show` for every artefact.
+        """
+        if not self.ok:
+            return None
+        out = set()
+        rc, text = self._run(["diff", "--name-only", "--relative", base, "--"])
+        if rc != 0:
+            return None
+        out.update(l for l in text.split("\n") if l.strip())
+        rc, text = self._run(["ls-files", "--others", "--exclude-standard"])
+        if rc == 0:
+            out.update(l for l in text.split("\n") if l.strip())
+        return out
+
     def commits(self, limit=20000):
         """[{sha, date, subject, body, files}], newest first. Cached."""
         if self._commits is not None:
@@ -449,6 +467,7 @@ class Project(object):
                     continue
                 self.galleys.append(Galley(self, d))
         self.git = Git(self.root)
+        self._changed = None
 
     # -- config -------------------------------------------------------------------
 
@@ -487,6 +506,13 @@ class Project(object):
             except OSError:
                 pass
         return os.environ.get("CODEPRESS_DEFAULT_ENGINE", "")
+
+    def touched(self, base, path):
+        """True when `path` changed against `base` (or git cannot say)."""
+        if self._changed is None or self._changed[0] != base:
+            self._changed = (base, self.git.changed_files(base))
+        files = self._changed[1]
+        return True if files is None else os.path.relpath(path, self.root) in files
 
     def galley_by_name(self, name):
         for g in self.galleys:
@@ -799,7 +825,7 @@ def lint_galley(project, g, findings, base, only_changed=False):
     # ── transition vs the base ref ──
     old_canon = None
     changed = False
-    if base and canon:
+    if base and canon and project.touched(base, g.path):
         old_text = project.git.show(base, os.path.relpath(g.path, project.root))
         if old_text is None:
             initial = schema.section("galley").get("initial")
@@ -908,7 +934,7 @@ def lint_slug(project, g, s, findings, seen, base):
         if not has_content(section_text(s.body, "Evidence")):
             findings.append(Finding("S008", WARN, spath, "slug is closed but has no Evidence"))
 
-    if base and canon:
+    if base and canon and project.touched(base, s.path):
         old_text = project.git.show(base, os.path.relpath(s.path, project.root))
         if old_text is not None:
             try:
