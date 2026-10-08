@@ -64,7 +64,7 @@ galley:
     shaped->proposed:
       requires: []
     shaped->building:
-      requires: [approved, slugs_exist]
+      requires: [approved]
     shaped->killed:
       requires: [reason]
     shaped->superseded:
@@ -143,11 +143,6 @@ gates:
     actor: human
     summary: a human approved the shape (approved_by and approved_on are set)
     fix: Run `codepress galley approve <galley> --by <name>`.
-  slugs_exist:
-    kind: static
-    actor: agent
-    summary: the galley has been split into at least one slug
-    fix: Split the galley into slugs (skills/split.md).
   slugs_settled:
     kind: static
     actor: agent
@@ -305,3 +300,16 @@ legacy:
       to: dropped
       judgment: true
       note: Shelved. Record why in plan-changes.md.
+
+  # Field values that were spelled differently before the schema. Lint reports
+  # them (S010) and migrate-status rewrites them.
+  autonomy:
+    autonomous:
+      to: continuous
+      note: Runs without checking in.
+    auto:
+      to: continuous
+    manual:
+      to: confirm
+      judgment: true
+      note: A human is in the loop between slugs.

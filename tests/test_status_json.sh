@@ -46,8 +46,7 @@ eq "slug counts: open + closed" "$(gj "$J" g-auto 'r["slugs"]["open"], r["slugs"
 eq "acceptance counts" "$(gj "$J" g-settled 'r["acceptance"]["total"], r["acceptance"]["ticked"]')" "(1, 1)"
 
 # who it needs --------------------------------------------------------------
-eq "shaped but unsplit: the agent splits first" "$(gj "$J" g-shaped 'r["needs"]')" "agent"
-has "…next action is to split" "$(gj "$J" g-shaped 'r["next_action"]')" "Split"
+eq "shaped but unapproved: a human must approve" "$(gj "$J" g-shaped 'r["needs"]')" "human"
 eq "shaped, split, unapproved: a human must approve" "$(gj "$J" g-shaped-split 'r["needs"]')" "human"
 has "…and the next action says which command" "$(gj "$J" g-shaped-split 'r["next_action"]')" "codepress galley approve g-shaped-split"
 eq "a confirm-autonomy slug needs a human" "$(gj "$J" g-confirm 'r["needs"]')" "human"
@@ -61,7 +60,7 @@ eq "…and have no next action" "$(gj "$J" g-done 'r["next_action"]')" "None"
 has "blocked_by lists the unmet gates of the next transition" "$(gj "$J" g-shaped 'r["blocked_by"]')" "approved"
 
 needs=$(printf '%s' "$J" | python3 -c 'import json,sys; print(json.load(sys.stdin)["summary"]["needs_human"])')
-eq "the summary counts galleys that need a human" "$needs" "2"
+eq "the summary counts galleys that need a human" "$needs" "3"
 
 # last activity counts commits that NAME the galley -----------------------------
 d=$(mk_project)

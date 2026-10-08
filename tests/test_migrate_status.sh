@@ -43,7 +43,7 @@ eq "before migrating, lint fails on the retired values" "$RC" "1"
 
 cp_run "$d" migrate-status --apply
 eq "--apply succeeds" "$RC" "0"
-has "…and says what to do next" "$OUT" "Now run \`codepress lint\`"
+has "…and reports lint clean when it is" "$OUT" "is clean"
 
 gstatus() { sed -n 's/^status: *//p' "$d/.codepress/product/galleys/$1/galley.md" | head -1; }
 gfield() { sed -n "s/^$2: *//p" "$d/.codepress/product/galleys/$1/galley.md" | head -1; }
@@ -80,6 +80,29 @@ mk_galley "$d" bad done
 cp_run "$d" migrate-status --apply
 eq "a done galley that meets its gates is not grandfathered" "$(sed -n 's/^legacy: *//p' "$d/.codepress/product/galleys/good/galley.md" | head -1)" ""
 eq "…one that does not, is" "$(sed -n 's/^legacy: *//p' "$d/.codepress/product/galleys/bad/galley.md" | head -1)" "true"
+
+# retired autonomy values are caught and rewritten too
+d=$(mk_project)
+mk_galley "$d" alpha building $'approved_by: m\napproved_on: 2026-10-02'
+mk_slug "$d" alpha s1 open "autonomy: autonomous"
+mk_slug "$d" alpha s2 open "autonomy: manual"
+lint_run "$d" --base none
+has "lint reports a retired autonomy value" "$OUT" "retired autonomy value 'autonomous' — use 'continuous'"
+cp_run "$d" migrate-status
+has "the plan lists the autonomy rewrite" "$OUT" "autonomy autonomous -> continuous"
+has "…flagging 'manual' as a judgment call" "$OUT" "autonomy manual -> confirm"
+cp_run "$d" migrate-status --apply
+eq "autonomous -> continuous applied" "$(sed -n 's/^autonomy: *//p' "$d/.codepress/product/galleys/alpha/slugs/s1.md")" "continuous"
+eq "manual -> confirm applied" "$(sed -n 's/^autonomy: *//p' "$d/.codepress/product/galleys/alpha/slugs/s2.md")" "confirm"
+
+# after applying, what is still wrong is summarised as a to-do list
+d=$(mk_project)
+mkdir -p "$d/.codepress/product/galleys/alpha"
+printf -- '---\nid: alpha\nstatus: building\ncreated: 2026-10-01\n---\n# Galley: alpha\n\nJust a title.\n' > "$d/.codepress/product/galleys/alpha/galley.md"
+cp_run "$d" migrate-status --apply
+has "…--apply says what still fails lint" "$OUT" "Still failing \`codepress lint\` after migration"
+has "…grouped by rule" "$OUT" "R001"
+has "…and points at the hook-safe route" "$OUT" "lints only galleys a commit touches"
 
 # unknown statuses are reported, never guessed
 d=$(mk_project)

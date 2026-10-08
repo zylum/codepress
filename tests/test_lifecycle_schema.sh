@@ -60,7 +60,7 @@ req_ids() { lp requires "$1" "$2" | awk '{ printf "%s ", $1 }'; }
 req_of() { req_ids "$1" "$2"; }
 
 has "shaped -> building requires approval" "$(req_of shaped building)" "approved"
-has "shaped -> building requires slugs" "$(req_of shaped building)" "slugs_exist"
+lacks "a galley need not be split: shaped -> building does not require slugs" "$(req_of shaped building)" "slugs"
 has "verifying -> done requires evidence" "$(req_of verifying done)" "evidence"
 has "verifying -> done requires an independent review" "$(req_of verifying done)" "independent_review"
 has "verifying -> done requires learned.md" "$(req_of verifying done)" "learned_md"

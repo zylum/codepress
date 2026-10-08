@@ -52,7 +52,7 @@ A terminal galley is never reopened. If done work turns out wrong, open a new ga
 | Transition | Requires |
 |---|---|
 | `proposed → shaped` | `shape_complete` |
-| `shaped → building` | `approved`, `slugs_exist` |
+| `shaped → building` | `approved` |
 | `building → verifying` | `slugs_settled`, `acs_ticked`, `signals_present`, `ac_check` |
 | `verifying → done` | `evidence`, `independent_review`, `learned_md`, `ac_check` |
 | `shaped → proposed` | — |
@@ -71,7 +71,6 @@ Each gate is either **static** (decidable from files; `codepress lint` evaluates
 |---|---|---|
 | `shape_complete` | static | galley.md has Problem, Success, Approach and Acceptance Criteria sections |
 | `approved` | static | `approved_by` and `approved_on` are set |
-| `slugs_exist` | static | the galley has been split into at least one slug |
 | `slugs_settled` | static | every slug is `closed` or `dropped` |
 | `acs_ticked` | static | every acceptance box is ticked — `manual:` steps excepted, a human attests those in the Verdict |
 | `signals_present` | static | review.md has captured Signals |

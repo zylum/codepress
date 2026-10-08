@@ -178,7 +178,7 @@ mk_galley "$d" alpha building
 lint_run "$d" --base none
 eq "building without approval fails" "$RC" "1"
 has "…naming approved" "$OUT" "needs approved"
-has "…and slugs_exist" "$OUT" "needs slugs_exist"
+lacks "…but not slugs (a single-unit galley needs none)" "$OUT" "slugs_exist"
 
 d=$(mk_project)
 mk_complete_galley "$d" alpha building

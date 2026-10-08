@@ -47,7 +47,7 @@ order; the move to `building` needs both.)
    - Dependencies (if any) — `depends_on: [slug-id]`
 8. Create `review.md` (blank, ready for signal capture during delivery)
 9. Leave the Galley `status: shaped`. Once a human has approved it (`codepress galley approve <galley>`),
-   `codepress galley move <galley> building` starts delivery (gates: `approved`, `slugs_exist`).
+   `codepress galley move <galley> building` starts delivery (gate: `approved`; a galley with no parts needs no slugs).
 10. Update `.codepress/views/galley-board.md`
 
 ---

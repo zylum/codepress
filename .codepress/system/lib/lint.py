@@ -656,8 +656,6 @@ def eval_gate(project, g, gate):
     if gate == "approved":
         miss = [f for f in ("approved_by", "approved_on") if _empty(fm.get(f))]
         return ["not approved (missing %s)" % ", ".join(miss)] if miss else []
-    if gate == "slugs_exist":
-        return [] if g.slugs else ["no slugs — the galley has not been split"]
     if gate == "slugs_settled":
         settled = schema.section("slug").get("settled") or []
         bad = []
@@ -918,7 +916,15 @@ def lint_slug(project, g, s, findings, seen, base):
     else:
         canon = _status_finding(schema, "slug", spath, s.status, findings)
 
-    for field, msg in validate_fields(schema, schema.slug_fields, s.fm, kind="slug"):
+    fm_checked = dict(s.fm)
+    old_auto = (schema.lifecycle.get("legacy") or {}).get("autonomy") or {}
+    if fm_checked.get("autonomy") in old_auto:
+        entry = old_auto[fm_checked["autonomy"]]
+        findings.append(Finding("S010", ERROR, spath,
+                                "retired autonomy value %r — use %r" % (fm_checked["autonomy"], entry.get("to")),
+                                "Run `codepress migrate-status`, or edit the slug."))
+        fm_checked.pop("autonomy")
+    for field, msg in validate_fields(schema, schema.slug_fields, fm_checked, kind="slug"):
         if field == "galley" and not _empty(s.fm.get("galley")):
             continue
         findings.append(Finding("S004", ERROR, spath, msg))
@@ -1185,11 +1191,11 @@ def next_action(project, g, canon):
         return info.get("next"), info.get("actor", "human"), blocked
     if canon == "shaped":
         for gate, text in (("shape_complete", "Complete the shape (missing sections)."),
-                           ("slugs_exist", "Split the galley into slugs.")):
+                           ):
             if gate in ("shape_complete",) and eval_gate(project, g, gate):
                 return text, schema.gate_actor(gate), blocked
-        if not g.slugs:
-            return "Split the galley into slugs.", "agent", blocked
+        if not g.slugs and "approved" not in blocked:
+            return "Split into slugs if the work has parts, or move to building as one unit.", "agent", blocked
         if "approved" in blocked:
             return "Approve the shape (`codepress galley approve %s`)." % g.name, "human", blocked
         return "Move to building.", "agent", blocked
@@ -1347,10 +1353,22 @@ def plan_migration(project):
             if sl.error or not sl.fm:
                 continue
             sc, se = schema.canon("slug", sl.status)
+            updates, notes, change = {}, [], []
             if se is not None and sc:
+                updates["status"] = sc
+                change.append("%s -> %s" % (sl.status, sc))
+                if se.get("judgment"):
+                    notes.append("judgment call")
+            old_auto = (schema.lifecycle.get("legacy") or {}).get("autonomy") or {}
+            ae = old_auto.get(sl.fm.get("autonomy"))
+            if ae:
+                updates["autonomy"] = ae["to"]
+                change.append("autonomy %s -> %s" % (sl.fm.get("autonomy"), ae["to"]))
+                if ae.get("judgment"):
+                    notes.append("judgment call")
+            if updates:
                 plan.append({"path": sl.path, "label": "slug %s/%s" % (g.name, sl.stem),
-                             "change": "%s -> %s" % (sl.status, sc), "updates": {"status": sc},
-                             "notes": ["judgment call"] if se.get("judgment") else []})
+                             "change": ", ".join(change), "updates": updates, "notes": notes})
     return plan
 
 
@@ -1385,7 +1403,33 @@ def cmd_migrate(args):
             with open(item["path"], "w", encoding="utf-8") as fh:
                 fh.write(new)
             n += 1
-    print("Applied: %d file(s) edited. Now run `codepress lint`." % n)
+    print("Applied: %d file(s) edited." % n)
+    # Say what is still wrong, grouped, so adopting the schema is a to-do list and
+    # not a wall of errors.
+    after = Project(args.root, schema)
+    findings, galleys, _ = run_lint(after, None)
+    errs = [f for f in findings if f.severity == ERROR]
+    print("")
+    if not errs:
+        print("`codepress lint` is clean.")
+        return 0
+    print("Still failing `codepress lint` after migration: %d error(s) in %d file(s)" % (len(errs), len(set(f.path for f in errs))))
+    by = {}
+    for f in errs:
+        by.setdefault(f.code, []).append(f)
+    meaning = {
+        "R001": "a live galley is missing something its status needs (e.g. unfilled shape sections)",
+        "S004": "a slug field breaks the schema", "S010": "a retired autonomy value",
+        "G004": "a galley field breaks the schema", "F001": "frontmatter does not parse",
+        "F002": "a galley without frontmatter", "D001": "a closed slug with unticked boxes",
+        "D002": "drift: a slug commit landed but its boxes are unticked", "V001": "version markers disagree",
+        "T001": "an illegal status transition",
+    }
+    for code in sorted(by):
+        print("  %-5s x%-3d %s" % (code, len(by[code]), meaning.get(code, "")))
+    print("")
+    print("These are real gaps, not migration noise: triage them (finish, park or kill each galley).")
+    print("Meanwhile `codepress hook install` is safe — the hook lints only galleys a commit touches.")
     return 0
 
 

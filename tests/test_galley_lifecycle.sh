@@ -113,7 +113,7 @@ mk_galley "$d" alpha shaped
 cp_run "$d" galley move alpha building
 eq "shaped -> building is refused without approval" "$RC" "1"
 has "…naming the approved gate" "$OUT" "approved: not approved"
-has "…and the missing split" "$OUT" "slugs_exist: no slugs"
+lacks "…and no split is demanded" "$OUT" "slugs_exist"
 has "…with the fix" "$OUT" "codepress galley approve"
 
 d=$(mk_project)
@@ -125,6 +125,13 @@ eq "approved + split: shaped -> building succeeds" "$RC" "0"
 eq "…status written" "$(status_of "$d" alpha)" "building"
 has "…and the board regenerates" "$OUT" "Boards regenerated"
 has "…placing the galley in the Delivering column" "$(cat "$d/.codepress/views/galley-board.md")" "alpha"
+
+# a galley with no parts needs no slugs
+d=$(mk_project)
+mk_galley "$d" alpha shaped
+cp_run "$d" galley approve alpha --by m
+cp_run "$d" galley move alpha building
+eq "an approved single-unit galley moves to building without slugs" "$RC" "0"
 
 # ── building -> verifying (static + dynamic gates) ───────────────────────────
 
