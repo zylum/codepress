@@ -15,9 +15,10 @@ budget:
 One sentence: what does this Slug deliver?
 
 ## Acceptance checklist
-- [ ] 
-- [ ] 
-- [ ]
+One line per criterion, bound to evidence — same " · "-separated grammar as galley ACs:
+- [ ] AC1 · Given <context> · When <action> · Then <outcome> · test: tests/test_file.sh::test_name
+- [ ] AC2 · check: <shell command — exit 0 = pass>
+- [ ] AC3 · manual: <human-only step — an agent never ticks this>
 
 ## Context
 What does the executor need to know?

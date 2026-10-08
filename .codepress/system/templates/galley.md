@@ -34,9 +34,19 @@ Enough clarity for someone else to build it without asking questions.
 
 What does done look like from the outside?
 
-- [ ] 
-- [ ] 
-- [ ]
+Every criterion is ONE line, bound to evidence. Fields are separated by " · "
+(space-middot-space). Three kinds — one example each:
 
-<!-- Machine-evaluable criteria go in the `verify:` frontmatter field (shell commands).
+- [ ] AC1 · Given a logged-in user · When the session expires · Then re-auth is required · test: tests/test_auth.sh::test_session_expiry
+- [ ] AC2 · check: bash tests/run_tests.sh
+- [ ] AC3 · manual: confirm the DNS cutover in the registrar console
+
+Rules:
+- `test:` binds a behaviour (Given/When/Then) to a named test — ref format `<path>::<name>`.
+- `check:` binds a mechanical criterion to a shell command — exit 0 = pass.
+- `manual:` marks a human-only step — agents NEVER tick it; `codepress check` fails if it is ticked.
+- `codepress check <galley>` evaluates every bound line; unbound prose lines warn as legacy.
+
+<!-- Galley-level gates still go in the `verify:` frontmatter field; per-criterion
+     evidence lives on the AC line itself (test:/check:/manual: bindings above).
      Set `holdout: true` if the reviewer holds additional criteria not visible to the builder. -->

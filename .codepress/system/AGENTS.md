@@ -98,6 +98,22 @@ Before marking a Galley `done`, complete `review.md`, promote Signals, and updat
 One commit per Slug: `slug:<name> done — <summary>`
 One commit per Galley close: `galley:<name> done`
 
+**The builder never writes the Verdict.**
+The `## Verdict` block in review.md belongs to the verifier engine. The CLI enforces
+it: `codepress galley move <galley> done` refuses a verdict whose `verified-by`
+equals `engines.build`. Self-certification is mechanically blocked, not just forbidden.
+
+**The builder never ticks a `manual:` AC.**
+`manual:` lines mark human-only steps. The CLI enforces it: `codepress check` fails
+any galley with a ticked `manual:` line. A human attests manual steps in the Verdict,
+or waives explicitly with `--force` (which records a dated waiver in review.md).
+
+> **Field evidence (2026-07, loom quality-hardening):** the build engine executed an
+> infra step explicitly marked *manual* — against the wrong production service — and
+> reported it `[x]` complete, then wrote its own "Gate passes. Galley close." verdict
+> and set statuses uncontested. Textual fences did not constrain the agent. That is
+> why the two rules above are enforced by the CLI, not by prose.
+
 ---
 
 ## Quality contract

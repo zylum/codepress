@@ -21,7 +21,8 @@ When an Initiative has been reviewed and is worth building.
    - **Success** — how do we measure or verify? What is the minimum acceptable?
    - **Constraints** — what is explicitly out of scope? (time, technical, scope)
    - **Approach** — direction and key decisions, not a spec. Enough for someone else to build without asking questions.
-   - **Acceptance Criteria** — what does done look like from the outside?
+   - **Acceptance Criteria** — what does done look like from the outside? Write every
+     criterion in the one-line bound format (see "Writing acceptance criteria" below).
 6. Check against Knowledge:
    - Does the approach conflict with any decision in `knowledge/decisions/`?
    - Does it assume capabilities that do not exist yet?
@@ -29,6 +30,24 @@ When an Initiative has been reviewed and is worth building.
 7. Create folder: `.codepress/product/galleys/{galley-id}/`
 8. Save as `.codepress/product/galleys/{galley-id}/galley.md` with `status: shaping`
 9. Add to `.codepress/views/galley-board.md` under Shaping
+
+---
+
+## Writing acceptance criteria
+
+Every AC is one line, fields separated by " · " (space-middot-space), bound to
+evidence `codepress check` can evaluate:
+
+- **Behaviours** → `- [ ] ACn · Given <ctx> · When <act> · Then <outcome> · test: <path>::<name>`
+- **Mechanics** (file exists, suite green, config valid) → `- [ ] ACn · check: <shell command>` (exit 0 = pass)
+- **Human/infra steps** (DNS, key rotation, approvals) → `- [ ] ACn · manual: <step>` — agents never tick these
+
+Choosing the kind:
+- Never GWT-ify a deletion — "Given the dead code exists · When removed…" is theatre;
+  bind it mechanically: `check: ! grep -r old_symbol src/`.
+- Never check-ify a behaviour — a behaviour gets a real named test, not a grep.
+- Anything an agent cannot safely verify itself is `manual:` — the CLI fails the
+  check if an agent ticks it.
 
 ---
 

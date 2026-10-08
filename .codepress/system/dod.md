@@ -6,13 +6,21 @@ Global standards that apply to every Galley unless explicitly overridden.
 
 ## Galley Done means
 
-1. **Acceptance criteria met** — Every criterion in the Galley has corresponding evidence that exercises the real path (no mock-theatre)
+1. **Acceptance criteria met** — Every criterion in the Galley has corresponding evidence that exercises the real path (no mock-theatre). Every criterion carries a `test:`, `check:`, or `manual:` binding on its own line (grammar in `templates/galley.md`); `codepress check <galley>` evaluates the bindings mechanically
 2. **Verification passes** — All defined verification gates pass (lint, typecheck, test)
 3. **Review completed** — Independent review approved the work
 4. **Knowledge updated** — Signals captured, Patterns promoted where warranted
 5. **Wired end-to-end** — Every new function, tool, or route has a caller; grepped and confirmed
 6. **Set status to `review`, not `done`** — The builder sets `status: review`; an independent reviewer promotes to `done` or flips to `rework`
 7. **Ready for merge** — Code is ready to ship
+
+### Hard lines (CLI-enforced)
+
+- **The build engine never writes the `## Verdict` block** in review.md. It belongs
+  to the verifier engine (`engines.verifier` in codepress.md). `codepress galley move
+  <galley> done` refuses a verdict whose `verified-by` equals `engines.build`.
+- **The build engine never ticks a `manual:` AC.** `codepress check` fails any galley
+  with a ticked `manual:` line — a human attests it in the Verdict or waives with `--force`.
 
 ---
 

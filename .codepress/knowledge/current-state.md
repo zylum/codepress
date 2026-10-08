@@ -14,6 +14,16 @@ What the system currently does.
 - Signal capture and Pattern promotion (failure + cost types)
 - Budget declaration and cost-check verification
 - Self-reported cost tracking per slug via `type: cost` signals
+- Bound acceptance criteria: one-line AC grammar (`test:` / `check:` / `manual:`
+  bindings, " · " separated — see `system/templates/galley.md`), parsed by
+  `extract_acs` in the CLI
+- `codepress check <galley>` — runs `verify:` gates fresh and evaluates every
+  bound AC (test refs via the `test-runner:` config template); legacy prose ACs
+  warn only
+- Gated status transitions: `galley move → review` requires check pass +
+  non-empty review.md Signals; `→ done` additionally requires an independent
+  `## Verdict` (`verified-by` ≠ `engines.build`); `--force` bypasses with a dated
+  waiver appended to review.md
 
 ## Live / in production
 What is deployed and being used.
@@ -24,6 +34,7 @@ What is deployed and being used.
 What is actively being built (link to active Galleys).
 
 - `product/galleys/loop-interop-v1/` — Loop interoperability: manifest adoption, signal emission, interop docs
+- `product/galleys/enforced-acceptance/` — slugs delivered, awaiting independent verification (verdict gate applies to its own close)
 
 ## Known limitations
 What it cannot do, or does poorly.

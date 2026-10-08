@@ -34,7 +34,11 @@ When a Galley is `approved` and ready for execution planning.
 6. Create each Slug at `slugs/{id}-{name}.md` using `.codepress/system/templates/slug.md`
 7. For each Slug set:
    - Purpose (one sentence)
-   - Acceptance checklist (3–7 items)
+   - Acceptance checklist (3–7 items) — every item in the one-line bound format
+     (same grammar as galley ACs, see `skills/shape.md` § Writing acceptance criteria):
+     behaviours → `Given … · When … · Then … · test: <path>::<name>`,
+     mechanics → `check: <command>`, human/infra steps → `manual: <step>`.
+     Never GWT-ify a deletion; never check-ify a behaviour.
    - Autonomy level (`continuous` / `confirm` / `stop`)
    - Dependencies (if any)
 8. Create `review.md` (blank, ready for signal capture during delivery)

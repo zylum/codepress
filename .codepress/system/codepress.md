@@ -103,10 +103,7 @@ Verification gates that a Galley must pass before its status advances. Each gate
 
 ```yaml
 verify:
-  typecheck: tsc --noEmit
-  test: pytest
-  lint: ruff check
-  build: cargo check
+  test: bash tests/run_tests.sh
   cost-check: >
     budget_tokens=$(grep -A3 '^budget:' .codepress/product/galleys/*/galley.md 2>/dev/null | grep 'tokens:' | head -1 | awk '{print $2}');
     budget_cost=$(grep -A3 '^budget:' .codepress/product/galleys/*/galley.md 2>/dev/null | grep 'cost:' | head -1 | awk '{print $2}');
@@ -139,6 +136,23 @@ The engine will block transitions — `building → review`, `review → release
 3. Capability requirements: Lint must exist, typecheck if applicable, tests if applicable
 
 Missing: no gates defined. System falls back to capability requirements (lint mandatory, typecheck/test if applicable).
+
+### Test runner
+
+How `codepress check` executes a per-AC `test:` ref (the binding on each
+acceptance criterion line). The template's placeholders are substituted per ref:
+`{ref}` = the full ref, `{file}` = the part before `::`, `{name}` = the part
+after `::`. Examples: `pytest {ref} -q` (pytest resolves `path::name` natively),
+`bash {file}` (whole-file granularity for bash suites).
+
+When this line is absent, `codepress check` runs the full `test` gate once and
+warns that per-AC attribution is unavailable.
+
+This project's suites are bash scripts whose `::name` parts are function names
+inside the file, so the runner executes the file (the CLI still asserts the
+named function exists in the file before running):
+
+test-runner: bash {file}
 
 ---
 
