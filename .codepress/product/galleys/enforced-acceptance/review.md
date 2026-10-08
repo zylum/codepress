@@ -27,6 +27,12 @@ Signals captured during delivery. Fill immediately, not at close.
   running — the ref cannot silently point at a renamed/deleted test while the
   file still passes.
 
+## Evidence
+
+- Commits `90dfc7a` (codepress check, gated move, verdict gate, tests) and `030bd33` (AC grammar, Verdict block, docs, galley artefacts).
+- `bash tests/run_tests.sh` — all suites green on the closing branch; the verifier's fresh runs are recorded per criterion in the Verdict below.
+- Independent Verdict by `claude` (builder engine: `opencode`), dated 2026-07-11.
+
 ## Knowledge updates needed
 
 - current-state.md: document `codepress check`, the AC binding grammar, the gated

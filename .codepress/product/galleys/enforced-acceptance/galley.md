@@ -1,6 +1,6 @@
 ---
 id: enforced-acceptance
-status: building
+status: done
 initiative: trust-boundary
 release:
 created: 2026-07-11
@@ -92,11 +92,11 @@ Three slugs (order in `run-sheet.md`):
 ## Acceptance Criteria
 Written in the format this galley introduces — it is its own first example.
 
-- [ ] AC1 · Given a galley whose AC references a failing test · When `codepress galley move <it> review` runs · Then the move is refused with a per-AC report and exit ≠ 0 · test: tests/test_check_gating.sh::test_move_refused_on_failing_ac
-- [ ] AC2 · Given a galley with all ACs bound and passing · When moved to review · Then the move succeeds and the board regenerates · test: tests/test_check_gating.sh::test_move_allowed_when_green
-- [ ] AC3 · Given an AC line with `check:` whose command exits 1 · When `codepress check` runs · Then that AC reports fail · test: tests/test_check_gating.sh::test_check_command_failure
-- [ ] AC4 · Given a `manual:` step ticked `[x]` · When `codepress check` runs · Then the check fails naming the line · test: tests/test_check_gating.sh::test_manual_tick_rejected
-- [ ] AC5 · Given a review.md without a Verdict block or with `verified-by` equal to the build engine · When moving to done · Then the move is refused · test: tests/test_verdict_gate.sh::test_done_requires_independent_verdict
-- [ ] AC6 · Given any refused move · When re-run with `--force` · Then it succeeds and review.md gains a dated waiver line · test: tests/test_verdict_gate.sh::test_force_records_waiver
-- [ ] AC7 · Given a pre-existing galley with prose-only checkboxes · When `codepress check` runs · Then it warns but exits 0 (backwards compat) · test: tests/test_check_gating.sh::test_legacy_galley_warns_only
-- [ ] AC8 · check: bash tests/run_tests.sh
+- [x] AC1 · Given a galley whose AC references a failing test · When `codepress galley move <it> review` runs · Then the move is refused with a per-AC report and exit ≠ 0 · test: tests/test_check_gating.sh::test_move_refused_on_failing_ac
+- [x] AC2 · Given a galley with all ACs bound and passing · When moved to review · Then the move succeeds and the board regenerates · test: tests/test_check_gating.sh::test_move_allowed_when_green
+- [x] AC3 · Given an AC line with `check:` whose command exits 1 · When `codepress check` runs · Then that AC reports fail · test: tests/test_check_gating.sh::test_check_command_failure
+- [x] AC4 · Given a `manual:` step ticked `[x]` · When `codepress check` runs · Then the check fails naming the line · test: tests/test_check_gating.sh::test_manual_tick_rejected
+- [x] AC5 · Given a review.md without a Verdict block or with `verified-by` equal to the build engine · When moving to done · Then the move is refused · test: tests/test_verdict_gate.sh::test_done_requires_independent_verdict
+- [x] AC6 · Given any refused move · When re-run with `--force` · Then it succeeds and review.md gains a dated waiver line · test: tests/test_verdict_gate.sh::test_force_records_waiver
+- [x] AC7 · Given a pre-existing galley with prose-only checkboxes · When `codepress check` runs · Then it warns but exits 0 (backwards compat) · test: tests/test_check_gating.sh::test_legacy_galley_warns_only
+- [x] AC8 · check: bash tests/run_tests.sh
