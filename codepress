@@ -54,6 +54,12 @@ Usage:
   codepress galley new <name>     Scaffold a new galley
   codepress galley list           List all galleys with status
   codepress galley move <n> <s>   Set galley status (shaping|approved|delivering|review|done)
+                                  → review requires 'codepress check' pass + non-empty Signals;
+                                  → done additionally requires an independent ## Verdict.
+                                  [--force] bypasses gates, recording a waiver in review.md
+                                  [--reason <text>] recorded with the waiver
+  codepress check <galley>        Run verify gates fresh + evaluate every bound AC
+                                  (test:/check:/manual: lines — see templates/galley.md)
 
   codepress -h|--help             Show this help
 
@@ -1060,13 +1066,371 @@ cmd_galley_list() {
   [[ "$found" == false ]] && echo "  (no galleys yet — use 'codepress galley new <name>')"
 }
 
-cmd_galley_move() {
+# ─── Acceptance-criteria binding (galley: enforced-acceptance) ────────────────
+
+# extract_acs <file> — parse the first "## Acceptance ..." section (galley
+# "Acceptance Criteria" or slug "Acceptance checklist") and emit one line per
+# checkbox criterion:   id|kind|payload|ticked
+#
+# Grammar (one line each, fields separated by " · " space-middot-space):
+#   - [ ] <id> · Given … · When … · Then … · test: <path::name>   kind=test, payload=<ref>
+#   - [ ] <id> · check: <shell command>                            kind=check, payload=<command>
+#   - [ ] <id> · manual: <human-only step>                         kind=manual, payload=<step>
+#   - [ ] any unbound prose                                        kind=legacy, payload=<text>, id empty
+# ticked is 1 for "- [x]", else 0. Payloads must not contain "|".
+extract_acs() {
+  local file="${1:-}"
+  if [[ -z "$file" || ! -f "$file" ]]; then
+    echo "✗ extract_acs: file not found: ${file:-<none>}" >&2
+    return 1
+  fi
+  awk '
+    /^## Acceptance/ { insec = 1; next }
+    insec && /^## /  { insec = 0 }
+    insec && /^- \[[ xX]\] / {
+      line = $0
+      ticked = (line ~ /^- \[[xX]\]/) ? 1 : 0
+      sub(/^- \[[ xX]\][ \t]*/, "", line)
+      sub(/[ \t]+$/, "", line)
+      id = ""; kind = "legacy"; payload = line
+      if (index(line, " · ") > 0) id = substr(line, 1, index(line, " · ") - 1)
+      if (match(line, / · check: /)) {
+        kind = "check"; payload = substr(line, RSTART + RLENGTH)
+      } else if (match(line, / · manual: /)) {
+        kind = "manual"; payload = substr(line, RSTART + RLENGTH)
+      } else if (match(line, / · test: /)) {
+        kind = "test"; payload = substr(line, RSTART + RLENGTH)
+      } else {
+        id = ""
+      }
+      print id "|" kind "|" payload "|" ticked
+    }
+  ' "$file"
+}
+
+# Gate command for <gate> from the "verify:" block in codepress.md.
+# Handles single-line values and folded (>) multi-line values.
+get_gate_command() {
+  local gate="$1" cfg
+  cfg=$(resolve_config)
+  [[ -f "$cfg" ]] || return 0
+  awk -v g="$gate" '
+    /^verify:[ \t]*$/ { inv = 1; next }
+    inv && /^[^ \t]/  { inv = 0; if (fold) exit }
+    inv {
+      if (!fold && $0 ~ ("^  " g ":")) {
+        val = $0
+        sub("^  " g ":[ \t]*", "", val)
+        if (val == ">") { fold = 1; next }
+        print val; exit
+      } else if (fold) {
+        if ($0 ~ /^    /) { l = $0; sub(/^[ \t]+/, "", l); buf = buf l " " }
+        else { sub(/[ \t]+$/, "", buf); print buf; exit }
+      }
+    }
+    END { if (fold && buf != "") { sub(/[ \t]+$/, "", buf); print buf } }
+  ' "$cfg"
+}
+
+# Engine assigned to <stage> in the "engines:" block of codepress.md.
+# Defaults to "claude" (documented default when the block is missing).
+get_engine() {
+  local stage="$1" cfg engine=""
+  cfg=$(resolve_config)
+  if [[ -f "$cfg" ]]; then
+    engine=$(awk -v s="$stage" '
+      /^engines:[ \t]*$/ { ine = 1; next }
+      ine && /^[^ \t]/   { ine = 0 }
+      ine && $0 ~ ("^  " s ":") {
+        val = $0
+        sub("^  " s ":[ \t]*", "", val)
+        sub(/[ \t]*#.*$/, "", val)
+        sub(/[ \t]+$/, "", val)
+        print val; exit
+      }
+    ' "$cfg")
+  fi
+  echo "${engine:-claude}"
+}
+
+# Optional "test-runner:" template from codepress.md — how `codepress check`
+# runs a per-AC test: ref. Placeholders: {ref} {file} {name}.
+get_test_runner() {
+  local cfg
+  cfg=$(resolve_config)
+  [[ -f "$cfg" ]] || return 0
+  grep -m1 '^test-runner:' "$cfg" 2>/dev/null | sed 's/^test-runner:[ ]*//' || true
+}
+
+# True when review.md's "## Signals" section has real content
+# (blank lines and HTML comments do not count).
+has_signals() {
+  local rfile="$1"
+  [[ -f "$rfile" ]] || return 1
+  awk '/^## Signals/ { f = 1; next } /^## / { f = 0 } f' "$rfile" \
+    | awk '/<!--/ { c = 1 } !c { print } /-->/ { c = 0 }' \
+    | grep -q '[^[:space:]]'
+}
+
+# Verdict gate for → done. The "## Verdict" block in review.md must contain
+# one "ACn: pass — evidence" line per bound AC, zero fails, and be attributed
+# to an engine other than engines.build (self-certification is refused).
+# Prints per-problem lines; returns non-zero on refusal.
+check_verdict() {
+  local name="$1"
+  local gfile=".codepress/product/galleys/$name/galley.md"
+  local rfile=".codepress/product/galleys/$name/review.md"
+  local fails=0 vsec verified_by verified_on build_engine
+
+  if [[ ! -f "$rfile" ]]; then
+    echo "  ❌ verdict: no review.md at $rfile"
+    return 1
+  fi
+
+  vsec=$(awk '/^## Verdict/ { f = 1; next } /^## / { f = 0 } f' "$rfile" \
+    | awk '/<!--/ { c = 1 } !c { print } /-->/ { c = 0 }')
+
+  if ! echo "$vsec" | grep -q '[^[:space:]]'; then
+    echo "  ❌ verdict: no completed ## Verdict block in $rfile"
+    echo "     (the verifier engine writes it — see skills/verify.md; the builder never does)"
+    return 1
+  fi
+
+  verified_by=$(echo "$vsec" | grep -m1 '^verified-by:' | sed 's/^verified-by:[ ]*//; s/[ \t]*$//' || true)
+  verified_on=$(echo "$vsec" | grep -m1 '^verified-on:' | sed 's/^verified-on:[ ]*//; s/[ \t]*$//' || true)
+  build_engine=$(get_engine build)
+
+  if [[ -z "$verified_by" ]]; then
+    echo "  ❌ verdict: missing verified-by: line"
+    fails=$((fails + 1))
+  elif [[ "$verified_by" == "$build_engine" ]]; then
+    echo "  ❌ verdict: verified-by '$verified_by' equals engines.build — the builder cannot verdict its own work"
+    fails=$((fails + 1))
+  fi
+  if [[ -z "$verified_on" ]]; then
+    echo "  ❌ verdict: missing verified-on: line"
+    fails=$((fails + 1))
+  fi
+
+  local id kind payload ticked vline
+  while IFS='|' read -r id kind payload ticked; do
+    [[ "$kind" == "legacy" || -z "$id" ]] && continue
+    vline=$(echo "$vsec" | grep -m1 "^$id:" || true)
+    if [[ -z "$vline" ]]; then
+      echo "  ❌ verdict: $id has no verdict line"
+      fails=$((fails + 1))
+    elif ! echo "$vline" | grep -qE "^$id:[ ]*pass"; then
+      echo "  ❌ verdict: $vline"
+      fails=$((fails + 1))
+    fi
+  done < <(extract_acs "$gfile")
+
+  [[ "$fails" -gt 0 ]] && return 1
+  echo "  ✅ verdict: all ACs pass — verified-by: $verified_by ($verified_on)"
+  return 0
+}
+
+# ─── codepress check ──────────────────────────────────────────────────────────
+
+# codepress check <galley> — run the galley's verify: gates fresh, then
+# evaluate every bound AC: test: refs via the test-runner: template (or the
+# full test gate, with a warning), check: commands (exit 0 = pass), manual:
+# lines must not be ticked. Legacy unbound lines warn only.
+# Exit non-zero iff a gate or a bound AC fails.
+cmd_check() {
   local name="${1:-}"
-  local target="${2:-}"
+  if [[ -z "$name" ]]; then
+    echo "✗ Usage: codepress check <galley>"
+    exit 1
+  fi
+  local gfile=".codepress/product/galleys/$name/galley.md"
+  if [[ ! -f "$gfile" ]]; then
+    echo "✗ Galley '$name' not found at $gfile"
+    exit 1
+  fi
+
+  local fails=0 warns=0
+  echo "codepress check — $name"
+
+  # ── 1. verify: gates, run fresh from codepress.md ──
+  local gate_list gate gate_cmd gate_out gate_rc
+  gate_list=$(awk 'NR == 1 && /^---/ { fm = 1; next } fm && /^---/ { exit } fm' "$gfile" \
+    | grep -m1 '^verify:' | sed 's/^verify:[ ]*//' | tr -d '[]' | tr ',' ' ' || true)
+  gate_list=$(echo "$gate_list" | xargs 2>/dev/null || true)
+  echo ""
+  if [[ -n "$gate_list" ]]; then
+    echo "Gates (verify: [$gate_list]):"
+    for gate in $gate_list; do
+      gate_cmd=$(get_gate_command "$gate")
+      if [[ -z "$gate_cmd" ]]; then
+        echo "  ⚠️  $gate — no command defined in $(resolve_config)"
+        warns=$((warns + 1))
+        continue
+      fi
+      set +e
+      gate_out=$(bash -c "$gate_cmd" 2>&1)
+      gate_rc=$?
+      set -e
+      if [[ "$gate_rc" -eq 0 ]]; then
+        echo "  ✅ $gate — $gate_cmd"
+      else
+        echo "  ❌ $gate — $gate_cmd (exit $gate_rc)"
+        echo "$gate_out" | tail -5 | sed 's/^/       /'
+        fails=$((fails + 1))
+      fi
+    done
+  else
+    echo "Gates: (none declared in galley frontmatter)"
+  fi
+
+  # ── 2. acceptance criteria ──
+  echo ""
+  echo "Acceptance criteria:"
+  local runner ac_total=0
+  runner=$(get_test_runner)
+  local fallback_rc="" fallback_warned=0
+  # cache: identical runner commands execute once (bash 3.2 — parallel arrays)
+  local _cc_cmds=() _cc_rcs=()
+
+  local id kind payload ticked
+  local tfile tname tcmd tout trc cout crc i cached_rc tgate
+  while IFS='|' read -r id kind payload ticked; do
+    ac_total=$((ac_total + 1))
+    case "$kind" in
+      test)
+        tfile="${payload%%::*}"
+        tname=""
+        [[ "$payload" == *::* ]] && tname="${payload##*::}"
+        if [[ ! -f "$tfile" ]]; then
+          echo "  ❌ $id · test: $payload — file not found: $tfile"
+          fails=$((fails + 1))
+          continue
+        fi
+        if [[ -n "$tname" ]] && ! grep -q "$tname" "$tfile"; then
+          echo "  ❌ $id · test: $payload — '$tname' not found in $tfile"
+          fails=$((fails + 1))
+          continue
+        fi
+        if [[ -n "$runner" ]]; then
+          tcmd="$runner"
+          tcmd="${tcmd//\{ref\}/$payload}"
+          tcmd="${tcmd//\{file\}/$tfile}"
+          tcmd="${tcmd//\{name\}/$tname}"
+          cached_rc=""
+          for ((i = 0; i < ${#_cc_cmds[@]}; i++)); do
+            [[ "${_cc_cmds[$i]}" == "$tcmd" ]] && cached_rc="${_cc_rcs[$i]}" && break
+          done
+          if [[ -n "$cached_rc" ]]; then
+            trc="$cached_rc"
+            tout="(cached — '$tcmd' already ran)"
+          else
+            set +e
+            tout=$(bash -c "$tcmd" 2>&1)
+            trc=$?
+            set -e
+            _cc_cmds+=("$tcmd")
+            _cc_rcs+=("$trc")
+          fi
+          if [[ "$trc" -eq 0 ]]; then
+            echo "  ✅ $id · test: $payload"
+          else
+            echo "  ❌ $id · test: $payload — '$tcmd' exit $trc"
+            echo "$tout" | tail -5 | sed 's/^/       /'
+            fails=$((fails + 1))
+          fi
+        else
+          if [[ "$fallback_warned" -eq 0 ]]; then
+            echo "  ⚠️  no test-runner: template in $(resolve_config) — running the full 'test' gate once; per-AC attribution unavailable"
+            warns=$((warns + 1))
+            fallback_warned=1
+          fi
+          if [[ -z "$fallback_rc" ]]; then
+            tgate=$(get_gate_command test)
+            if [[ -z "$tgate" ]]; then
+              fallback_rc=127
+            else
+              set +e
+              bash -c "$tgate" > /dev/null 2>&1
+              fallback_rc=$?
+              set -e
+            fi
+          fi
+          if [[ "$fallback_rc" -eq 127 ]]; then
+            echo "  ❌ $id · test: $payload — no test-runner: and no 'test' gate defined; cannot evaluate"
+            fails=$((fails + 1))
+          elif [[ "$fallback_rc" -eq 0 ]]; then
+            echo "  ✅ $id · test: $payload (via full test gate)"
+          else
+            echo "  ❌ $id · test: $payload — full test gate failed (exit $fallback_rc)"
+            fails=$((fails + 1))
+          fi
+        fi
+        ;;
+      check)
+        set +e
+        cout=$(bash -c "$payload" 2>&1)
+        crc=$?
+        set -e
+        if [[ "$crc" -eq 0 ]]; then
+          echo "  ✅ $id · check: $payload"
+        else
+          echo "  ❌ $id · check: $payload (exit $crc)"
+          echo "$cout" | tail -5 | sed 's/^/       /'
+          fails=$((fails + 1))
+        fi
+        ;;
+      manual)
+        if [[ "$ticked" == "1" ]]; then
+          echo "  ❌ $id · manual: $payload — ticked [x]: manual steps are never ticked by agents."
+          echo "       Untick it; a human attests it in the Verdict, or moves with --force."
+          fails=$((fails + 1))
+        else
+          echo "  ⚠️  $id · manual: $payload — requires human verification (not machine-evaluated)"
+          warns=$((warns + 1))
+        fi
+        ;;
+      *)
+        echo "  ⚠️  (legacy) unbound AC — warns only, not machine-evaluated: $payload"
+        warns=$((warns + 1))
+        ;;
+    esac
+  done < <(extract_acs "$gfile")
+
+  if [[ "$ac_total" -eq 0 ]]; then
+    echo "  ⚠️  no acceptance criteria found in $gfile"
+    warns=$((warns + 1))
+  fi
+
+  echo ""
+  if [[ "$fails" -gt 0 ]]; then
+    echo "Result: ❌ FAIL — $fails failing, $warns warning(s)"
+    return 1
+  fi
+  echo "Result: ✅ PASS — $ac_total criteria evaluated, $warns warning(s)"
+  return 0
+}
+
+cmd_galley_move() {
+  local name="" target="" force=false reason=""
   local valid_statuses="shaping approved delivering review done"
 
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --force) force=true; shift ;;
+      --reason)
+        if [[ $# -ge 2 ]]; then reason="$2"; shift 2; else shift; fi
+        ;;
+      *)
+        if [[ -z "$name" ]]; then name="$1"
+        elif [[ -z "$target" ]]; then target="$1"
+        else echo "✗ Unexpected argument: $1"; exit 1
+        fi
+        shift ;;
+    esac
+  done
+
   if [[ -z "$name" || -z "$target" ]]; then
-    echo "✗ Usage: codepress galley move <name> <status>"
+    echo "✗ Usage: codepress galley move <name> <status> [--force] [--reason <text>]"
     echo "  Status: shaping | approved | delivering | review | done"
     exit 1
   fi
@@ -1077,9 +1441,59 @@ cmd_galley_move() {
   fi
 
   local file=".codepress/product/galleys/$name/galley.md"
+  local rfile=".codepress/product/galleys/$name/review.md"
   if [[ ! -f "$file" ]]; then
     echo "✗ Galley '$name' not found at $file"
     exit 1
+  fi
+
+  local from
+  from=$(grep -m1 "^status:" "$file" 2>/dev/null | sed 's/status: *//' || echo "?")
+
+  # ── Gates: → review and → done are guarded; earlier statuses are not ──
+  if [[ "$force" != true && ( "$target" == "review" || "$target" == "done" ) ]]; then
+    local check_out check_rc
+    set +e
+    check_out=$(cmd_check "$name" 2>&1)
+    check_rc=$?
+    set -e
+    if [[ "$check_rc" -ne 0 ]]; then
+      echo "✗ Move to [$target] refused — 'codepress check $name' fails:"
+      echo ""
+      echo "$check_out" | sed 's/^/  /'
+      echo ""
+      echo "  Fix the failing criteria, or override with --force (records a waiver in review.md)."
+      exit 1
+    fi
+    if [[ "$target" == "review" ]] && ! has_signals "$rfile"; then
+      echo "✗ Move to [review] refused — ## Signals in $rfile is empty."
+      echo "  A galley with zero signals learned nothing. Capture observations first, or --force."
+      exit 1
+    fi
+    if [[ "$target" == "done" ]]; then
+      local verdict_out verdict_rc
+      set +e
+      verdict_out=$(check_verdict "$name" 2>&1)
+      verdict_rc=$?
+      set -e
+      if [[ "$verdict_rc" -ne 0 ]]; then
+        echo "✗ Move to [done] refused — verdict gate fails:"
+        echo "$verdict_out"
+        echo "  An independent verifier (≠ engines.build) must complete ## Verdict in review.md"
+        echo "  (see skills/verify.md), or override with --force (records a waiver)."
+        exit 1
+      fi
+    fi
+  fi
+
+  # --force on a gated transition leaves a dated waiver trace in review.md
+  if [[ "$force" == true && ( "$target" == "review" || "$target" == "done" ) ]]; then
+    [[ -f "$rfile" ]] || echo "# Review: $name" > "$rfile"
+    {
+      echo ""
+      echo "> waived: $(date +%Y-%m-%d) ${from}→${target} by human — ${reason:-unstated}"
+    } >> "$rfile"
+    echo "⚠ Gates bypassed with --force — waiver recorded in $rfile"
   fi
 
   if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -1113,6 +1527,8 @@ case "${1:-}" in
   run) shift; cmd_run "$@" ;;
   watch) shift; cmd_watch "$@" ;;
   galley) shift; cmd_galley "$@" ;;
+  check) shift; cmd_check "$@" ;;
+  __extract-acs) shift; extract_acs "$@" ;;  # internal plumbing (used by tests)
   -h|--help|"") usage ;;
   *) echo "Unknown: $1"; usage; exit 1 ;;
 esac
