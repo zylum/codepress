@@ -1438,7 +1438,7 @@ def cmd_migrate(args):
 
 def mapping_table(schema):
     out = ["| Kind | Legacy value | Becomes | Also | Note |", "|---|---|---|---|---|"]
-    for kind in ("galley", "slug"):
+    for kind in ("galley", "slug", "autonomy"):
         for old, e in schema.legacy_map(kind).items():
             also = []
             if e.get("implies_approved"):

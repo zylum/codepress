@@ -208,6 +208,18 @@ codepress status --json --galleys
 
 One row per galley: canonical `status`, `raw_status`, slug counts, acceptance counts, `last_activity` (commits that name the galley count), `days_since_activity`, `stalled`, `next_action`, **`needs`** (`human` | `agent` | `verifier` | `none`), and `blocked_by` (the unmet gates of the next transition).
 
+## Adopting this on an existing project
+
+```bash
+codepress upgrade --dry-run   # which of your local edits to system files would be replaced
+codepress upgrade             # in git, so you can review and revert
+codepress migrate-status      # plan; review the judgment calls
+codepress migrate-status --apply   # writes, then lists what still fails lint
+codepress hook install       # safe now: the hook lints only galleys a commit touches
+```
+
+Expect two kinds of leftovers. Housekeeping the schema relaxes for (slugs without `id` or `galley`, closed slugs without Evidence) shows up as warnings. Real gaps — a `building` galley whose shape was never written, a `verifying` galley with no acceptance criteria — stay errors in the full lint until someone finishes, parks or kills the galley; that list is the triage backlog. Trialled on a copy of a 120-galley project: 254 files migrated mechanically, 134 errors before relaxing the schema, 19 real findings after.
+
 ## Migrating older statuses
 
 `codepress upgrade --dry-run` first shows which of your local edits to system files an upgrade would replace (do it in git so you can review and revert). `codepress upgrade` never overwrites `codepress.md`; it moves the version marker.
@@ -243,5 +255,8 @@ One row per galley: canonical `status`, `raw_status`, slug counts, acceptance co
 | slug | `cancelled` | `dropped` |  |  |
 | slug | `killed` | `dropped` |  |  |
 | slug | `archived` | `dropped` | **judgment call** | Shelved. Record why in plan-changes.md. |
+| autonomy | `autonomous` | `continuous` |  | Runs without checking in. |
+| autonomy | `auto` | `continuous` |  |  |
+| autonomy | `manual` | `confirm` | **judgment call** | A human is in the loop between slugs. |
 
 `approved` and `ready` become `shaped` plus `approved_by: legacy`. Terminal values are marked `legacy: true` unless they already satisfy every gate. Nothing else in the file is touched.
