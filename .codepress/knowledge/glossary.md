@@ -19,6 +19,13 @@ Terminology used in this codebase that might be unclear.
 | slug | An atomic delivery unit. Has an acceptance checklist, autonomy level, and a Signals block. |
 | initiative | A free-form idea or problem worth exploring. The input to the shaping process. |
 | autonomy level | The degree of independence a slug executor has: continuous (run to completion), confirm (check with human between slugs), stop (halt and wait). |
+| gate | A requirement attached to a lifecycle transition, defined as data in `schema/lifecycle.yaml`. Static gates are decided from files (`codepress lint`); dynamic gates run something (`codepress check`). |
+| drift | Work that landed in git while the files do not admit it — e.g. a `slug:<x> done` commit whose acceptance boxes are unticked. Surfaced by `codepress lint`. |
+| waiver | A recorded, dated human override of a gate (`galley move --force --reason`). Lint treats waived failures as warnings. |
+| legacy galley | A terminal galley that predates the schema (`legacy: true`); not gated retroactively. |
+| retired status | A status value from before the lifecycle schema (shaping, delivering, review, ...). Lint rejects it; `migrate-status` maps it. |
+| plan-change log | `plan-changes.md` per galley: what the plan said, what changed on contact with reality, and why. |
+| structured signal | A signal written as a machine-readable record (`failure_class`, `caught_by`, `should_have_been_caught_by`, `action`, `status`). |
 | compound loop | Signal → Pattern → Knowledge — the mechanism by which CodePress continuously improves. |
 | outbox | The `.codepress/loop-events/` directory where signal_published and failure_logged event envelopes are written in JSONL format. |
 | decoupling invariant | The rule that loop fabric files must name only CodePress, never a consumer system. |

@@ -11,7 +11,8 @@ Every Galley must leave the system smarter. Shipping without review is debt.
 ---
 
 ## When to use
-When all Slugs in a Galley are complete and verification gates pass.
+When all Slugs in a Galley are settled (`closed` or `dropped`), the Galley is `verifying`, and
+verification gates pass.
 
 ---
 
@@ -127,10 +128,22 @@ Append to `.codepress/loop-events/{YYYY-MM-DD}.jsonl`:
 
 For failure signals found, also emit `failure_logged` envelopes.
 
-### 8. Close
+### 8. Evidence and `learned.md`
 
-- Update Galley `status: done`
-- Update `.codepress/views/galley-board.md`
+- Fill `## Evidence` in `review.md` with the proof: commits, test runs, links — what you observed, not what
+  you intended. (`done` requires it.)
+- Write `learned.md` from `templates/learned.md`: what worked, what surprised us, what we would change, and the
+  signals with what became of each. (`done` requires it.)
+- Turn each failure Signal into a structured record (`templates/signal.md`, `knowledge/signals/`): name its
+  `failure_class`, what caught it, what **should** have caught it, and the `action` — a new gate, a pattern, or an
+  accepted risk. A pattern that is not a gate does not stop the failure.
+
+### 9. Close
+
+- The verifier engine writes `## Verdict` (see `skills/verify.md`) — never the builder.
+- `codepress galley move {name} done` — gates: `evidence`, `independent_review`, `learned_md`, `ac_check`.
+  Do not edit the status by hand; the move is where the gates run.
+- `codepress lint` passes
 - Commit: `galley:{name} done`
 
 ---
@@ -140,6 +153,9 @@ For failure signals found, also emit `failure_logged` envelopes.
 ```markdown
 ## Signals
 - [raw observations aggregated from Slug Signals blocks]
+
+## Evidence
+- [commits, test runs, links — the proof]
 
 ## Surprises
 - [what didn't match expectations]

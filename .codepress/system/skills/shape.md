@@ -28,7 +28,7 @@ When an Initiative has been reviewed and is worth building.
    - Does it assume capabilities that do not exist yet?
    - Are new domain concepts introduced that should be added to `knowledge/concepts.md`?
 7. Create folder: `.codepress/product/galleys/{galley-id}/`
-8. Save as `.codepress/product/galleys/{galley-id}/galley.md` with `status: shaping`
+8. Save as `.codepress/product/galleys/{galley-id}/galley.md` with `status: proposed` (`codepress galley new <name>` scaffolds it)
 9. Add to `.codepress/views/galley-board.md` under Shaping
 
 ---
@@ -52,10 +52,11 @@ Choosing the kind:
 ---
 
 ## Output
-`galley.md` with `status: shaping`
+`galley.md` with `status: proposed`. When Problem, Success, Approach and Acceptance Criteria are all written:
+`codepress galley move <galley> shaped` (the `shape_complete` gate checks the sections exist).
 
-Human reviews and approves → status moves to `approved`
-Then run `skills/split.md`
+Then run `skills/split.md`. A human approves the shape with `codepress galley approve <galley>` —
+approval is a gate on `shaped → building`, not a status of its own.
 
 ---
 

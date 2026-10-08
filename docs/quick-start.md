@@ -14,6 +14,7 @@ title: Quick Start
   <a href="index.html">Home</a>
   <a class="primary-nav" href="quick-start.html">Quick Start</a>
   <a href="structure.html">Structure</a>
+  <a href="lifecycle.html">Lifecycle</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 

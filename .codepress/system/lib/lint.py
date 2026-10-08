@@ -450,7 +450,13 @@ class Project(object):
         return None
 
     def engine(self, stage):
-        """engines.<stage> from codepress.md (default 'claude', as the CLI does)."""
+        """engines.<stage> from codepress.md.
+
+        When the block is missing the CLI's documented default applies; the CLI
+        passes it in CODEPRESS_DEFAULT_ENGINE so there is one definition of it.
+        Run standalone, an unset engine is "" — independence can then only be
+        judged by the verdict naming *someone*.
+        """
         p = self.config_path()
         if p:
             inside = False
@@ -470,7 +476,7 @@ class Project(object):
                                     return val
             except OSError:
                 pass
-        return "claude"
+        return os.environ.get("CODEPRESS_DEFAULT_ENGINE", "")
 
     def galley_by_name(self, name):
         for g in self.galleys:
@@ -572,7 +578,7 @@ def _verdict_problems(project, g):
     build = project.engine("build")
     if not by or not by.group(1):
         problems.append("Verdict is missing verified-by:")
-    elif by.group(1) == build:
+    elif build and by.group(1) == build:
         problems.append("verified-by '%s' equals engines.build — the builder cannot verdict its own work" % build)
     if not on or not on.group(1):
         problems.append("Verdict is missing verified-on:")

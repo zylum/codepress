@@ -8,11 +8,12 @@ Global standards that apply to every Galley unless explicitly overridden.
 
 1. **Acceptance criteria met** — Every criterion in the Galley has corresponding evidence that exercises the real path (no mock-theatre). Every criterion carries a `test:`, `check:`, or `manual:` binding on its own line (grammar in `templates/galley.md`); `codepress check <galley>` evaluates the bindings mechanically
 2. **Verification passes** — All defined verification gates pass (lint, typecheck, test)
-3. **Review completed** — Independent review approved the work
-4. **Knowledge updated** — Signals captured, Patterns promoted where warranted
+3. **Review completed** — Independent review approved the work (a `## Verdict` by a verifier other than the builder)
+4. **Knowledge updated** — Signals captured, Patterns promoted where warranted; `## Evidence` cited in review.md; `learned.md` written
 5. **Wired end-to-end** — Every new function, tool, or route has a caller; grepped and confirmed
-6. **Set status to `review`, not `done`** — The builder sets `status: review`; an independent reviewer promotes to `done` or flips to `rework`
-7. **Ready for merge** — Code is ready to ship
+6. **Set status to `verifying`, not `done`** — The builder moves the Galley to `verifying`; an independent verifier writes the Verdict, and only then does it move to `done` — or back to `building` with a plan-change entry
+7. **Lint passes** — `codepress lint` is clean (`schema/lifecycle.yaml` is the source of truth for the gates)
+8. **Ready for merge** — Code is ready to ship
 
 ### Hard lines (CLI-enforced)
 

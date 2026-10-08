@@ -14,6 +14,7 @@ title: Structure
   <a href="index.html">Home</a>
   <a href="quick-start.html">Quick Start</a>
   <a class="primary-nav" href="structure.html">Structure</a>
+  <a href="lifecycle.html">Lifecycle</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 
@@ -32,7 +33,9 @@ The operating system — how work happens.
 | `.codepress/system/codepress.md` | Project name, release theme, working conventions, reading order |
 | `.codepress/system/AGENTS.md` | Agent operating manual — reading order, rules, autonomy levels |
 | `.codepress/system/skills/` | 10 AI-executable skills: shape, split, build, review, verify, release, bootstrap, status, signal, parallel-run |
-| `.codepress/system/templates/` | Artefact templates: initiative, galley, slug, release, pattern, decision |
+| `.codepress/system/schema/` | The lifecycle as data: statuses, transitions, gates, legacy mapping, field schemas |
+| `.codepress/system/lib/` | `codepress lint` — standard-library Python, no install step |
+| `.codepress/system/templates/` | Artefact templates: initiative, galley, slug, review, learned, plan-changes, signal, release, pattern, decision |
 | `.codepress/system/hooks/` | Automation triggers: on-galley-complete, on-release, on-pattern |
 
 ### Product (`.codepress/product/`)
@@ -46,7 +49,9 @@ The product factory — what we build.
 | `.codepress/product/galleys/{name}/galley.md` | The shaped solution artefact |
 | `.codepress/product/galleys/{name}/run-sheet.md` | Execution plan — slug order, parallel options |
 | `.codepress/product/galleys/{name}/slugs/` | Atomic delivery units |
-| `.codepress/product/galleys/{name}/review.md` | Learning capture at galley-close |
+| `.codepress/product/galleys/{name}/review.md` | Learning capture at galley-close — Signals, Evidence, Verdict |
+| `.codepress/product/galleys/{name}/learned.md` | What the galley taught us (required for `done`) |
+| `.codepress/product/galleys/{name}/plan-changes.md` | What the plan said, what changed, why |
 | `.codepress/product/releases/` | Release notes |
 
 ### Knowledge (`.codepress/knowledge/`)
@@ -114,11 +119,22 @@ Signals are captured during delivery, promoted to Patterns when validated, and u
 │   │   ├── status.md      # includes budget overrun detection
 │   │   ├── signal.md      # observation, failure, and cost signal types
 │   │   └── parallel-run.md
+│   ├── schema/            # the lifecycle as data
+│   │   ├── lifecycle.yaml # statuses, transitions, gates, legacy mapping
+│   │   ├── galley.schema.yaml
+│   │   ├── slug.schema.yaml
+│   │   └── signal.schema.yaml
+│   ├── lib/               # codepress lint (stdlib Python)
+│   │   ├── lint.py
+│   │   └── miniyaml.py
 │   ├── templates/
 │   │   ├── initiative.md
-│   │   ├── galley.md      # holdout + budget frontmatter
-│   │   ├── slug.md        # budget frontmatter
-│   │   ├── review.md      # includes Entropy + Cost sections
+│   │   ├── galley.md      # holdout + budget + approval frontmatter
+│   │   ├── slug.md        # budget + delivery-field frontmatter
+│   │   ├── review.md      # Signals, Evidence, Entropy, Cost, Verdict
+│   │   ├── learned.md     # required for done
+│   │   ├── plan-changes.md
+│   │   ├── signal.md      # structured signal record
 │   │   ├── release.md
 │   │   ├── pattern.md
 │   │   └── decision.md

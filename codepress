@@ -126,6 +126,15 @@ set_fm_field() {
   rm -f "$tmp"
 }
 
+# Rewrite the codepress-version marker line in a file (BSD/GNU sed safe).
+set_marker() {
+  local file="$1" ver="$2" tmp
+  tmp=$(mktemp)
+  awk -v v="$ver" '/^codepress-version:/ && !done { print "codepress-version: " v; done = 1; next } { print }' "$file" > "$tmp" \
+    && cat "$tmp" > "$file"
+  rm -f "$tmp"
+}
+
 # Value of a frontmatter key ("" when absent).
 get_fm_field() {
   local file="$1" key="$2"
@@ -404,6 +413,9 @@ cmd_upgrade() {
     local source="$tmp/repo/$f"
     if [[ ! -f "$target" ]]; then
       to_add+=("$f")
+    elif [[ "$f" == ".codepress/system/codepress.md" ]]; then
+      # Project-owned configuration: never overwritten, only its version marker moves.
+      continue
     elif ! diff -q "$target" "$source" &>/dev/null; then
       if [[ "$f" == *templates/* ]]; then
         to_merge+=("$f")
@@ -425,8 +437,7 @@ cmd_upgrade() {
   fi
 
   if [[ ${#to_add[@]} -eq 0 && ${#to_update[@]} -eq 0 && ${#to_merge[@]} -eq 0 ]]; then
-    echo "  (nothing to change)"
-    return
+    echo "  (no files to change — only the version marker moves)"
   fi
 
   # ── Phase 2: Apply ──
@@ -477,9 +488,23 @@ cmd_upgrade() {
     done < <(find "$sys_templates_dir" -type f)
   fi
 
+  # One source of truth: the marker lives in codepress.md. Bump it there — and
+  # in any leftover config file that still carries one, so they cannot disagree.
+  local mf
+  for mf in .codepress/system/*.md; do
+    [[ -f "$mf" ]] || continue
+    if grep -q '^codepress-version:' "$mf" 2>/dev/null; then
+      set_marker "$mf" "$latest"
+    fi
+  done
+
   echo ""
   echo "✓ Upgraded from v$current to v$latest."
   echo "  $copied file(s) copied, $merged template(s) frontmatter-merged."
+  echo "  Run 'codepress lint' to check the project against the new lifecycle."
+  if grep -lq '^[[:space:]]*status: *\(shaping\|approved\|delivering\|review\)' .codepress/product/galleys/*/galley.md 2>/dev/null; then
+    echo "  Some galleys still use retired statuses — 'codepress migrate-status' plans the move."
+  fi
 }
 
 # ─── Migrate ──────────────────────────────────────────────────────────────────
@@ -1282,7 +1307,10 @@ get_gate_command() {
 }
 
 # Engine assigned to <stage> in the "engines:" block of codepress.md.
-# Defaults to "claude" (documented default when the block is missing).
+# Defaults to DEFAULT_ENGINE (documented default when the block is missing);
+# lint.py receives the same default through the environment.
+DEFAULT_ENGINE="claude"
+export CODEPRESS_DEFAULT_ENGINE="$DEFAULT_ENGINE"
 get_engine() {
   local stage="$1" cfg engine=""
   cfg=$(resolve_config)
@@ -1299,7 +1327,7 @@ get_engine() {
       }
     ' "$cfg")
   fi
-  echo "${engine:-claude}"
+  echo "${engine:-$DEFAULT_ENGINE}"
 }
 
 # Optional "test-runner:" template from codepress.md — how `codepress check`

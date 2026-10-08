@@ -14,6 +14,7 @@ title: Hermes Integration
   <a href="index.html">Home</a>
   <a href="modes-of-use.html">Modes of Use</a>
   <a href="structure.html">Structure</a>
+  <a href="lifecycle.html">Lifecycle</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 

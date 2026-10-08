@@ -20,7 +20,7 @@ If you are the verifier: read only the Galley spec, acceptance criteria, and the
 
 ## When to use
 
-Before advancing `delivering → review` or `review → done`.
+Before advancing `building → verifying` or `verifying → done`.
 Also run when any Slug completes to catch regressions early.
 
 ---

@@ -14,6 +14,7 @@ title: Quick Reference
   <a href="index.html">Home</a>
   <a href="quick-start.html">Quick Start</a>
   <a href="structure.html">Structure</a>
+  <a href="lifecycle.html">Lifecycle</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 
@@ -57,9 +58,15 @@ codepress status            # Show delivery board + pending actions
 codepress status --json     # Machine-readable pending actions (pipe-delimited)
 codepress run               # Dispatch next pending action
 codepress run --all         # Dispatch all pending actions in sequence
-codepress galley new        # Create a new galley
+codepress galley new        # Create a new galley (starts at proposed)
 codepress galley list       # List all galleys
-codepress galley move       # Move galley to a new status
+codepress galley approve    # Record human approval of a shaped galley
+codepress galley move       # Move a galley along the lifecycle (gates run here)
+codepress check <galley>    # Run verify gates + every bound acceptance criterion
+codepress lint              # Statuses, transitions, gates, drift, version marker
+codepress hook install      # Pre-commit: lint + verify gates (no --no-verify needed)
+codepress migrate-status    # Plan moving older statuses onto the lifecycle
+codepress version           # CLI version + this project's marker
 ```
 
 ### `codepress status`
@@ -68,14 +75,16 @@ Shows the current project state: galley list with statuses, knowledge counts, an
 
 Use `--json` to get machine-readable output (one action per line, pipe-delimited as `action|target|description`) for scripting or watch-mode automation.
 
+Use `--json --galleys` for per-galley state (one JSON document): canonical `status`, slug and acceptance counts, `last_activity` (commits that name the galley count), `stalled`, `next_action`, who it `needs` (`human` | `agent` | `verifier`), and `blocked_by`. See [Lifecycle](lifecycle.html).
+
 ```
 CodePress status
 
-  Version:  v0.2.0
+  Version:  v0.4.1
 
   Initiatives:  1
   Galleys:
-    my-feature  [delivering]
+    my-feature  [building]
   Releases:  0
 
   Knowledge:  2 patterns  |  4 signals  |  1 decisions
@@ -121,11 +130,14 @@ The `verifier` engine is intentionally separate from `build`. The verifier recei
 
 | Status | Meaning |
 |---|---|
-| shaping | Being defined |
-| approved | Ready for execution |
-| delivering | Slugs in progress |
-| review | All slugs done, learning capture |
-| done | Complete |
+| proposed | An idea worth shaping; no contract yet |
+| shaped | Contract written; split into slugs; awaiting approval |
+| building | Approved; slugs in progress |
+| verifying | All slugs settled; an independent verifier is judging |
+| done | Verified, evidenced, learned from (terminal) |
+| killed / superseded | Stopped on purpose (terminal) |
+
+Approval is a gate on `shaped → building` (`codepress galley approve`), not a status. Transitions and their gates are data in `.codepress/system/schema/lifecycle.yaml` — see [Lifecycle](lifecycle.html).
 
 ## Core workflow
 

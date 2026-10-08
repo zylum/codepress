@@ -47,9 +47,9 @@ default-autonomy: continuous
 
 ### Human approval gates
 <!-- Which transitions require explicit human sign-off? -->
-- [ ] Galley: shaping → approved
-- [ ] Galley: delivering → review
-- [ ] Galley: review → done
+- [ ] Galley: shaped → building (approval — `codepress galley approve`)
+- [ ] Galley: building → verifying
+- [ ] Galley: verifying → done
 
 ### Testing expectations
 <!-- What does "done" require? -->
@@ -174,9 +174,9 @@ pace: balanced
 default-autonomy: confirm
 
 Human approval gates:
-- [x] Galley: shaping → approved
-- [ ] Galley: delivering → review
-- [x] Galley: review → done
+- [x] Galley: shaped → building (approval)
+- [ ] Galley: building → verifying
+- [x] Galley: verifying → done
 
 Testing expectations:
 - Unit tests required for all business logic

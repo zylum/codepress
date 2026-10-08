@@ -31,6 +31,15 @@ Quick-capture an observation mid-session without running a full review.
 
 ---
 
+## Structured signal record
+
+When a signal should be counted and acted on — not just remembered — write it as a record: copy
+`templates/signal.md` to `knowledge/signals/YYYY-MM-DD-<name>.md`. One record per signal, with `failure_class`,
+`caught_by`, `should_have_been_caught_by`, `action` (`new-gate` | `pattern` | `accepted-risk`) and `status`.
+`codepress lint` validates the shape. See `docs/lifecycle.md`.
+
+---
+
 ## Failure signal
 
 When capturing a failure — a gate that didn't pass, an assumption that broke, a rework incident — use the structured failure format instead. Create a file in `knowledge/signals/` or append to `review.md`:

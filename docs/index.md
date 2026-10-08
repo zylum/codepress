@@ -14,6 +14,7 @@ title: CodePress
   <a class="primary-nav" href="index.html">Home</a>
   <a href="quick-start.html">Quick Start</a>
   <a href="structure.html">Structure</a>
+  <a href="lifecycle.html">Lifecycle</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 
