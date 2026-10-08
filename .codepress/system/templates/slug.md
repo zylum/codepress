@@ -1,8 +1,13 @@
 ---
 id: 
-status: open
+status: open            # open | building | closed | dropped
 galley: 
-autonomy: continuous
+autonomy: continuous    # continuous | confirm | stop
+domain:                 # optional: defaults to the galley's domain
+tier: build             # plan | build | mechanical
+risk: medium            # low | medium | high
+needs_review: false     # an independent review of this slug before it closes
+escalate_after: 2       # failed attempts before handing up a tier
 budget:
   wall-clock:       # expected duration e.g. 2h
   tokens:           # expected tokens e.g. 5000 — feeds cost-check verify gate

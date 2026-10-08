@@ -1,0 +1,71 @@
+# Structured signal record — read by `codepress lint`.
+#
+# A signal is one observation about how the work went wrong or right, written so
+# a machine can group it and a human can act on it. One record per file in
+# .codepress/knowledge/signals/, named YYYY-MM-DD-<short-name>.md, with this
+# frontmatter and a free-text body. `record: signal` marks the file as a
+# structured record; other files in that directory (prose notes) are left alone.
+#
+# Same field-spec keys as galley.schema.yaml. `rules:` adds cross-field checks.
+
+fields:
+  record:
+    type: enum
+    values: [signal]
+    required: true
+    summary: Marks the file as a structured signal record.
+  id:
+    type: string
+    required: true
+    summary: Unique id, e.g. sig-2026-10-08-a.
+  created:
+    type: date
+    required: true
+  galley:
+    type: string
+    summary: The galley the signal came from, if any.
+  slug:
+    type: string
+    summary: The slug the signal came from, if any.
+  failure_class:
+    type: string
+    required: true
+    summary: >
+      Kebab-case class so recurrences can be counted, e.g. silent-failure,
+      stale-state, duplicate, timezone, format-drift, regression.
+  caught_by:
+    type: string
+    required: true
+    summary: >
+      What noticed it: lint | test | typecheck | review | verifier | human |
+      monitoring | none.
+  should_have_been_caught_by:
+    type: string
+    required: true
+    summary: >
+      The gate that ought to have caught it earlier. A real gate name, or
+      `none` when no gate could have, or `unknown`.
+  action:
+    type: enum
+    values: [new-gate, pattern, accepted-risk]
+    required: true
+    summary: >
+      What the signal turns into. new-gate = a mechanical check; pattern = a
+      lesson written into knowledge/patterns; accepted-risk = knowingly not acted on.
+  status:
+    type: enum
+    values: [open, resolved, dropped]
+    required: true
+    summary: open until the action has landed.
+  resolved_by:
+    type: string
+    required_when:
+      status: [resolved]
+    summary: The gate, pattern or commit that resolved it.
+  risk_note:
+    type: string
+    summary: Required when action is accepted-risk — why it is acceptable.
+
+rules:
+  - when: {action: accepted-risk}
+    require: [risk_note]

@@ -9,6 +9,10 @@
 ## Pattern candidates
 <!-- Signals seen in 2+ galleys, or immediately generalizable. Agent drafts; human approves. -->
 
+## Evidence
+<!-- Proof the galley is done: commits, test runs, links. Required to reach `done`.
+     Cite what you observed, not what you intended. -->
+
 ## Knowledge updates
 <!-- What changed: concepts.md, glossary.md, current-state.md, decisions/. One line each. -->
 

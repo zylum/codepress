@@ -1,11 +1,14 @@
 ---
 id: 
-status: shaping
+status: proposed        # proposed | shaped | building | verifying | done | killed | superseded
 initiative: 
 release: 
+domain:                 # optional: the area of the work; slugs inherit it
 created: 
 verify: 
 holdout: false
+approved_by:            # set by `codepress galley approve` — required to start building
+approved_on:
 budget:
   wall-clock:       # expected duration e.g. 2d — optional, for planning
   tokens:           # expected total tokens e.g. 25000 — required for cost-check gate

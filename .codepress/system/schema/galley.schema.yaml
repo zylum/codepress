@@ -1,0 +1,73 @@
+# Galley frontmatter schema — read by `codepress lint`.
+#
+# A galley is any bounded task with a contract, gates and run records. Fields
+# not listed here are allowed and ignored (projects add their own, e.g. `related`).
+#
+# Field spec keys:
+#   type:           string | int | bool | date | list | map | enum
+#   values:         allowed values (type enum)
+#   values_from:    take enum values from lifecycle.yaml (e.g. galley.statuses)
+#   required:       true => must be present and non-empty
+#   required_when:  { field: [values] } => required when that field has one of them
+#   unless:         a bool field that, when true, waives `required_when`
+#   summary:        what it is for
+#
+# Requirements that depend on the lifecycle (approval, evidence, reasons) are
+# gates in lifecycle.yaml, not field rules — one place, one message.
+
+fields:
+  id:
+    type: string
+    required: true
+    summary: Stable identifier. Usually the directory name.
+  status:
+    type: enum
+    values_from: galley.statuses
+    required: true
+    summary: Lifecycle status (see lifecycle.yaml). Retired values are errors.
+  created:
+    type: date
+    required: true
+    summary: YYYY-MM-DD the galley was created.
+  initiative:
+    type: string
+    summary: The initiative this galley shapes, if any.
+  release:
+    type: string
+    summary: The release this galley ships in, if any.
+  domain:
+    type: string
+    summary: Default domain for its slugs (an area of the work, e.g. billing, docs).
+  verify:
+    type: list
+    summary: Names of verify gates (from codepress.md) that apply.
+  holdout:
+    type: bool
+    summary: A reviewer holds acceptance criteria the builder cannot see.
+  budget:
+    type: map
+    summary: "wall-clock, tokens, cost — planning figures."
+  approved_by:
+    type: string
+    summary: >
+      Who approved the shape. Set by `codepress galley approve`. Required from
+      building onward — enforced by the `approved` gate, not here.
+  approved_on:
+    type: date
+    summary: YYYY-MM-DD of the approval.
+  closed_reason:
+    type: string
+    summary: Why the galley was stopped. Required when killed (gate `reason`).
+  superseded_by:
+    type: string
+    summary: >
+      The galley that replaces this one. Required when superseded (gate
+      `superseded_by`).
+  legacy:
+    type: bool
+    summary: >
+      Predates the schema. Terminal gates (evidence, independent review,
+      learned.md) are not demanded retroactively; drift findings only warn.
+  legacy_status:
+    type: string
+    summary: The status value this galley carried before it was migrated.
