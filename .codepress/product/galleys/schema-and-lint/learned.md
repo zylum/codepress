@@ -13,3 +13,4 @@ Verdict parsing and AC parsing each exist in Bash and Python. A later slug shoul
 - knowledge/signals/2026-10-08-vacuous-shape-gate.md — new gate: shape_complete now requires real content
 - knowledge/signals/2026-10-08-marker-split-by-upgrade.md — new gate: lint V001, and upgrade moves only the marker
 - knowledge/signals/2026-10-08-parser-twins-diverge.md — new gate: ac_parity test
+- knowledge/signals/2026-10-09-bytecode-pollution.md — found by the independent verifier: lint now runs with -B and a test asserts it leaves nothing behind

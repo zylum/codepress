@@ -69,7 +69,8 @@ run_lint_py() {
     echo "✗ lint.py not found. Run 'codepress upgrade' to install .codepress/system/lib/." >&2
     return 2
   fi
-  python3 "$py" "$@"
+  # -B: never write bytecode into .codepress/system/lib of a user's project
+  python3 -B "$py" "$@"
 }
 
 # Status table (kind status canonical flags), loaded once per process.

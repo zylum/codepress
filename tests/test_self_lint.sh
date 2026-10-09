@@ -12,7 +12,7 @@ assert "the schema files are self-consistent" python3 "$LINT" check-schema
 
 # CodePress is public and tool-agnostic: the new machinery names no product,
 # model or project. (Claude/Codex specifics belong in system/adapters/.)
-leaks=$(grep -rniE 'loom|garner|hermes|codex|opencode|claude|gpt|openai' \
+leaks=$(grep -rniE --exclude-dir=__pycache__ 'loom|garner|hermes|codex|opencode|claude|gpt|openai' \
   "$REPO_ROOT/.codepress/system/lib" "$REPO_ROOT/.codepress/system/schema" \
   "$REPO_ROOT/.codepress/system/templates/learned.md" \
   "$REPO_ROOT/.codepress/system/templates/plan-changes.md" \

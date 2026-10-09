@@ -9,3 +9,7 @@ cli/docs
 # Generated
 dist/
 node_modules/
+
+# Python bytecode (lint runs with -B, but never commit it)
+__pycache__/
+*.pyc

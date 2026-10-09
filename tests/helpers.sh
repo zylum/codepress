@@ -2,6 +2,7 @@
 # Shared fixtures for the lifecycle / lint / hook suites (sourced, not run).
 # Older suites define their own copies and stay self-contained.
 
+export PYTHONDONTWRITEBYTECODE=1
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CODEPRESS="$REPO_ROOT/codepress"
 LINT="$REPO_ROOT/.codepress/system/lib/lint.py"

@@ -1,7 +1,7 @@
 ---
 # status: proposed | shaped | building | verifying | done | killed | superseded
 id: schema-and-lint
-status: verifying
+status: done
 initiative: 
 release: 
 domain:                 # optional: the area of the work; slugs inherit it

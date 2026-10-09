@@ -586,6 +586,13 @@ mk_galley "$d" messy building "created: 2026-10-03"
 lint_run "$d" --changed
 eq "touching the messy galley makes it answerable" "$RC" "1"
 
+# ── lint leaves nothing behind ────────────────────────────────────────────────
+
+rm -rf "$REPO_ROOT/.codepress/system/lib/__pycache__"
+d=$(mk_project); mk_galley "$d" alpha shaped
+(cd "$d" && env -u PYTHONDONTWRITEBYTECODE "$CODEPRESS" lint --base none >/dev/null 2>&1) || true
+assert "running lint writes no bytecode into the lib directory" test ! -e "$REPO_ROOT/.codepress/system/lib/__pycache__"
+
 # ── output modes ──────────────────────────────────────────────────────────────
 
 d=$(mk_project)

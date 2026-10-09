@@ -13,7 +13,6 @@ kanban-plugin: board
 
 ## Review
 
-- [ ] [[.codepress/product/galleys/schema-and-lint/galley|[name]]]
 
 ## Done
 
@@ -24,6 +23,7 @@ kanban-plugin: board
 - [x] [[.codepress/product/galleys/learning-loop/galley|Learning Loop]]
 - [x] [[.codepress/product/galleys/loop-interop-v1/galley|Loop Interop v1]]
 - [x] [[.codepress/product/galleys/parallel-execution/galley|Parallel Execution]]
+- [x] [[.codepress/product/galleys/schema-and-lint/galley|[name]]]
 
 %% kanban:settings
 ```

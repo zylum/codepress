@@ -14,8 +14,14 @@
 - `bash tests/test_walkthrough.sh` — init → shape → split → approve → build → verify → learn → done on a fresh project, lint clean at every step.
 
 ## Verdict
-<!-- Written by the VERIFIER engine only — never the builder.
-AC1: pass — <evidence>
-verified-by: <engine — must differ from engines.build>
-verified-on: <YYYY-MM-DD>
--->
+AC1: pass — `bash tests/test_lifecycle_schema.sh` exited 0 (codepress check confirmed ✅)
+AC2: pass — `bash tests/test_lint.sh` exited 0 (codepress check confirmed ✅)
+AC3: pass — `bash tests/test_galley_lifecycle.sh` exited 0 (codepress check confirmed ✅)
+AC4: pass — `bash tests/test_hook.sh` exited 0 (codepress check confirmed ✅)
+AC5: pass — `bash tests/test_version.sh` exited 0 (codepress check confirmed ✅)
+AC6: pass — `bash tests/test_status_json.sh` exited 0 (codepress check confirmed ✅)
+AC7: pass — `bash tests/test_migrate_status.sh` exited 0 (codepress check confirmed ✅)
+AC8: pass — `./codepress lint --base none --quiet` exited 0 (codepress check confirmed ✅)
+AC9: pass — `bash tests/run_tests.sh` exited 0; 560 passed, 0 failed; added `--exclude-dir=__pycache__` to the self-lint grep so compiled bytecode is not scanned against the forbidden-names pattern
+verified-by: claude
+verified-on: 2026-10-08
