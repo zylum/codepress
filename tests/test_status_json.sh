@@ -98,6 +98,19 @@ eq "…with its last activity from the old commit" "$(gj "$J" forgotten 'r["last
 st=$(printf '%s' "$J" | python3 -c 'import json,sys; print(json.load(sys.stdin)["summary"]["stalled"])')
 eq "the summary counts stalled galleys" "$st" "1"
 
+# a bulk migration commit is not activity ---------------------------------------
+d=$(mk_project)
+(cd "$d" && git init -q && git config user.email t@e.com && git config user.name T)
+for i in $(seq 1 12); do
+  mk_complete_galley "$d" "g$i" building
+  commit_all "$d" "add g$i" "2026-01-01T12:00:00"
+done
+for i in $(seq 1 12); do echo "" >> "$d/.codepress/product/galleys/g$i/galley.md"; done
+commit_all "$d" "codepress: migrate statuses"
+cp_run "$d" status --json --galleys --stalled-after 14
+eq "a commit touching a dozen galleys at once is not activity" "$(gj "$OUT" g3 'r["last_activity"][:10]')" "2026-01-01"
+eq "…so they still read as stalled" "$(gj "$OUT" g3 'r["stalled"]')" "True"
+
 # the existing pending-action JSON is unchanged ---------------------------------
 d=$(mk_project)
 mk_galley "$d" alpha shaped $'approved_by: m\napproved_on: 2026-10-02'

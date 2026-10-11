@@ -41,6 +41,9 @@ WARN = "warn"
 INFO = "info"  # shown only with --verbose; never fails (legacy noise)
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+# A commit touching this many galley folders at once is bulk housekeeping and
+# does not count as activity on any of them.
+BULK_COMMIT_GALLEYS = 10
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$")
 
 
@@ -1162,8 +1165,12 @@ def last_activity(project, g):
     for s in g.slugs:
         slug_names |= s.names()
     slug_res = [re.compile(r"^slug:%s\b" % re.escape(n)) for n in slug_names]
+    gp = ".codepress/product/galleys/"
     for c in project.git.commits():
-        hit = any(prefix in f for f in c["files"])
+        # A commit that touches many galleys at once (a status migration, a mass
+        # rename) is housekeeping, not work on any one of them.
+        touched = set(f.split(gp, 1)[1].split("/", 1)[0] for f in c["files"] if gp in f)
+        hit = len(touched) < BULK_COMMIT_GALLEYS and any(prefix in f for f in c["files"])
         if not hit:
             text = c["subject"] + "\n" + c["body"]
             hit = any(r.search(text) for r in name_res) or any(r.search(c["subject"]) for r in slug_res)
