@@ -1,4 +1,4 @@
-# CodePress v0.4.0
+# CodePress
 
 A compound product development operating system for the AI era.
 
@@ -62,6 +62,16 @@ CodePress participates in the cross-system loop fabric via `.loop/manifest.yaml`
 3. `knowledge/patterns/` — reusable lessons
 4. Active galley — the current shaped solution
 
+## Lifecycle
+
+```
+proposed → shaped → building → verifying → done      (or killed / superseded)
+```
+
+A galley is any bounded task with a contract, gates and a record of how it went. The rules for how it moves —
+statuses, transitions, the gates each transition requires — are data in `.codepress/system/schema/lifecycle.yaml`,
+enforced by `codepress lint` in your git hook and CI. See [docs/lifecycle.md](docs/lifecycle.md).
+
 ## CLI
 
 ```bash
@@ -69,11 +79,18 @@ codepress init              # Bootstrap a new project
 codepress upgrade           # Pull latest CodePress version
 codepress status            # Show delivery board + pending actions
 codepress status --json     # Machine-readable pending actions
+codepress status --json --galleys  # Per-galley state: progress, activity, next action, who it needs
 codepress run               # Dispatch next action
 codepress run --all         # Dispatch all pending actions
-codepress galley new        # Create a new galley
+codepress galley new        # Create a new galley (starts at proposed)
 codepress galley list       # List all galleys
-codepress galley move       # Move galley to a new status
+codepress galley approve    # Record human approval of a shaped galley
+codepress galley move       # Move a galley along the lifecycle (gates run here)
+codepress check <galley>    # Run verify gates + every bound acceptance criterion
+codepress lint              # Statuses, transitions, gates, drift, version marker
+codepress hook install      # Pre-commit: lint + verify gates (no --no-verify needed)
+codepress migrate-status    # Plan moving older statuses onto the lifecycle
+codepress version           # CLI version + this project's marker
 ```
 
 ## License

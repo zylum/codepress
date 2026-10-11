@@ -6,11 +6,22 @@ Global standards that apply to every Galley unless explicitly overridden.
 
 ## Galley Done means
 
-1. **Acceptance criteria met** — Every criterion in the Galley has corresponding evidence
+1. **Acceptance criteria met** — Every criterion in the Galley has corresponding evidence that exercises the real path (no mock-theatre). Every criterion carries a `test:`, `check:`, or `manual:` binding on its own line (grammar in `templates/galley.md`); `codepress check <galley>` evaluates the bindings mechanically
 2. **Verification passes** — All defined verification gates pass (lint, typecheck, test)
-3. **Review completed** — Independent review approved the work
-4. **Knowledge updated** — Signals captured, Patterns promoted where warranted
-5. **Ready for merge** — Code is ready to ship
+3. **Review completed** — Independent review approved the work (a `## Verdict` by a verifier other than the builder)
+4. **Knowledge updated** — Signals captured, Patterns promoted where warranted; `## Evidence` cited in review.md; `learned.md` written
+5. **Wired end-to-end** — Every new function, tool, or route has a caller; grepped and confirmed
+6. **Set status to `verifying`, not `done`** — The builder moves the Galley to `verifying`; an independent verifier writes the Verdict, and only then does it move to `done` — or back to `building` with a plan-change entry
+7. **Lint passes** — `codepress lint` is clean (`schema/lifecycle.yaml` is the source of truth for the gates)
+8. **Ready for merge** — Code is ready to ship
+
+### Hard lines (CLI-enforced)
+
+- **The build engine never writes the `## Verdict` block** in review.md. It belongs
+  to the verifier engine (`engines.verifier` in codepress.md). `codepress galley move
+  <galley> done` refuses a verdict whose `verified-by` equals `engines.build`.
+- **The build engine never ticks a `manual:` AC.** `codepress check` fails any galley
+  with a ticked `manual:` line — a human attests it in the Verdict or waives with `--force`.
 
 ---
 
@@ -30,6 +41,10 @@ Every acceptance criterion needs:
 - **What** was verified (the criterion)
 - **How** it was verified (test, command, observation)
 - **Proof** it passed (test output, command output, screenshot)
+
+### Test quality
+
+Tests must exercise the real path — never mock the unit under test. A galley's regression test must drive actual code end-to-end (fetch → parse → store → retrieve), not assert that a mock's return value was passed through. Mocking the boundary under test produces theatre: the gate goes green while the feature is broken.
 
 Example:
 ```markdown

@@ -64,8 +64,8 @@ Then infer sensible defaults based on pace:
 | Pace | Default autonomy | Suggested approval gates |
 |---|---|---|
 | fast | continuous | none required |
-| balanced | continuous | shaping → approved |
-| careful | confirm | shaping → approved, review → done |
+| balanced | continuous | shaped → building (approval) |
+| careful | confirm | shaped → building (approval), verifying → done |
 
 Ask: *"Are these defaults right, or do you want to adjust them?"*
 

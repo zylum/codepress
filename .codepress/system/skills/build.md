@@ -5,7 +5,7 @@ Execute a Galley through its Slugs.
 ---
 
 ## When to use
-When a Galley is `delivering` and Slugs are defined.
+When a Galley is `building` and Slugs are defined.
 
 ---
 
@@ -28,10 +28,13 @@ Never start implementation without reading the Galley and Knowledge first.
 4. Read the Galley `budget:` — know the token and cost ceiling before starting
 5. Implement
 6. Verify against acceptance checklist
-7. Record evidence in the Slug `Evidence` section
+7. Record evidence in the Slug `Evidence` section, and tick the acceptance boxes you have met — a slug
+   is `closed` only when every non-`manual:` box is ticked (`codepress lint` rejects a closed slug with
+   unticked boxes, and flags `slug:<name> done` commits whose boxes were never ticked)
 8. **Capture cost** — record token usage and estimated cost as a `type: cost` signal (see `skills/signal.md`). Add the YAML block to the slug's `## Signals` section. If exact counts are unknown, estimate and set `source: estimated`.
 9. **Fill the Signals block before committing** — 2–3 bullets: what surprised you, what you'd change, any pattern emerging
-10. Commit: `slug:<name> done — <summary>`
+10. Set the Slug `status: closed` (or `dropped` — and say why in `plan-changes.md`), then commit:
+    `slug:<name> done — <summary>`
 
 ---
 
@@ -56,7 +59,11 @@ If any gate fails: capture a Signal, resolve, re-verify. Do not proceed until ga
 
 ## Galley-close (mandatory)
 
-When all Slugs are done and verification passes, run `skills/review.md`.
+When all Slugs are settled (`closed` or `dropped`) and verification passes, move the Galley to
+`verifying` (`codepress galley move <galley> verifying`) and run `skills/review.md`.
+
+If the plan changes while building — a slug dropped, a phase collapsed, an assumption broken — add an
+entry to `plan-changes.md` (what the plan said, what changed, why). Going back a status requires one.
 
 ---
 

@@ -76,7 +76,19 @@ The tools don't matter. The capabilities do:
 
 ---
 
-## 7. Knowledge compounds
+## 7. Edit the source, not the generated artifact
+
+Every generated file has a source of truth. Edit the source — not the output.
+
+- Scheduling belongs in a behavior grain, not a hardcoded cron.
+- Config belongs in `codepress.md` / `domains.yaml` / `project.yml`, not in the file it generates.
+- Board views are regenerated from YAML frontmatter — edit the `.md` files, not the rendered view.
+
+Derived files get overwritten. If you edited the wrong file, your work will be silently wiped.
+
+---
+
+## 8. Knowledge compounds
 
 Every project captures what it learns.
 

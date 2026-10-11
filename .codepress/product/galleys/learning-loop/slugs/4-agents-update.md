@@ -1,6 +1,6 @@
 ---
 id: agents-update
-status: done
+status: closed
 galley: learning-loop
 autonomy: continuous
 ---

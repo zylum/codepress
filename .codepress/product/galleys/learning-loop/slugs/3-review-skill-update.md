@@ -1,6 +1,6 @@
 ---
 id: review-skill-update
-status: done
+status: closed
 galley: learning-loop
 autonomy: continuous
 ---

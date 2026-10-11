@@ -1,6 +1,6 @@
 ---
 id: ee-v1-s6
-status: done
+status: closed
 galley: ee-v1
 autonomy: confirm
 ---

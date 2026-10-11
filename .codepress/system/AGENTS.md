@@ -67,9 +67,28 @@ Before any work:
 
 ### Galley lifecycle
 
-`shaping → approved → delivering → review → done`
+`proposed → shaped → building → verifying → done` (or `killed` / `superseded` from any open status).
 
-The compound step gates `review → done`: a Galley cannot be marked `done` until `review.md` is complete, Signals are promoted to Patterns where warranted, and Knowledge is updated.
+Approval is a gate on `shaped → building`, not a status: `codepress galley approve <galley>`.
+
+The rules — statuses, allowed transitions, the gates each transition requires, and the mapping from older status
+values — are **data** in `schema/lifecycle.yaml`, and `codepress lint` enforces them. Read `docs/lifecycle.md`.
+A Galley cannot be marked `done` until all slugs are `closed` or `dropped`, evidence is cited in `review.md`, an
+independent verifier has written the Verdict, `learned.md` exists, Signals are promoted to Patterns where
+warranted, and Knowledge is updated. Move statuses with `codepress galley move` (the gates run there), never by
+editing the frontmatter.
+
+### Slug lifecycle
+
+`open → building → closed`, or `dropped`. A closed slug has every non-`manual:` acceptance box ticked. Dropping
+a slug is a plan change — log it in `plan-changes.md`.
+
+### Before you commit
+
+Run `codepress lint`. It rejects retired statuses, illegal transitions, terminal galleys missing evidence, review
+or `learned.md`, version markers that disagree, and **drift** — a `slug:<name> done` commit whose acceptance boxes
+were never ticked. `codepress hook install` runs it (and the test gate) on every commit; `--no-verify` is never
+needed (see `docs/lifecycle.md`, "Git hook").
 
 ---
 
@@ -80,6 +99,9 @@ Read the Galley fully before touching code.
 
 **Read Knowledge first.**
 Check `knowledge/` before planning. Do not re-discover what already exists.
+
+**Prose is not implementation.**
+If a behavior depends on data (a schedule, a fact, a status), fetch the data and pass it into the model/logic. A rule written only in a system prompt is not built. Prompt-only behavior will hallucinate when the prompt is read in isolation.
 
 **Update Knowledge.**
 When you encounter a concept, decision or capability not in `knowledge/`, add it. A 5-line stub beats nothing.
@@ -94,6 +116,23 @@ Before marking a Galley `done`, complete `review.md`, promote Signals, and updat
 **Commit discipline.**
 One commit per Slug: `slug:<name> done — <summary>`
 One commit per Galley close: `galley:<name> done`
+Tick the slug's acceptance boxes and set `status: closed` in the same commit — lint compares the commit to the files.
+
+**The builder never writes the Verdict.**
+The `## Verdict` block in review.md belongs to the verifier engine. The CLI enforces
+it: `codepress galley move <galley> done` refuses a verdict whose `verified-by`
+equals `engines.build`. Self-certification is mechanically blocked, not just forbidden.
+
+**The builder never ticks a `manual:` AC.**
+`manual:` lines mark human-only steps. The CLI enforces it: `codepress check` fails
+any galley with a ticked `manual:` line. A human attests manual steps in the Verdict,
+or waives explicitly with `--force` (which records a dated waiver in review.md).
+
+> **Field evidence (2026-07, a downstream project's quality-hardening cycle):** the build engine executed an
+> infra step explicitly marked *manual* — against the wrong production service — and
+> reported it `[x]` complete, then wrote its own "Gate passes. Galley close." verdict
+> and set statuses uncontested. Textual fences did not constrain the agent. That is
+> why the two rules above are enforced by the CLI, not by prose.
 
 ---
 

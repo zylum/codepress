@@ -3,7 +3,10 @@ set -euo pipefail
 shopt -s nullglob
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VERSION="0.4.1"
+# The version has ONE source: the codepress-version marker in the bundled
+# .codepress/system/codepress.md. Bump it there; nothing else carries a copy.
+VERSION="$(sed -n 's/^codepress-version: *//p' "$SCRIPT_DIR/.codepress/system/codepress.md" 2>/dev/null | head -1 || true)"
+VERSION="${VERSION:-unknown}"
 SOURCE_REPO="https://github.com/zylum/codepress"
 CONFIG_FILE=".codepress/system/codepress.md"
 
@@ -38,6 +41,144 @@ get_codepress_source() {
   fi
 }
 
+# ─── Lifecycle plumbing (lint.py) ─────────────────────────────────────────────
+#
+# Statuses, transitions, gates and the legacy mapping live in
+# .codepress/system/schema/lifecycle.yaml and are read by lib/lint.py. The CLI
+# asks lint.py rather than keeping its own copy of the rules.
+
+# Path to lint.py: the project's own copy first, else the bundled one.
+find_lint() {
+  if [[ -f ".codepress/system/lib/lint.py" ]]; then
+    echo ".codepress/system/lib/lint.py"
+  elif [[ -f "$SCRIPT_DIR/.codepress/system/lib/lint.py" ]]; then
+    echo "$SCRIPT_DIR/.codepress/system/lib/lint.py"
+  else
+    return 1
+  fi
+}
+
+# run_lint_py <args...> — python3 lint.py with a clear error when it cannot run.
+run_lint_py() {
+  local py
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "✗ python3 is required for lint and lifecycle gates (standard library only, 3.8+)." >&2
+    return 2
+  fi
+  if ! py=$(find_lint); then
+    echo "✗ lint.py not found. Run 'codepress upgrade' to install .codepress/system/lib/." >&2
+    return 2
+  fi
+  # -B: never write bytecode into .codepress/system/lib of a user's project
+  python3 -B "$py" "$@"
+}
+
+# Status table (kind status canonical flags), loaded once per process.
+_STATUS_TABLE=""
+_STATUS_TABLE_LOADED=false
+load_status_table() {
+  [[ "$_STATUS_TABLE_LOADED" == true ]] && return 0
+  _STATUS_TABLE_LOADED=true
+  _STATUS_TABLE=$(run_lint_py table 2>/dev/null || true)
+  # leading newline so every row can be found as "\n<kind> <status> " (pure bash lookup)
+  [[ -n "$_STATUS_TABLE" ]] && _STATUS_TABLE=$'\n'"$_STATUS_TABLE"
+  return 0
+}
+
+# canon_status <galley|slug> <status> — sets CANON_STATUS and CANON_FLAGS.
+# Unknown values (or no python3) resolve to themselves with empty flags, so the
+# legacy vocabulary keeps working where lint.py cannot be consulted.
+CANON_STATUS=""
+CANON_FLAGS=""
+CANON_KNOWN=false
+canon_status() {
+  local kind="$1" raw="$2" key rest row
+  load_status_table
+  key=$'\n'"$kind $raw "
+  if [[ -n "$raw" && "$_STATUS_TABLE" == *"$key"* ]]; then
+    rest="${_STATUS_TABLE#*"$key"}"
+    row="${rest%%$'\n'*}"          # "<canonical> <flags>"
+    CANON_STATUS="${row%% *}"
+    CANON_FLAGS="${row#* }"
+    CANON_KNOWN=true
+  else
+    CANON_STATUS="$raw"
+    CANON_FLAGS=""
+    CANON_KNOWN=false
+  fi
+}
+
+# Quote a value for frontmatter when it contains YAML-significant characters.
+yaml_value() {
+  local v="$1"
+  if [[ "$v" =~ [:#\[\]\{\}] || "$v" == \"* || "$v" == \'* ]]; then
+    v="${v//\"/\'}"
+    printf '"%s"' "$v"
+  else
+    printf '%s' "$v"
+  fi
+}
+
+# Set (or add) a frontmatter key in a markdown file.
+set_fm_field() {
+  local file="$1" key="$2" value="$3" tmp
+  tmp=$(mktemp)
+  awk -v k="$key" -v v="$value" '
+    NR == 1 && /^---[ \t]*$/ { print; infm = 1; next }
+    infm && /^---[ \t]*$/ { if (!done) print k ": " v; infm = 0; print; next }
+    infm && $0 ~ ("^" k ":") { print k ": " v; done = 1; next }
+    { print }
+  ' "$file" > "$tmp" && cat "$tmp" > "$file"
+  rm -f "$tmp"
+}
+
+# Rewrite the codepress-version marker line in a file (BSD/GNU sed safe).
+set_marker() {
+  local file="$1" ver="$2" tmp
+  tmp=$(mktemp)
+  awk -v v="$ver" '/^codepress-version:/ && !done { print "codepress-version: " v; done = 1; next } { print }' "$file" > "$tmp" \
+    && cat "$tmp" > "$file"
+  rm -f "$tmp"
+}
+
+# fm_read <file> <key> — pure-bash frontmatter reader (no forks); sets FM_VALUE.
+# Status checks run per galley on every `status`, so they must not spawn
+# grep/sed/dirname/basename each time (150 galleys = 750 forks = seconds).
+FM_VALUE=""
+fm_read() {
+  FM_VALUE=""
+  local file="$1" key="$2" line n=0 infm=false v
+  [[ -f "$file" ]] || return 0
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    n=$((n + 1))
+    if [[ $n -eq 1 ]]; then
+      [[ "$line" == ---* ]] && infm=true
+      [[ "$infm" == true ]] && continue
+    elif [[ "$infm" == true && "$line" == ---* ]]; then
+      return 0
+    fi
+    if [[ "$line" == "$key:"* ]]; then
+      v="${line#"$key:"}"
+      v="${v%%[[:space:]]#*}"
+      v="${v#"${v%%[![:space:]]*}"}"
+      v="${v%"${v##*[![:space:]]}"}"
+      FM_VALUE="$v"
+      return 0
+    fi
+  done < "$file"
+  return 0
+}
+
+# Value of a frontmatter key ("" when absent).
+get_fm_field() {
+  local file="$1" key="$2"
+  awk -v k="$key" '
+    NR == 1 && /^---[ \t]*$/ { infm = 1; next }
+    infm && /^---[ \t]*$/ { exit }
+    infm && $0 ~ ("^" k ":") { sub("^" k ":[ \t]*", ""); sub(/[ \t]+#.*$/, ""); sub(/[ \t]+$/, ""); print; exit }
+  ' "$file"
+}
+
 usage() {
   cat <<EOF
 CodePress v$VERSION — compound product development operating system.
@@ -45,15 +186,35 @@ CodePress v$VERSION — compound product development operating system.
 Usage:
   codepress init                  Bootstrap CodePress in this directory
   codepress bootstrap             Configure project (verification, DoD, etc.)
-  codepress upgrade               Update .codepress/system/ files from source
+  codepress upgrade [--dry-run]   Update .codepress/system/ files from source
+                                  (--dry-run shows the local edits it would replace)
   codepress migrate               Migrate from old numbered structure
   codepress status [--json]       Show project health and pending actions
+                                  [--json --galleys] per-galley state: slugs, activity, next action
   codepress run [--all]           Execute next pending action (or all)
   codepress watch [seconds]       Watch artefact dir and auto-execute (default 2s)
 
   codepress galley new <name>     Scaffold a new galley
   codepress galley list           List all galleys with status
-  codepress galley move <n> <s>   Set galley status (shaping|approved|delivering|review|done)
+  codepress galley move <n> <s>   Set galley status
+                                  lifecycle: proposed → shaped → building → verifying → done
+                                             (or killed / superseded from any open status)
+                                  Allowed edges and their gates come from
+                                  .codepress/system/schema/lifecycle.yaml.
+                                  [--force] bypasses gates, recording a waiver in review.md
+                                  [--reason <text>] recorded with the waiver / as closed_reason
+                                  [--superseded-by <galley>] for superseded
+                                  (galleys still on retired statuses keep the old gates:
+                                   shaping|approved|delivering|review|done)
+  codepress galley approve <n>    Record human approval of a shaped galley [--by <who>]
+  codepress check <galley>        Run verify gates fresh + evaluate every bound AC
+                                  (test:/check:/manual: lines — see templates/galley.md)
+  codepress lint [--base REF]     Check statuses, transitions, gates, drift, version marker
+                                  [--strict] warnings fail  [--json]  [--quiet]
+  codepress migrate-status        Plan moving statuses onto the lifecycle vocabulary
+                                  (dry run; --apply writes; mapping in lifecycle.yaml)
+  codepress hook install          Install the pre-commit hook (lint + verify gates)
+  codepress version               Show the CLI version and this project's marker
 
   codepress -h|--help             Show this help
 
@@ -236,6 +397,8 @@ merge_frontmatter() {
 # ─── Upgrade ──────────────────────────────────────────────────────────────────
 
 cmd_upgrade() {
+  local dry=false
+  [[ "${1:-}" == "--dry-run" ]] && dry=true
   local current
   current=$(get_codepress_version)
   echo "CodePress upgrade v$current → latest"
@@ -287,6 +450,9 @@ cmd_upgrade() {
     local source="$tmp/repo/$f"
     if [[ ! -f "$target" ]]; then
       to_add+=("$f")
+    elif [[ "$f" == ".codepress/system/codepress.md" ]]; then
+      # Project-owned configuration: never overwritten, only its version marker moves.
+      continue
     elif ! diff -q "$target" "$source" &>/dev/null; then
       if [[ "$f" == *templates/* ]]; then
         to_merge+=("$f")
@@ -308,7 +474,22 @@ cmd_upgrade() {
   fi
 
   if [[ ${#to_add[@]} -eq 0 && ${#to_update[@]} -eq 0 && ${#to_merge[@]} -eq 0 ]]; then
-    echo "  (nothing to change)"
+    echo "  (no files to change — only the version marker moves)"
+  fi
+
+  # ── Dry run: show what local edits an update would replace, then stop ──
+  if [[ "$dry" == true ]]; then
+    if [[ ${#to_update[@]} -gt 0 ]]; then
+      echo ""
+      echo "→ Files that would be REPLACED (diff: yours → incoming):"
+      for f in "${to_update[@]}"; do
+        echo ""
+        echo "  ── $f"
+        diff -u "$f" "$tmp/repo/$f" | sed -n '3,40p' | sed 's/^/     /' || true
+      done
+    fi
+    echo ""
+    echo "Dry run — nothing changed. Re-run without --dry-run to apply (use git so you can review and revert)."
     return
   fi
 
@@ -360,9 +541,23 @@ cmd_upgrade() {
     done < <(find "$sys_templates_dir" -type f)
   fi
 
+  # One source of truth: the marker lives in codepress.md. Bump it there — and
+  # in any leftover config file that still carries one, so they cannot disagree.
+  local mf
+  for mf in .codepress/system/*.md; do
+    [[ -f "$mf" ]] || continue
+    if grep -q '^codepress-version:' "$mf" 2>/dev/null; then
+      set_marker "$mf" "$latest"
+    fi
+  done
+
   echo ""
   echo "✓ Upgraded from v$current to v$latest."
   echo "  $copied file(s) copied, $merged template(s) frontmatter-merged."
+  echo "  Run 'codepress lint' to check the project against the new lifecycle."
+  if grep -lq '^[[:space:]]*status: *\(shaping\|approved\|delivering\|review\)' .codepress/product/galleys/*/galley.md 2>/dev/null; then
+    echo "  Some galleys still use retired statuses — 'codepress migrate-status' plans the move."
+  fi
 }
 
 # ─── Migrate ──────────────────────────────────────────────────────────────────
@@ -520,23 +715,34 @@ detect_pending_actions() {
     done
   fi
 
-  # 2. Galleys needing the next workflow step
+  # 2. Galleys needing the next workflow step (canonical lifecycle statuses;
+  #    retired values such as approved/delivering/review resolve through
+  #    lifecycle.yaml, so un-migrated projects keep working)
   if [[ -d ".codepress/product/galleys" ]]; then
     for g in .codepress/product/galleys/*/galley.md; do
       [[ -f "$g" ]] || continue
-      local gdir gname gstatus
-      gdir=$(dirname "$g")
-      gname=$(basename "$gdir")
+      local gdir gname gstatus gcanon gflags
+      gdir="${g%/*}"
+      gname="${gdir##*/}"
       [[ "$gname" == _* ]] && continue
-      gstatus=$(grep -m1 "^status:" "$g" 2>/dev/null | sed 's/status: *//' || echo "")
+      fm_read "$g" status
+      gstatus="$FM_VALUE"
+      canon_status galley "$gstatus"
+      gcanon="$CANON_STATUS"
+      gflags="$CANON_FLAGS"
 
-      # approved but no slugs → needs split
-      if [[ "$gstatus" == "approved" ]]; then
-        local slug_count=0
-        for s in "$gdir"/slugs/*.md; do
-          [[ -f "$s" ]] && slug_count=$((slug_count + 1))
-        done
-        if [[ "$slug_count" -eq 0 ]]; then
+      local slug_count=0
+      for s in "$gdir"/slugs/*.md; do
+        [[ -f "$s" ]] && slug_count=$((slug_count + 1))
+      done
+
+      # shaped + approved but no slugs → needs split
+      # (retired 'approved'/'ready' imply approval; canonical shaped needs approved_by)
+      if [[ "$gcanon" == "shaped" ]]; then
+        local approved=false
+        [[ "$gflags" == *approved* ]] && approved=true
+        [[ -n "$(get_fm_field "$g" approved_by)" ]] && approved=true
+        if [[ "$approved" == true && "$slug_count" -eq 0 ]]; then
           if [[ "$format" == "json" ]]; then
             out="split-galley|$gname|Galley '$gname' is approved but has no slugs"
           else
@@ -546,16 +752,18 @@ detect_pending_actions() {
         fi
       fi
 
-      # delivering with all slugs complete → needs review
-      if [[ "$gstatus" == "delivering" ]]; then
-        local total=0 complete=0
-        for s in "$gdir"/slugs/*.md; do
-          [[ ! -f "$s" ]] && continue
-          total=$((total + 1))
-          local sstatus
-          sstatus=$(grep -m1 "^status:" "$s" 2>/dev/null | sed 's/status: *//' || echo "open")
-          [[ "$sstatus" == "complete" ]] && complete=$((complete + 1))
-        done
+      # building with all slugs settled → needs review
+      if [[ "$gcanon" == "building" ]]; then
+        local total="$slug_count" complete=0 sline sstatus
+        # one grep for every slug's status line, resolved in-process (no per-slug forks)
+        while IFS= read -r sline; do
+          sstatus="${sline#status:}"
+          sstatus="${sstatus%%#*}"
+          sstatus="${sstatus#"${sstatus%%[![:space:]]*}"}"
+          sstatus="${sstatus%"${sstatus##*[![:space:]]}"}"
+          canon_status slug "$sstatus"
+          [[ "$CANON_FLAGS" == *settled* ]] && complete=$((complete + 1))
+        done < <([[ "$slug_count" -gt 0 ]] && grep -h -m1 "^status:" "$gdir"/slugs/*.md </dev/null 2>/dev/null || true)
         if [[ "$total" -gt 0 && "$complete" -eq "$total" ]]; then
           if [[ "$format" == "json" ]]; then
             out="review|$gname|All slugs complete for '$gname', ready for review"
@@ -566,8 +774,8 @@ detect_pending_actions() {
         fi
       fi
 
-      # review complete → release + learn, then mark done
-      if [[ "$gstatus" == "review" ]]; then
+      # verifying (review) → release + learn, then mark done
+      if [[ "$gcanon" == "verifying" ]]; then
         if [[ "$format" == "json" ]]; then
           out="release+learn|$gname|Galley '$gname' review done, ready to release, capture knowledge, and mark done"
         else
@@ -593,8 +801,23 @@ detect_pending_actions() {
 # ─── Status ───────────────────────────────────────────────────────────────────
 
 cmd_status() {
-  local json_flag=false
-  [[ "${1:-}" == "--json" ]] && json_flag=true
+  local json_flag=false galleys_flag=false stalled_after=14
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --json) json_flag=true; shift ;;
+      --galleys) galleys_flag=true; shift ;;
+      --stalled-after) [[ $# -ge 2 ]] && { stalled_after="$2"; shift 2; } || shift ;;
+      *) shift ;;
+    esac
+  done
+
+  # Per-galley state for views and other tools: slug progress, last activity
+  # (commits that NAME the galley count, not only commits touching its folder),
+  # stalled flag, next action and who it needs (human | agent | verifier).
+  if [[ "$json_flag" == true && "$galleys_flag" == true ]]; then
+    run_lint_py status-json --root . --stalled-after "$stalled_after"
+    return
+  fi
 
   if [[ "$json_flag" == true ]]; then
     detect_pending_actions json || true
@@ -728,24 +951,34 @@ regenerate_boards() {
       echo "kanban-plugin: board"
       echo "---"
       echo ""
-      for pair in "Shaping:shaping" "Approved:approved" "Delivering:delivering" "Review:review" "Done:done"; do
+      # Resolve each galley once (name, canonical status, title) — not once per column.
+      local _bn=() _bs=() _bt=() g gdir gname gstatus
+      for g in .codepress/product/galleys/*/galley.md; do
+        [[ -f "$g" ]] || continue
+        gdir="${g%/*}"
+        gname="${gdir##*/}"
+        [[ "$gname" == _* ]] && continue
+        fm_read "$g" status
+        gstatus="$FM_VALUE"
+        canon_status galley "$gstatus"
+        _bn+=("$gname")
+        _bs+=("$CANON_STATUS")
+        _bt+=("$(grep -m1 "^# Galley:" "$g" 2>/dev/null | sed 's/# Galley: *//' || echo "$gname")")
+      done
+
+      # Column headings keep their familiar names; each holds the canonical
+      # lifecycle status it corresponds to (retired values resolve to them).
+      for pair in "Shaping:proposed" "Approved:shaped" "Delivering:building" "Review:verifying" "Done:done"; do
         local heading="${pair%%:*}"
         local slug="${pair##*:}"
         echo "## $heading"
         echo ""
-        for g in .codepress/product/galleys/*/galley.md; do
-          [[ -f "$g" ]] || continue
-          local gdir gname gstatus gtitle
-          gdir=$(dirname "$g")
-          gname=$(basename "$gdir")
-          [[ "$gname" == _* ]] && continue
-          gstatus=$(grep -m1 "^status:" "$g" 2>/dev/null | sed 's/status: *//' || echo "")
-          [[ "$gstatus" != "$slug" ]] && continue
-          gtitle=$(grep -m1 "^# Galley:" "$g" 2>/dev/null | sed 's/# Galley: *//' || echo "$gname")
+        local i
+        for ((i = 0; i < ${#_bn[@]}; i++)); do
+          [[ "${_bs[$i]}" != "$slug" ]] && continue
           local checkbox=" "
           [[ "$heading" == "Done" ]] && checkbox="x"
-          rel=".codepress/product/galleys/$gname/galley"
-          echo "- [$checkbox] [[$rel|$gtitle]]"
+          echo "- [$checkbox] [[.codepress/product/galleys/${_bn[$i]}/galley|${_bt[$i]:-${_bn[$i]}}]]"
         done
         echo ""
       done
@@ -1007,36 +1240,45 @@ cmd_galley_new() {
 
   if [[ -f ".codepress/system/templates/galley.md" ]]; then
     cp ".codepress/system/templates/galley.md" "$dir/galley.md"
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-      sed -i '' "s/^id: /id: $name/" "$dir/galley.md" 2>/dev/null
-    else
-      sed -i "s/^id: /id: $name/" "$dir/galley.md" 2>/dev/null
-    fi
+    set_fm_field "$dir/galley.md" id "$name"
+    set_fm_field "$dir/galley.md" created "$(date +%Y-%m-%d)"
   else
     cat > "$dir/galley.md" << EOF
 ---
 id: $name
-status: shaping
+status: proposed
 created: $(date +%Y-%m-%d)
 ---
 
 # Galley: $name
+
+## Problem
+
+## Success
+
+## Approach
+
+## Acceptance Criteria
 EOF
   fi
 
-  # Create empty review.md
-  cat > "$dir/review.md" << EOF
+  # Create review.md from the template (so Signals / Evidence / Verdict exist)
+  if [[ -f ".codepress/system/templates/review.md" ]]; then
+    sed "s/{galley-name}/$name/" ".codepress/system/templates/review.md" > "$dir/review.md"
+  else
+    cat > "$dir/review.md" << EOF
 # Review: $name
 
-## Signals captured
+## Signals
 
-## Patterns to promote
+## Evidence
 
-## Retrospective
+## Verdict
 EOF
+  fi
 
   echo "✓ Galley '$name' created at $dir/"
-  echo "  Next: edit galley.md, then run 'codepress galley move $name shaping'"
+  echo "  Next: shape galley.md, then 'codepress galley move $name shaped'"
 }
 
 cmd_galley_list() {
@@ -1060,13 +1302,380 @@ cmd_galley_list() {
   [[ "$found" == false ]] && echo "  (no galleys yet — use 'codepress galley new <name>')"
 }
 
-cmd_galley_move() {
+# ─── Acceptance-criteria binding (galley: enforced-acceptance) ────────────────
+
+# extract_acs <file> — parse the first "## Acceptance ..." section (galley
+# "Acceptance Criteria" or slug "Acceptance checklist") and emit one line per
+# checkbox criterion:   id|kind|payload|ticked
+#
+# Grammar (one line each, fields separated by " · " space-middot-space):
+#   - [ ] <id> · Given … · When … · Then … · test: <path::name>   kind=test, payload=<ref>
+#   - [ ] <id> · check: <shell command>                            kind=check, payload=<command>
+#   - [ ] <id> · manual: <human-only step>                         kind=manual, payload=<step>
+#   - [ ] any unbound prose                                        kind=legacy, payload=<text>, id empty
+# ticked is 1 for "- [x]", else 0. Payloads must not contain "|".
+extract_acs() {
+  local file="${1:-}"
+  if [[ -z "$file" || ! -f "$file" ]]; then
+    echo "✗ extract_acs: file not found: ${file:-<none>}" >&2
+    return 1
+  fi
+  awk '
+    # Lines inside an HTML comment block are not criteria (mirrors lint.py).
+    incomment { if (index($0, "-->") > 0) incomment = 0; next }
+    index($0, "<!--") > 0 {
+      rest = substr($0, index($0, "<!--") + 4)
+      if (index(rest, "-->") == 0) { incomment = 1; next }
+    }
+    /^## Acceptance/ { insec = 1; next }
+    insec && /^## /  { insec = 0 }
+    insec && /^- \[[ xX]\] / {
+      line = $0
+      ticked = (line ~ /^- \[[xX]\]/) ? 1 : 0
+      sub(/^- \[[ xX]\][ \t]*/, "", line)
+      sub(/[ \t]+$/, "", line)
+      id = ""; kind = "legacy"; payload = line
+      if (index(line, " · ") > 0) id = substr(line, 1, index(line, " · ") - 1)
+      if (match(line, / · check: /)) {
+        kind = "check"; payload = substr(line, RSTART + RLENGTH)
+      } else if (match(line, / · manual: /)) {
+        kind = "manual"; payload = substr(line, RSTART + RLENGTH)
+      } else if (match(line, / · test: /)) {
+        kind = "test"; payload = substr(line, RSTART + RLENGTH)
+      } else {
+        id = ""
+      }
+      print id "|" kind "|" payload "|" ticked
+    }
+  ' "$file"
+}
+
+# Gate command for <gate> from the "verify:" block in codepress.md.
+# Handles single-line values and folded (>) multi-line values.
+get_gate_command() {
+  local gate="$1" cfg
+  cfg=$(resolve_config)
+  [[ -f "$cfg" ]] || return 0
+  awk -v g="$gate" '
+    /^verify:[ \t]*$/ { inv = 1; next }
+    inv && /^[^ \t]/  { inv = 0; if (fold) exit }
+    inv {
+      if (!fold && $0 ~ ("^  " g ":")) {
+        val = $0
+        sub("^  " g ":[ \t]*", "", val)
+        if (val == ">") { fold = 1; next }
+        print val; exit
+      } else if (fold) {
+        if ($0 ~ /^    /) { l = $0; sub(/^[ \t]+/, "", l); buf = buf l " " }
+        else { sub(/[ \t]+$/, "", buf); print buf; exit }
+      }
+    }
+    END { if (fold && buf != "") { sub(/[ \t]+$/, "", buf); print buf } }
+  ' "$cfg"
+}
+
+# Engine assigned to <stage> in the "engines:" block of codepress.md.
+# Defaults to DEFAULT_ENGINE (documented default when the block is missing);
+# lint.py receives the same default through the environment.
+DEFAULT_ENGINE="claude"
+export CODEPRESS_DEFAULT_ENGINE="$DEFAULT_ENGINE"
+get_engine() {
+  local stage="$1" cfg engine=""
+  cfg=$(resolve_config)
+  if [[ -f "$cfg" ]]; then
+    engine=$(awk -v s="$stage" '
+      /^engines:[ \t]*$/ { ine = 1; next }
+      ine && /^[^ \t]/   { ine = 0 }
+      ine && $0 ~ ("^  " s ":") {
+        val = $0
+        sub("^  " s ":[ \t]*", "", val)
+        sub(/[ \t]*#.*$/, "", val)
+        sub(/[ \t]+$/, "", val)
+        print val; exit
+      }
+    ' "$cfg")
+  fi
+  echo "${engine:-$DEFAULT_ENGINE}"
+}
+
+# Optional "test-runner:" template from codepress.md — how `codepress check`
+# runs a per-AC test: ref. Placeholders: {ref} {file} {name}.
+get_test_runner() {
+  local cfg
+  cfg=$(resolve_config)
+  [[ -f "$cfg" ]] || return 0
+  grep -m1 '^test-runner:' "$cfg" 2>/dev/null | sed 's/^test-runner:[ ]*//' || true
+}
+
+# True when review.md's "## Signals" section has real content
+# (blank lines and HTML comments do not count).
+has_signals() {
+  local rfile="$1"
+  [[ -f "$rfile" ]] || return 1
+  awk '/^## Signals/ { f = 1; next } /^## / { f = 0 } f' "$rfile" \
+    | awk '/<!--/ { c = 1 } !c { print } /-->/ { c = 0 }' \
+    | grep -q '[^[:space:]]'
+}
+
+# Verdict gate for → done. The "## Verdict" block in review.md must contain
+# one "ACn: pass — evidence" line per bound AC, zero fails, and be attributed
+# to an engine other than engines.build (self-certification is refused).
+# Prints per-problem lines; returns non-zero on refusal.
+check_verdict() {
+  local name="$1"
+  local gfile=".codepress/product/galleys/$name/galley.md"
+  local rfile=".codepress/product/galleys/$name/review.md"
+  local fails=0 vsec verified_by verified_on build_engine
+
+  if [[ ! -f "$rfile" ]]; then
+    echo "  ❌ verdict: no review.md at $rfile"
+    return 1
+  fi
+
+  vsec=$(awk '/^## Verdict/ { f = 1; next } /^## / { f = 0 } f' "$rfile" \
+    | awk '/<!--/ { c = 1 } !c { print } /-->/ { c = 0 }')
+
+  if ! echo "$vsec" | grep -q '[^[:space:]]'; then
+    echo "  ❌ verdict: no completed ## Verdict block in $rfile"
+    echo "     (the verifier engine writes it — see skills/verify.md; the builder never does)"
+    return 1
+  fi
+
+  verified_by=$(echo "$vsec" | grep -m1 '^verified-by:' | sed 's/^verified-by:[ ]*//; s/[ \t]*$//' || true)
+  verified_on=$(echo "$vsec" | grep -m1 '^verified-on:' | sed 's/^verified-on:[ ]*//; s/[ \t]*$//' || true)
+  build_engine=$(get_engine build)
+
+  if [[ -z "$verified_by" ]]; then
+    echo "  ❌ verdict: missing verified-by: line"
+    fails=$((fails + 1))
+  elif [[ "$verified_by" == "$build_engine" ]]; then
+    echo "  ❌ verdict: verified-by '$verified_by' equals engines.build — the builder cannot verdict its own work"
+    fails=$((fails + 1))
+  fi
+  if [[ -z "$verified_on" ]]; then
+    echo "  ❌ verdict: missing verified-on: line"
+    fails=$((fails + 1))
+  fi
+
+  local id kind payload ticked vline
+  while IFS='|' read -r id kind payload ticked; do
+    [[ "$kind" == "legacy" || -z "$id" ]] && continue
+    vline=$(echo "$vsec" | grep -m1 "^$id:" || true)
+    if [[ -z "$vline" ]]; then
+      echo "  ❌ verdict: $id has no verdict line"
+      fails=$((fails + 1))
+    elif ! echo "$vline" | grep -qE "^$id:[ ]*pass"; then
+      echo "  ❌ verdict: $vline"
+      fails=$((fails + 1))
+    fi
+  done < <(extract_acs "$gfile")
+
+  [[ "$fails" -gt 0 ]] && return 1
+  echo "  ✅ verdict: all ACs pass — verified-by: $verified_by ($verified_on)"
+  return 0
+}
+
+# ─── codepress check ──────────────────────────────────────────────────────────
+
+# codepress check <galley> — run the galley's verify: gates fresh, then
+# evaluate every bound AC: test: refs via the test-runner: template (or the
+# full test gate, with a warning), check: commands (exit 0 = pass), manual:
+# lines must not be ticked. Legacy unbound lines warn only.
+# Exit non-zero iff a gate or a bound AC fails.
+cmd_check() {
   local name="${1:-}"
-  local target="${2:-}"
+  if [[ -z "$name" ]]; then
+    echo "✗ Usage: codepress check <galley>"
+    exit 1
+  fi
+  local gfile=".codepress/product/galleys/$name/galley.md"
+  if [[ ! -f "$gfile" ]]; then
+    echo "✗ Galley '$name' not found at $gfile"
+    exit 1
+  fi
+
+  local fails=0 warns=0
+  echo "codepress check — $name"
+
+  # ── 1. verify: gates, run fresh from codepress.md ──
+  local gate_list gate gate_cmd gate_out gate_rc
+  gate_list=$(awk 'NR == 1 && /^---/ { fm = 1; next } fm && /^---/ { exit } fm' "$gfile" \
+    | grep -m1 '^verify:' | sed 's/^verify:[ ]*//' | tr -d '[]' | tr ',' ' ' || true)
+  gate_list=$(echo "$gate_list" | xargs 2>/dev/null || true)
+  echo ""
+  if [[ -n "$gate_list" ]]; then
+    echo "Gates (verify: [$gate_list]):"
+    for gate in $gate_list; do
+      gate_cmd=$(get_gate_command "$gate")
+      if [[ -z "$gate_cmd" ]]; then
+        echo "  ⚠️  $gate — no command defined in $(resolve_config)"
+        warns=$((warns + 1))
+        continue
+      fi
+      set +e
+      gate_out=$(bash -c "$gate_cmd" 2>&1)
+      gate_rc=$?
+      set -e
+      if [[ "$gate_rc" -eq 0 ]]; then
+        echo "  ✅ $gate — $gate_cmd"
+      else
+        echo "  ❌ $gate — $gate_cmd (exit $gate_rc)"
+        echo "$gate_out" | tail -5 | sed 's/^/       /'
+        fails=$((fails + 1))
+      fi
+    done
+  else
+    echo "Gates: (none declared in galley frontmatter)"
+  fi
+
+  # ── 2. acceptance criteria ──
+  echo ""
+  echo "Acceptance criteria:"
+  local runner ac_total=0
+  runner=$(get_test_runner)
+  local fallback_rc="" fallback_warned=0
+  # cache: identical runner commands execute once (bash 3.2 — parallel arrays)
+  local _cc_cmds=() _cc_rcs=()
+
+  local id kind payload ticked
+  local tfile tname tcmd tout trc cout crc i cached_rc tgate
+  while IFS='|' read -r id kind payload ticked; do
+    ac_total=$((ac_total + 1))
+    case "$kind" in
+      test)
+        tfile="${payload%%::*}"
+        tname=""
+        [[ "$payload" == *::* ]] && tname="${payload##*::}"
+        if [[ ! -f "$tfile" ]]; then
+          echo "  ❌ $id · test: $payload — file not found: $tfile"
+          fails=$((fails + 1))
+          continue
+        fi
+        if [[ -n "$tname" ]] && ! grep -q "$tname" "$tfile"; then
+          echo "  ❌ $id · test: $payload — '$tname' not found in $tfile"
+          fails=$((fails + 1))
+          continue
+        fi
+        if [[ -n "$runner" ]]; then
+          tcmd="$runner"
+          tcmd="${tcmd//\{ref\}/$payload}"
+          tcmd="${tcmd//\{file\}/$tfile}"
+          tcmd="${tcmd//\{name\}/$tname}"
+          cached_rc=""
+          for ((i = 0; i < ${#_cc_cmds[@]}; i++)); do
+            [[ "${_cc_cmds[$i]}" == "$tcmd" ]] && cached_rc="${_cc_rcs[$i]}" && break
+          done
+          if [[ -n "$cached_rc" ]]; then
+            trc="$cached_rc"
+            tout="(cached — '$tcmd' already ran)"
+          else
+            set +e
+            tout=$(bash -c "$tcmd" 2>&1)
+            trc=$?
+            set -e
+            _cc_cmds+=("$tcmd")
+            _cc_rcs+=("$trc")
+          fi
+          if [[ "$trc" -eq 0 ]]; then
+            echo "  ✅ $id · test: $payload"
+          else
+            echo "  ❌ $id · test: $payload — '$tcmd' exit $trc"
+            echo "$tout" | tail -5 | sed 's/^/       /'
+            fails=$((fails + 1))
+          fi
+        else
+          if [[ "$fallback_warned" -eq 0 ]]; then
+            echo "  ⚠️  no test-runner: template in $(resolve_config) — running the full 'test' gate once; per-AC attribution unavailable"
+            warns=$((warns + 1))
+            fallback_warned=1
+          fi
+          if [[ -z "$fallback_rc" ]]; then
+            tgate=$(get_gate_command test)
+            if [[ -z "$tgate" ]]; then
+              fallback_rc=127
+            else
+              set +e
+              bash -c "$tgate" > /dev/null 2>&1
+              fallback_rc=$?
+              set -e
+            fi
+          fi
+          if [[ "$fallback_rc" -eq 127 ]]; then
+            echo "  ❌ $id · test: $payload — no test-runner: and no 'test' gate defined; cannot evaluate"
+            fails=$((fails + 1))
+          elif [[ "$fallback_rc" -eq 0 ]]; then
+            echo "  ✅ $id · test: $payload (via full test gate)"
+          else
+            echo "  ❌ $id · test: $payload — full test gate failed (exit $fallback_rc)"
+            fails=$((fails + 1))
+          fi
+        fi
+        ;;
+      check)
+        set +e
+        cout=$(bash -c "$payload" 2>&1)
+        crc=$?
+        set -e
+        if [[ "$crc" -eq 0 ]]; then
+          echo "  ✅ $id · check: $payload"
+        else
+          echo "  ❌ $id · check: $payload (exit $crc)"
+          echo "$cout" | tail -5 | sed 's/^/       /'
+          fails=$((fails + 1))
+        fi
+        ;;
+      manual)
+        if [[ "$ticked" == "1" ]]; then
+          echo "  ❌ $id · manual: $payload — ticked [x]: manual steps are never ticked by agents."
+          echo "       Untick it; a human attests it in the Verdict, or moves with --force."
+          fails=$((fails + 1))
+        else
+          echo "  ⚠️  $id · manual: $payload — requires human verification (not machine-evaluated)"
+          warns=$((warns + 1))
+        fi
+        ;;
+      *)
+        echo "  ⚠️  (legacy) unbound AC — warns only, not machine-evaluated: $payload"
+        warns=$((warns + 1))
+        ;;
+    esac
+  done < <(extract_acs "$gfile")
+
+  if [[ "$ac_total" -eq 0 ]]; then
+    echo "  ⚠️  no acceptance criteria found in $gfile"
+    warns=$((warns + 1))
+  fi
+
+  echo ""
+  if [[ "$fails" -gt 0 ]]; then
+    echo "Result: ❌ FAIL — $fails failing, $warns warning(s)"
+    return 1
+  fi
+  echo "Result: ✅ PASS — $ac_total criteria evaluated, $warns warning(s)"
+  return 0
+}
+
+galley_move_legacy() {
+  local name="" target="" force=false reason=""
   local valid_statuses="shaping approved delivering review done"
 
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --force) force=true; shift ;;
+      --reason)
+        if [[ $# -ge 2 ]]; then reason="$2"; shift 2; else shift; fi
+        ;;
+      *)
+        if [[ -z "$name" ]]; then name="$1"
+        elif [[ -z "$target" ]]; then target="$1"
+        else echo "✗ Unexpected argument: $1"; exit 1
+        fi
+        shift ;;
+    esac
+  done
+
   if [[ -z "$name" || -z "$target" ]]; then
-    echo "✗ Usage: codepress galley move <name> <status>"
+    echo "✗ Usage: codepress galley move <name> <status> [--force] [--reason <text>]"
     echo "  Status: shaping | approved | delivering | review | done"
     exit 1
   fi
@@ -1077,9 +1686,59 @@ cmd_galley_move() {
   fi
 
   local file=".codepress/product/galleys/$name/galley.md"
+  local rfile=".codepress/product/galleys/$name/review.md"
   if [[ ! -f "$file" ]]; then
     echo "✗ Galley '$name' not found at $file"
     exit 1
+  fi
+
+  local from
+  from=$(grep -m1 "^status:" "$file" 2>/dev/null | sed 's/status: *//' || echo "?")
+
+  # ── Gates: → review and → done are guarded; earlier statuses are not ──
+  if [[ "$force" != true && ( "$target" == "review" || "$target" == "done" ) ]]; then
+    local check_out check_rc
+    set +e
+    check_out=$(cmd_check "$name" 2>&1)
+    check_rc=$?
+    set -e
+    if [[ "$check_rc" -ne 0 ]]; then
+      echo "✗ Move to [$target] refused — 'codepress check $name' fails:"
+      echo ""
+      echo "$check_out" | sed 's/^/  /'
+      echo ""
+      echo "  Fix the failing criteria, or override with --force (records a waiver in review.md)."
+      exit 1
+    fi
+    if [[ "$target" == "review" ]] && ! has_signals "$rfile"; then
+      echo "✗ Move to [review] refused — ## Signals in $rfile is empty."
+      echo "  A galley with zero signals learned nothing. Capture observations first, or --force."
+      exit 1
+    fi
+    if [[ "$target" == "done" ]]; then
+      local verdict_out verdict_rc
+      set +e
+      verdict_out=$(check_verdict "$name" 2>&1)
+      verdict_rc=$?
+      set -e
+      if [[ "$verdict_rc" -ne 0 ]]; then
+        echo "✗ Move to [done] refused — verdict gate fails:"
+        echo "$verdict_out"
+        echo "  An independent verifier (≠ engines.build) must complete ## Verdict in review.md"
+        echo "  (see skills/verify.md), or override with --force (records a waiver)."
+        exit 1
+      fi
+    fi
+  fi
+
+  # --force on a gated transition leaves a dated waiver trace in review.md
+  if [[ "$force" == true && ( "$target" == "review" || "$target" == "done" ) ]]; then
+    [[ -f "$rfile" ]] || echo "# Review: $name" > "$rfile"
+    {
+      echo ""
+      echo "> waived: $(date +%Y-%m-%d) ${from}→${target} by human — ${reason:-unstated}"
+    } >> "$rfile"
+    echo "⚠ Gates bypassed with --force — waiver recorded in $rfile"
   fi
 
   if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -1092,13 +1751,370 @@ cmd_galley_move() {
   regenerate_boards
 }
 
+# ─── Lifecycle moves ──────────────────────────────────────────────────────────
+
+# Which vocabulary governs a move? The galley's current status decides.
+#   canonical status (proposed/shaped/building/verifying/done/killed/superseded)
+#       → the lifecycle in schema/lifecycle.yaml: allowed edges + gates as data.
+#   retired or unknown status (shaping/approved/delivering/review, ...)
+#       → the legacy gates (check + signals → review, verdict → done), so
+#         un-migrated projects keep working until their statuses are migrated.
+cmd_galley_move() {
+  local a first=""
+  local skip=false
+  for a in "$@"; do
+    if [[ "$skip" == true ]]; then skip=false; continue; fi
+    case "$a" in
+      --reason|--superseded-by) skip=true ;;
+      --*) ;;
+      *) first="$a"; break ;;
+    esac
+  done
+  local file=".codepress/product/galleys/${first}/galley.md"
+  if [[ -n "$first" && -f "$file" ]]; then
+    local cur
+    cur=$(get_fm_field "$file" status)
+    canon_status galley "$cur"
+    if [[ "$CANON_KNOWN" == true && "$CANON_FLAGS" != *retired* ]]; then
+      galley_move_strict "$@"
+      return
+    fi
+  fi
+  galley_move_legacy "$@"
+}
+
+galley_move_strict() {
+  local name="" target="" force=false reason="" superseded_by=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --force) force=true; shift ;;
+      --reason) [[ $# -ge 2 ]] && { reason="$2"; shift 2; } || shift ;;
+      --superseded-by) [[ $# -ge 2 ]] && { superseded_by="$2"; shift 2; } || shift ;;
+      *)
+        if [[ -z "$name" ]]; then name="$1"
+        elif [[ -z "$target" ]]; then target="$1"
+        else echo "✗ Unexpected argument: $1"; exit 1
+        fi
+        shift ;;
+    esac
+  done
+  if [[ -z "$name" || -z "$target" ]]; then
+    echo "✗ Usage: codepress galley move <name> <status> [--force] [--reason <text>] [--superseded-by <galley>]"
+    exit 1
+  fi
+
+  local file=".codepress/product/galleys/$name/galley.md"
+  local rfile=".codepress/product/galleys/$name/review.md"
+  local from
+  from=$(get_fm_field "$file" status)
+
+  # Target must be a canonical status.
+  canon_status galley "$target"
+  if [[ "$CANON_KNOWN" == true && "$CANON_FLAGS" == *retired* ]]; then
+    echo "✗ '$target' is a retired status — use '$CANON_STATUS' (see schema/lifecycle.yaml)."
+    exit 1
+  fi
+  if [[ "$CANON_KNOWN" != true ]]; then
+    echo "✗ Invalid status '$target'. Valid: $(printf '%s\n' "$_STATUS_TABLE" | awk '$1 == "galley" && $4 !~ /retired/ { printf "%s ", $2 }')"
+    exit 1
+  fi
+
+  if [[ "$from" == "$target" ]]; then
+    echo "✓ Galley '$name' is already [$target]"
+    return 0
+  fi
+
+  # killed / superseded take their reason from the flags.
+  local edge_rc=0
+  run_lint_py requires "$from" "$target" >/dev/null 2>&1 || edge_rc=$?
+  if [[ "$edge_rc" -eq 0 ]]; then
+    [[ "$target" == "killed" && -n "$reason" ]] && set_fm_field "$file" closed_reason "$(yaml_value "$reason")"
+    [[ "$target" == "superseded" && -n "$superseded_by" ]] && set_fm_field "$file" superseded_by "$superseded_by"
+  fi
+
+  # Static gates (and the edge itself) are decided by lint.py.
+  local gate_out gate_rc=0
+  gate_out=$(run_lint_py gate "$name" "$from" "$target" 2>&1) || gate_rc=$?
+
+  # Dynamic gates run here.
+  local dyn_out="" dyn_rc=0 gate_id gate_kind
+  if [[ "$edge_rc" -eq 0 ]]; then
+    while read -r gate_id gate_kind; do
+      [[ "$gate_kind" == "dynamic" ]] || continue
+      case "$gate_id" in
+        ac_check)
+          local co crc=0
+          co=$(cmd_check "$name" 2>&1) || crc=$?
+          if [[ "$crc" -ne 0 ]]; then
+            dyn_rc=1
+            dyn_out+="$co"$'\n'
+          fi
+          ;;
+      esac
+    done < <(run_lint_py requires "$from" "$target" 2>/dev/null)
+  fi
+
+  local refused=false
+  if [[ "$gate_rc" -ne 0 || "$dyn_rc" -ne 0 ]]; then refused=true; fi
+
+  if [[ "$refused" == true && "$force" != true ]]; then
+    echo "✗ Move [$from] → [$target] refused:"
+    echo ""
+    [[ -n "$gate_out" ]] && echo "$gate_out" | sed 's/^/  /'
+    [[ -n "$dyn_out" ]] && echo "$dyn_out" | sed 's/^/  /'
+    echo ""
+    echo "  Satisfy the gates, or override with --force --reason \"...\" (records a waiver in review.md;"
+    echo "  lint treats the waived gates as warnings — no --no-verify needed)."
+    exit 1
+  fi
+
+  if [[ "$refused" == true && "$force" == true ]]; then
+    [[ -f "$rfile" ]] || echo "# Review: $name" > "$rfile"
+    {
+      echo ""
+      echo "> waived: $(date +%Y-%m-%d) ${from}→${target} by human — ${reason:-unstated}"
+    } >> "$rfile"
+    echo "⚠ Gates bypassed with --force — waiver recorded in $rfile"
+  fi
+
+  set_fm_field "$file" status "$target"
+  echo "✓ Galley '$name' moved to [$target]"
+  regenerate_boards
+}
+
+# codepress galley approve <name> [--by <who>] — record human approval of the
+# shape. Approval is a gate on shaped → building, not a status of its own.
+cmd_galley_approve() {
+  local name="" by=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --by) [[ $# -ge 2 ]] && { by="$2"; shift 2; } || shift ;;
+      *) if [[ -z "$name" ]]; then name="$1"; else echo "✗ Unexpected argument: $1"; exit 1; fi; shift ;;
+    esac
+  done
+  if [[ -z "$name" ]]; then
+    echo "✗ Usage: codepress galley approve <name> [--by <who>]"
+    exit 1
+  fi
+  local file=".codepress/product/galleys/$name/galley.md"
+  if [[ ! -f "$file" ]]; then
+    echo "✗ Galley '$name' not found at $file"
+    exit 1
+  fi
+  local cur
+  cur=$(get_fm_field "$file" status)
+  canon_status galley "$cur"
+  if [[ "$CANON_STATUS" != "shaped" ]]; then
+    echo "✗ Only a shaped galley can be approved ('$name' is [$cur])."
+    [[ "$CANON_STATUS" == "proposed" ]] && echo "  Shape it first, then: codepress galley move $name shaped"
+    exit 1
+  fi
+  local shape_out
+  if ! shape_out=$(run_lint_py eval "$name" shape_complete 2>&1); then
+    echo "✗ Cannot approve an incomplete shape:"
+    echo "$shape_out" | sed 's/^/  /'
+    exit 1
+  fi
+  if [[ -z "$by" ]]; then
+    by=$(git config user.name 2>/dev/null || true)
+    by="${by:-${USER:-unknown}}"
+  fi
+  set_fm_field "$file" approved_by "$(yaml_value "$by")"
+  set_fm_field "$file" approved_on "$(date +%Y-%m-%d)"
+  echo "✓ Galley '$name' approved by $by"
+  echo "  Next: codepress galley move $name building"
+}
+
+# codepress migrate-status [--apply] — move a project's galley and slug statuses
+# onto the lifecycle vocabulary using the mapping in schema/lifecycle.yaml.
+# Dry run by default; judgment calls are flagged for a human to eyeball.
+cmd_migrate_status() {
+  run_lint_py migrate --root . "$@"
+}
+
+cmd_lint() {
+  run_lint_py lint --root . --cli-version "$VERSION" "$@"
+}
+
+cmd_version() {
+  echo "codepress v$VERSION"
+  if [[ -d ".codepress/system" ]]; then
+    echo "project marker: v$(get_codepress_version)  ($(resolve_config))"
+  fi
+}
+
 cmd_galley() {
   local sub="${1:-}"; shift || true
   case "$sub" in
     new) cmd_galley_new "$@" ;;
     list) cmd_galley_list "$@" ;;
     move) cmd_galley_move "$@" ;;
-    *) echo "Usage: codepress galley new|list|move"; exit 1 ;;
+    approve) cmd_galley_approve "$@" ;;
+    *) echo "Usage: codepress galley new|list|move|approve"; exit 1 ;;
+  esac
+}
+
+# ─── Git hook (lint + verify gates, no --no-verify) ───────────────────────────
+#
+# `codepress hook install` writes a pre-commit shim; the shim calls
+# `codepress hook run`, which is where the logic (and its tests) live.
+#
+# A fresh git worktree has no virtualenv of its own, so the gates would fail
+# with "command not found" and tempt people into --no-verify. Instead the hook
+# finds a tool environment, in this order:
+#   1. CODEPRESS_ENV=<dir>            explicit (a venv root with bin/)
+#   2. hook-env: in codepress.md      absolute, or relative to this/the main worktree
+#   3. ./.venv ./venv ./env           the worktree's own
+#   4. the same names in the main worktree (git's common dir)
+# CODEPRESS_HOOK_GATES="lint"        narrows the gates for one commit (default
+#                                    "lint test") — the sanctioned alternative to
+#                                    --no-verify when an environment is truly absent.
+
+hook_find_env() {
+  local d cand main_root common cfg_env
+  if [[ -n "${CODEPRESS_ENV:-}" ]]; then
+    if [[ -d "$CODEPRESS_ENV" ]]; then echo "$CODEPRESS_ENV"; return 0; fi
+    echo "✗ CODEPRESS_ENV=$CODEPRESS_ENV is not a directory." >&2
+    return 1
+  fi
+
+  main_root=""
+  common=$(git rev-parse --git-common-dir 2>/dev/null || true)
+  if [[ -n "$common" ]]; then
+    main_root=$(cd "$common/.." 2>/dev/null && pwd || true)
+  fi
+
+  cfg_env=""
+  if [[ -f "$(resolve_config)" ]]; then
+    cfg_env=$(grep -m1 '^hook-env:' "$(resolve_config)" 2>/dev/null | sed 's/^hook-env:[ ]*//; s/[ \t]*#.*$//; s/[ \t]*$//' || true)
+  fi
+  if [[ -n "$cfg_env" ]]; then
+    for cand in "$cfg_env" "$PWD/$cfg_env" "${main_root:+$main_root/$cfg_env}"; do
+      [[ -n "$cand" && -d "$cand" ]] && { echo "$cand"; return 0; }
+    done
+  fi
+
+  for d in .venv venv env; do
+    [[ -f "$PWD/$d/bin/activate" || -x "$PWD/$d/bin/python" ]] && { echo "$PWD/$d"; return 0; }
+  done
+  if [[ -n "$main_root" && "$main_root" != "$PWD" ]]; then
+    for d in .venv venv env; do
+      [[ -f "$main_root/$d/bin/activate" || -x "$main_root/$d/bin/python" ]] && { echo "$main_root/$d"; return 0; }
+    done
+  fi
+  return 0
+}
+
+cmd_hook_run() {
+  local env_dir gates gate cmd rc out fails=0 ran=""
+  env_dir=$(hook_find_env) || exit 1
+  if [[ -n "$env_dir" ]]; then
+    export VIRTUAL_ENV="$env_dir"
+    export PATH="$env_dir/bin:$PATH"
+    unset PYTHONHOME || true
+  fi
+
+  gates="${CODEPRESS_HOOK_GATES:-lint test}"
+  echo "codepress hook — gates: $gates${env_dir:+  (env: $env_dir)}"
+
+  for gate in $gates; do
+    if [[ "$gate" == "lint" ]]; then
+      if out=$(cmd_lint --quiet --changed 2>&1); then
+        echo "  ✅ lint"
+      else
+        echo "  ❌ lint"
+        echo "$out" | sed 's/^/       /'
+        fails=$((fails + 1))
+      fi
+      continue
+    fi
+    cmd=$(get_gate_command "$gate")
+    if [[ -z "$cmd" ]]; then
+      echo "  ⚠️  $gate — no command in $(resolve_config); skipped"
+      continue
+    fi
+    set +e
+    out=$(bash -c "$cmd" 2>&1)
+    rc=$?
+    set -e
+    if [[ "$rc" -eq 0 ]]; then
+      echo "  ✅ $gate — $cmd"
+    elif [[ "$rc" -eq 127 ]]; then
+      echo "  ❌ $gate — command not found: $cmd"
+      echo "       No tool environment was found for this checkout. Point the hook at one:"
+      echo "         CODEPRESS_ENV=/path/to/venv git commit ...      (or set hook-env: in codepress.md)"
+      echo "       To run only lint for this one commit:"
+      echo "         CODEPRESS_HOOK_GATES=lint git commit ..."
+      fails=$((fails + 1))
+    else
+      echo "  ❌ $gate — $cmd (exit $rc)"
+      echo "$out" | tail -15 | sed 's/^/       /'
+      fails=$((fails + 1))
+    fi
+  done
+
+  if [[ "$fails" -gt 0 ]]; then
+    echo "✗ hook failed ($fails gate(s))."
+    return 1
+  fi
+  echo "✓ hook passed."
+}
+
+cmd_hook_install() {
+  local force=false
+  [[ "${1:-}" == "--force" ]] && force=true
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    echo "✗ Not a git repository."
+    exit 1
+  fi
+  local hooks_dir hp
+  hp=$(git config core.hooksPath 2>/dev/null || true)
+  if [[ -n "$hp" ]]; then
+    case "$hp" in /*) hooks_dir="$hp" ;; *) hooks_dir="$(git rev-parse --show-toplevel)/$hp" ;; esac
+  else
+    hooks_dir=$(git rev-parse --git-path hooks)
+    case "$hooks_dir" in /*) ;; *) hooks_dir="$PWD/$hooks_dir" ;; esac
+  fi
+  mkdir -p "$hooks_dir"
+  local target="$hooks_dir/pre-commit"
+  if [[ -f "$target" ]] && ! grep -q "codepress-managed" "$target" && [[ "$force" != true ]]; then
+    echo "✗ $target already exists and is not codepress-managed. Use --force to replace it."
+    exit 1
+  fi
+  cat > "$target" <<SHIM
+#!/usr/bin/env bash
+# codepress-managed pre-commit hook (installed by 'codepress hook install').
+# Runs lint + the verify gates. Environment: CODEPRESS_ENV=<venv dir>,
+# CODEPRESS_HOOK_GATES="lint test". Never needs --no-verify.
+CP="\${CODEPRESS_BIN:-$SCRIPT_DIR/codepress}"
+[ -x "\$CP" ] || CP="\$(command -v codepress || true)"
+[ -n "\$CP" ] || { echo "codepress: CLI not found — set CODEPRESS_BIN" >&2; exit 1; }
+exec "\$CP" hook run "\$@"
+SHIM
+  chmod +x "$target"
+  echo "✓ Installed pre-commit hook at $target"
+}
+
+cmd_hook_uninstall() {
+  local hooks_dir target
+  hooks_dir=$(git rev-parse --git-path hooks 2>/dev/null || true)
+  case "$hooks_dir" in /*) ;; *) hooks_dir="$PWD/$hooks_dir" ;; esac
+  target="$hooks_dir/pre-commit"
+  if [[ -f "$target" ]] && grep -q "codepress-managed" "$target"; then
+    rm -f "$target"
+    echo "✓ Removed $target"
+  else
+    echo "  (no codepress-managed pre-commit hook found)"
+  fi
+}
+
+cmd_hook() {
+  local sub="${1:-}"; shift || true
+  case "$sub" in
+    run) cmd_hook_run "$@" ;;
+    install) cmd_hook_install "$@" ;;
+    uninstall) cmd_hook_uninstall "$@" ;;
+    *) echo "Usage: codepress hook install|uninstall|run"; exit 1 ;;
   esac
 }
 
@@ -1107,12 +2123,18 @@ cmd_galley() {
 case "${1:-}" in
   init) cmd_init ;;
   bootstrap) cmd_bootstrap ;;
-  upgrade) cmd_upgrade ;;
+  upgrade) shift; cmd_upgrade "$@" ;;
   migrate) cmd_migrate ;;
   status) shift; cmd_status "$@" ;;
   run) shift; cmd_run "$@" ;;
   watch) shift; cmd_watch "$@" ;;
   galley) shift; cmd_galley "$@" ;;
+  check) shift; cmd_check "$@" ;;
+  lint) shift; cmd_lint "$@" ;;
+  migrate-status) shift; cmd_migrate_status "$@" ;;
+  hook) shift; cmd_hook "$@" ;;
+  version|-v|--version) cmd_version ;;
+  __extract-acs) shift; extract_acs "$@" ;;  # internal plumbing (used by tests)
   -h|--help|"") usage ;;
   *) echo "Unknown: $1"; usage; exit 1 ;;
 esac

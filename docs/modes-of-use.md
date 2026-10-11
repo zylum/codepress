@@ -14,6 +14,7 @@ title: Modes of Use
   <a href="index.html">Home</a>
   <a href="quick-start.html">Quick Start</a>
   <a href="structure.html">Structure</a>
+  <a href="lifecycle.html">Lifecycle</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 
@@ -36,7 +37,7 @@ CodePress supports three levels of operation. Each level adds capability without
 | `codepress run` (action dispatch) | — | — | ✓ |
 | Engine routing (per-stage agents) | — | — | ✓ |
 | `codepress watch` (file watcher) | — | — | ✓ |
-| Hermes agent (context-aware automation) | — | — | Optional |
+| Automation adapter (context-aware automation) | — | — | Optional |
 | CLI tool required | No | Yes | Yes |
 | Obsidian required | No | Yes | Yes |
 
@@ -85,16 +86,16 @@ Adds automation. The CLI detects pending actions, dispatches the right skill/pla
 2. Run `codepress run` — the engine prompts to create the Galley
 3. Approve the Galley, run `codepress run` again — it splits into Slugs
 4. Build Slugs with your AI, run `codepress run` at each transition
-5. For fully automatic: `codepress watch` or add Hermes
+5. For fully automatic: `codepress watch` or add an automation adapter
 
 **Best for:** Teams wanting CI/CD for product delivery.
 
 ---
 
-## Level 3+: Hermes
+## Level 3+: automation adapters
 
-Hermes is an optional automation agent that replaces `codepress watch` with context-aware execution. Instead of firing on any file change, Hermes reads the specific artefact, understands what changed, and executes the exact next action.
+An adapter is an optional automation agent that replaces `codepress watch` with context-aware execution. Instead of firing on any file change, it reads the specific artefact, understands what changed, and executes the exact next action.
 
 Commands: `capture`, `shape`, `split`, `build`, `review`, `learn`, `status`.
 
-See [Hermes integration](/codepress/hermes.html) for setup and command reference.
+Adapters live in [`.codepress/system/adapters/`](https://github.com/zylum/codepress/blob/main/.codepress/system/adapters/) — core CodePress never depends on them.

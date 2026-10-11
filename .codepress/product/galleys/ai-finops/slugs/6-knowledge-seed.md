@@ -1,6 +1,6 @@
 ---
 id: af-v1-s6
-status: complete
+status: closed
 galley: af-v1
 autonomy: continuous
 budget:

@@ -1,6 +1,6 @@
 ---
 id: signal-skill
-status: done
+status: closed
 galley: learning-loop
 autonomy: continuous
 ---

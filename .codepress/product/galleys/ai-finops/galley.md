@@ -10,6 +10,7 @@ budget:
   wall-clock: 2d
   tokens: 40000
   cost: 2.00
+legacy: true
 ---
 
 # Galley: AI FinOps v1

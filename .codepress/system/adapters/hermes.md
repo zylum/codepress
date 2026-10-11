@@ -1,22 +1,3 @@
----
-layout: default
-title: Hermes Integration
----
-
-<link rel="stylesheet" href="/codepress/assets/css/custom.css">
-
-<div class="tab-nav">
-  <a href="overview.html">Overview</a>
-  <a href="faq.html">FAQs</a>
-  <a href="quick-reference.html">Reference</a>
-</div>
-<div class="page-nav">
-  <a href="index.html">Home</a>
-  <a href="modes-of-use.html">Modes of Use</a>
-  <a href="structure.html">Structure</a>
-  <a href="https://github.com/zylum/codepress">GitHub</a>
-</div>
-
 # Hermes Integration
 
 > Hermes is optional. CodePress works fully at Scaffold, Workshop, and Engine levels without it. Hermes adds context-aware automation.

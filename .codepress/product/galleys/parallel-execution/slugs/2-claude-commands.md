@@ -1,6 +1,6 @@
 ---
 id: claude-commands
-status: done
+status: closed
 galley: parallel-execution
 autonomy: continuous
 ---

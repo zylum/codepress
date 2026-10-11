@@ -10,6 +10,7 @@ budget:
   wall-clock: 1d
   tokens:
   cost:
+legacy: true
 ---
 
 # Galley: Loop Interop v1

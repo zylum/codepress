@@ -1,6 +1,6 @@
 ---
 id: ee-v1-s3
-status: archived
+status: dropped
 galley: ee-v1
 autonomy: stop
 ---

@@ -4,6 +4,7 @@ status: done
 initiative: ee-001
 release:
 created: 2026-06-05
+legacy: true
 ---
 
 # Galley: Execution Engine v1

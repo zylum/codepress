@@ -1,0 +1,64 @@
+# Slug frontmatter schema — read by `codepress lint`.
+# Same field-spec keys as galley.schema.yaml.
+#
+# The delegation fields (domain, tier, risk, needs_review, escalate_after) are
+# optional: absent means "use the default". Defaults are applied by the tools
+# that read them, never written back into files.
+
+fields:
+  id:
+    type: string
+    summary: >
+      Stable identifier. Optional: defaults to the file name. Set it when other
+      slugs `depends_on` it or commits name it differently from the file.
+  status:
+    type: enum
+    values_from: slug.statuses
+    summary: >
+      Slug lifecycle status (see lifecycle.yaml). A slug without one is treated
+      as open, with a warning.
+  galley:
+    type: string
+    summary: >
+      The galley this slug belongs to. Optional: the directory it lives in
+      already says so; when present it must agree.
+  autonomy:
+    type: enum
+    values: [continuous, confirm, stop]
+    default: continuous
+    summary: >
+      continuous = run to completion; confirm = check with a human before the
+      next slug; stop = halt and wait.
+  budget:
+    type: map
+    summary: "wall-clock, tokens, cost — planning figures."
+  domain:
+    type: string
+    summary: >
+      The area of the work this slug touches. Slugs in different domains can
+      run in parallel. Defaults to the galley's domain.
+  tier:
+    type: enum
+    values: [plan, build, mechanical]
+    default: build
+    summary: >
+      How much capability the slug deserves. plan = judgment and design;
+      build = ordinary delivery; mechanical = rote, well-specified edits.
+  risk:
+    type: enum
+    values: [low, medium, high]
+    default: medium
+    summary: Blast radius if the slug goes wrong.
+  needs_review:
+    type: bool
+    default: false
+    summary: >
+      An independent review of this slug is required before it closes.
+      Treat risk high as needs_review true unless set otherwise.
+  escalate_after:
+    type: int
+    default: 2
+    summary: Failed attempts before the slug is handed up a tier.
+  depends_on:
+    type: list
+    summary: Slug ids that must be settled first.

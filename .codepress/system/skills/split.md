@@ -1,11 +1,12 @@
 # Skill: Split
 
-Decompose an approved Galley into atomic Slugs.
+Decompose a shaped Galley into atomic Slugs.
 
 ---
 
 ## When to use
-When a Galley is `approved` and ready for execution planning.
+When a Galley is `shaped` and ready for execution planning. (Approval and splitting can happen in either
+order; the move to `building` needs both.)
 
 ---
 
@@ -34,11 +35,19 @@ When a Galley is `approved` and ready for execution planning.
 6. Create each Slug at `slugs/{id}-{name}.md` using `.codepress/system/templates/slug.md`
 7. For each Slug set:
    - Purpose (one sentence)
-   - Acceptance checklist (3–7 items)
+   - Acceptance checklist (3–7 items) — every item in the one-line bound format
+     (same grammar as galley ACs, see `skills/shape.md` § Writing acceptance criteria):
+     behaviours → `Given … · When … · Then … · test: <path>::<name>`,
+     mechanics → `check: <command>`, human/infra steps → `manual: <step>`.
+     Never GWT-ify a deletion; never check-ify a behaviour.
    - Autonomy level (`continuous` / `confirm` / `stop`)
-   - Dependencies (if any)
+   - Delivery fields, only where the default is wrong (see `schema/slug.schema.yaml`):
+     `domain` (area of the work; different domains can run in parallel), `tier` (`plan` | `build` | `mechanical`),
+     `risk` (`low` | `medium` | `high`), `needs_review`, `escalate_after` (failed attempts before going up a tier)
+   - Dependencies (if any) — `depends_on: [slug-id]`
 8. Create `review.md` (blank, ready for signal capture during delivery)
-9. Update Galley `status: delivering`
+9. Leave the Galley `status: shaped`. Once a human has approved it (`codepress galley approve <galley>`),
+   `codepress galley move <galley> building` starts delivery (gate: `approved`; a galley with no parts needs no slugs).
 10. Update `.codepress/views/galley-board.md`
 
 ---
@@ -59,4 +68,4 @@ If a Slug feels too large, split it. If too small, merge with adjacent work.
 - `run-sheet.md` with Slug order and parallel groups
 - `slugs/{id}-{name}.md` for each Slug
 - `review.md` ready (blank)
-- Galley `status: delivering`
+- Galley still `shaped`, ready to be approved and moved to `building`

@@ -5,6 +5,7 @@ initiative:
 release: 
 created: 2026-06-13
 verify: []
+legacy: true
 ---
 
 # Galley: Parallel Execution

@@ -46,6 +46,10 @@ The main entry point is the `codepress` Bash executable at the repo root.
 ./codepress galley new <name>
 ./codepress galley list
 ./codepress galley move <name> <status>
+./codepress galley approve <name>   # record human approval of a shaped galley
+./codepress lint              # statuses, transitions, gates, drift, version marker
+./codepress hook install      # pre-commit: lint + verify gates
+./codepress migrate-status    # plan moving older statuses onto the lifecycle (dry run)
 ```
 
 No build step — the CLI is a single Bash file, no compilation or package install needed.
@@ -78,7 +82,10 @@ All state lives in YAML frontmatter of markdown files — no database.
 
 Initiative lifecycle: `inbox → research → candidate → approved → shaping → galley-ready → archived`
 
-Galley lifecycle: `shaping → approved → delivering → review → done`
+Galley lifecycle: `proposed → shaped → building → verifying → done` (or `killed` / `superseded`). Approval is a
+gate on `shaped → building` (`codepress galley approve`), not a status. The rules — transitions, gates, and the mapping
+from older status values — are data in `.codepress/system/schema/lifecycle.yaml`; `codepress lint` enforces them
+(see `docs/lifecycle.md`).
 
 `codepress status` reads frontmatter across all artefacts to detect pending actions and regenerate board views.
 

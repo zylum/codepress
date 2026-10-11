@@ -1,0 +1,315 @@
+# CodePress lifecycle — the single source for statuses, transitions, gates and the
+# legacy status mapping.
+#
+# Read by `codepress lint`, `codepress galley move` and `codepress status`.
+# The prose in system/skills/ and system/dod.md describes this file; when they
+# disagree, this file wins (and `codepress lint` enforces it).
+#
+# A *galley* is any bounded task with a contract (acceptance criteria), gates
+# and run records. Nothing here assumes the work is code.
+#
+# Dialect: the YAML subset read by lib/miniyaml.py (block maps, block lists,
+# one-level flow lists/maps, # comments).
+
+schema: 1
+
+# ─── Galley ───────────────────────────────────────────────────────────────────
+
+galley:
+  initial: proposed
+
+  # The happy path, in order. The requirements of a status are the union of the
+  # requirements of every mainline transition up to and including it — that is
+  # what `codepress lint` checks about a galley that is *at* that status.
+  mainline: [proposed, shaped, building, verifying, done]
+
+  statuses:
+    proposed:
+      summary: An idea or problem worth shaping. No contract yet.
+      next: Shape it — write problem, success, approach and acceptance criteria.
+      actor: human
+    shaped:
+      summary: The contract is written. Slugs are split here. Waiting for approval.
+      next: Split into slugs, then approve it (`codepress galley approve`).
+      actor: human
+    building:
+      summary: Approved, and being delivered slug by slug.
+      next: Deliver the next open slug.
+      actor: agent
+    verifying:
+      summary: All slugs settled. An independent verifier is judging the result.
+      next: Verify independently, write the Verdict, capture learning.
+      actor: verifier
+    done:
+      summary: Delivered, verified by someone other than the builder, and learned from.
+      terminal: true
+    killed:
+      summary: Deliberately stopped. The reason is recorded.
+      terminal: true
+    superseded:
+      summary: Replaced by another galley (superseded_by).
+      terminal: true
+
+  # Allowed edges and what each one requires. `requires` names entries in the
+  # `gates:` catalogue below. Terminal statuses have no outgoing edges: a done,
+  # killed or superseded galley is never reopened — open a new galley instead.
+  transitions:
+    proposed->shaped:
+      requires: [shape_complete]
+    proposed->killed:
+      requires: [reason]
+    proposed->superseded:
+      requires: [superseded_by]
+
+    shaped->proposed:
+      requires: []
+    shaped->building:
+      requires: [approved]
+    shaped->killed:
+      requires: [reason]
+    shaped->superseded:
+      requires: [superseded_by]
+
+    building->shaped:
+      requires: [plan_change_logged]
+    building->verifying:
+      requires: [slugs_settled, acs_ticked, signals_present, ac_check]
+    building->killed:
+      requires: [reason]
+    building->superseded:
+      requires: [superseded_by]
+
+    verifying->building:
+      requires: [plan_change_logged]
+    verifying->done:
+      requires: [evidence, independent_review, learned_md, ac_check]
+    verifying->killed:
+      requires: [reason]
+    verifying->superseded:
+      requires: [superseded_by]
+
+# ─── Slug ─────────────────────────────────────────────────────────────────────
+
+slug:
+  initial: open
+  statuses:
+    open:
+      summary: Not started.
+    building:
+      summary: In progress.
+    closed:
+      summary: Delivered. Every acceptance box is ticked (manual steps excepted).
+      terminal: true
+    dropped:
+      summary: Deliberately not delivered. Record why in plan-changes.md.
+      terminal: true
+  transitions:
+    open->building:
+      requires: []
+    building->open:
+      requires: []
+    open->closed:
+      requires: [slug_acs_ticked]
+    building->closed:
+      requires: [slug_acs_ticked]
+    open->dropped:
+      requires: []
+    building->dropped:
+      requires: []
+    closed->building:
+      requires: []
+    dropped->open:
+      requires: []
+  # Statuses in which a slug no longer blocks its galley.
+  settled: [closed, dropped]
+
+# ─── Gate catalogue ───────────────────────────────────────────────────────────
+#
+# kind:   static  — decidable from files alone; `codepress lint` evaluates it.
+#         dynamic — needs running something; `codepress check` / `galley move`
+#                   evaluate it, `codepress lint` skips it (lint stays fast and
+#                   safe to run in a git hook).
+# actor:  who normally has to act to satisfy it: human | agent | verifier.
+# fix:    the one-line remedy shown when the gate fails.
+
+gates:
+  shape_complete:
+    kind: static
+    actor: agent
+    summary: galley.md has Problem, Success, Approach and Acceptance Criteria sections
+    fix: Fill in the missing galley.md sections.
+  approved:
+    kind: static
+    actor: human
+    summary: a human approved the shape (approved_by and approved_on are set)
+    fix: Run `codepress galley approve <galley> --by <name>`.
+  slugs_settled:
+    kind: static
+    actor: agent
+    summary: every slug is closed or dropped
+    fix: Close or drop the remaining slugs.
+  acs_ticked:
+    kind: static
+    actor: agent
+    summary: every acceptance criterion is ticked, manual steps excepted
+    fix: Tick the criteria that are met, or record why the plan changed.
+  signals_present:
+    kind: static
+    actor: agent
+    summary: review.md has captured Signals
+    fix: Capture Signals in review.md (a galley that learned nothing is suspect).
+  ac_check:
+    kind: dynamic
+    actor: agent
+    summary: every bound acceptance criterion passes `codepress check`
+    fix: Run `codepress check <galley>` and fix what fails.
+  evidence:
+    kind: static
+    actor: agent
+    summary: review.md has an Evidence section citing proof (commits, test runs, links)
+    fix: Cite the proof in review.md under "## Evidence".
+  independent_review:
+    kind: static
+    actor: verifier
+    summary: review.md has a complete Verdict by a verifier other than the builder
+    fix: Have the verifier engine write "## Verdict" in review.md.
+  learned_md:
+    kind: static
+    actor: agent
+    summary: learned.md exists and says something
+    fix: Write learned.md (what we learned; link the signals).
+  plan_change_logged:
+    kind: static
+    actor: agent
+    summary: plan-changes.md records why the plan moved
+    fix: Add an entry to plan-changes.md (what the plan said, what changed, why).
+  reason:
+    kind: static
+    actor: human
+    summary: closed_reason is set
+    fix: Set closed_reason in the galley frontmatter.
+  superseded_by:
+    kind: static
+    actor: human
+    summary: superseded_by names another existing galley
+    fix: Set superseded_by to the galley that replaces this one.
+  slug_acs_ticked:
+    kind: static
+    actor: agent
+    summary: every acceptance box in the slug is ticked, manual steps excepted
+    fix: Tick the finished boxes, or move the slug back to building.
+
+# ─── Waivers ──────────────────────────────────────────────────────────────────
+#
+# A human may override a gate with `codepress galley move --force --reason ...`.
+# That appends one line to review.md; lint downgrades the matching failures to
+# warnings so a recorded exception never needs `git commit --no-verify`.
+#
+#   > waived: 2026-10-08 verifying→done by human — reason text
+
+waiver:
+  pattern: '> waived: (\d{4}-\d{2}-\d{2}) (\w+)(?:→|->)(\w+)'
+
+# ─── Legacy status mapping ────────────────────────────────────────────────────
+#
+# Every value seen in the wild before this schema. Lint rejects them; this table
+# is what a migration (and the lint hint) uses to say what each one becomes.
+#
+#   to:                the canonical status
+#   implies_approved:  the old value meant "approved to build" (shaped + approved_by: legacy)
+#   grandfather:       migrate with `legacy: true` so terminal gates are not demanded
+#                      retroactively
+#   judgment:          true when the mapping is a judgment call a human should eyeball
+#   note:              why
+
+legacy:
+  galley:
+    draft:
+      to: proposed
+    shaping:
+      to: proposed
+      note: Being shaped is not yet shaped.
+    ready:
+      to: shaped
+      implies_approved: true
+      judgment: true
+      note: Shaped and cleared to build.
+    approved:
+      to: shaped
+      implies_approved: true
+      note: Approval is now a gate on shaped->building, not a status of its own.
+    active:
+      to: building
+    delivering:
+      to: building
+    rework:
+      to: building
+      judgment: true
+      note: Record the reason in plan-changes.md.
+    review:
+      to: verifying
+      note: The builder's hand-off to an independent verifier.
+    complete:
+      to: done
+      grandfather: true
+      judgment: true
+      note: Finished, but evidence, review and learned.md were never required.
+    delivered:
+      to: done
+      grandfather: true
+      judgment: true
+    released:
+      to: done
+      grandfather: true
+    learned:
+      to: done
+      grandfather: true
+    archived:
+      to: killed
+      judgment: true
+      note: Parked or abandoned. Set closed_reason when migrating.
+
+  slug:
+    pending:
+      to: open
+    todo:
+      to: open
+    ready:
+      to: open
+    active:
+      to: building
+    in-progress:
+      to: building
+    wip:
+      to: building
+    complete:
+      to: closed
+    completed:
+      to: closed
+    done:
+      to: closed
+    delivered:
+      to: closed
+    skipped:
+      to: dropped
+    cancelled:
+      to: dropped
+    killed:
+      to: dropped
+    archived:
+      to: dropped
+      judgment: true
+      note: Shelved. Record why in plan-changes.md.
+
+  # Field values that were spelled differently before the schema. Lint reports
+  # them (S010) and migrate-status rewrites them.
+  autonomy:
+    autonomous:
+      to: continuous
+      note: Runs without checking in.
+    auto:
+      to: continuous
+    manual:
+      to: confirm
+      judgment: true
+      note: A human is in the loop between slugs.

@@ -14,6 +14,7 @@ title: Core Concepts
   <a href="index.html">Home</a>
   <a href="quick-start.html">Quick Start</a>
   <a href="structure.html">Structure</a>
+  <a href="lifecycle.html">Lifecycle</a>
   <a href="https://github.com/zylum/codepress">GitHub</a>
 </div>
 
@@ -27,7 +28,7 @@ An opportunity worth exploring. Free-form — a problem statement, an idea, a us
 
 A shaped solution ready for delivery. The Galley captures Problem, Users, Success, Constraints, Approach, and Acceptance Criteria. Named after the linotype printing tray that held assembled type before it went to press. Galleys live in `.codepress/product/galleys/{name}/`.
 
-**Lifecycle:** `shaping → approved → delivering → review → done`
+**Lifecycle:** `proposed → shaped → building → verifying → done` (or `killed` / `superseded`). Approval is a gate on `shaped → building`, not a status. A galley is any bounded task with a contract, gates and a record of how it went — it need not be code. See [Lifecycle](lifecycle.html).
 
 ## Slug
 

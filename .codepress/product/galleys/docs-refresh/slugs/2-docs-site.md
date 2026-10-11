@@ -1,6 +1,6 @@
 ---
 id: docs-site
-status: done
+status: closed
 galley: docs-refresh
 autonomy: continuous
 ---

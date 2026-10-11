@@ -1,6 +1,6 @@
 ---
 id: review-template
-status: done
+status: closed
 galley: learning-loop
 autonomy: continuous
 ---
